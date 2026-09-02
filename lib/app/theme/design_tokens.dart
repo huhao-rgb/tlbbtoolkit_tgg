@@ -316,105 +316,108 @@ extension TgColorsContextX on BuildContext {
   TgColors get tg => Theme.of(this).extension<TgColors>()!;
 }
 
-/// ---------------------------------------------------------------------------
-/// 字体
-/// ---------------------------------------------------------------------------
+/// 字体：正文无衬线（Noto Sans SC，已打包 assets/fonts）
 abstract final class TgFonts {
-  /// 正文无衬线：系统栈（Flutter 默认解析平台 CJK 字体）
-  /// 如需与 Web 端完全一致，可在 pubspec 注册 Noto Sans SC 后改为：
-  /// static const String sans = 'Noto Sans SC';
-  static const String? sans = null;
+  /// 正文无衬线（已随应用打包）。
+  static const String sans = 'Noto Sans SC';
 
-  /// 标题衬线（品牌名 / 页面标题 / 大数字 / 徽章字）
+  /// 标题衬线（Noto Serif SC，已打包 assets/fonts；品牌名 / 页面标题 / 大数字 / 徽章字）
   static const String serif = 'Noto Serif SC';
 }
 
-/// 17 级字号阶梯（px / 字重 / 用途见各注释）
+/// 17 级字号阶梯（px / 字重 / 用途见各注释），字重对齐《设计规范》
+/// （标题 600 / 次级 500 / 正文 400），字体资产已打包（Noto Sans/Serif SC）。
 abstract final class TgType {
   static const _tnum = [FontFeature.tabularFigures()];
 
   /// 42 / 700 结果大数字（res-num，移动端 36）
   static TextStyle numResult(Color c) => TextStyle(
-      fontSize: 42, height: 1.1, fontWeight: FontWeight.w700,
-      color: c, fontFeatures: _tnum);
+      fontFamily: TgFonts.sans, fontSize: 42, height: 1.1,
+      fontWeight: FontWeight.w700, color: c, fontFeatures: _tnum);
 
-  /// 38 / 600 hero 大标题（serif · 字距4 · 移动端30）
+  /// 38 / 500 hero 大标题（serif · 字距4 · 移动端30）
   static const TextStyle hero = TextStyle(
       fontFamily: TgFonts.serif, fontSize: 38, height: 1.25,
-      fontWeight: FontWeight.w600, letterSpacing: 4);
+      fontWeight: FontWeight.w500, letterSpacing: 4);
 
-  /// 30 / 600 hero 移动端
+  /// 30 / 500 hero 移动端
   static const TextStyle heroMobile = TextStyle(
       fontFamily: TgFonts.serif, fontSize: 30, height: 1.25,
-      fontWeight: FontWeight.w600, letterSpacing: 3);
+      fontWeight: FontWeight.w500, letterSpacing: 3);
 
-  /// 26 / 600 等级徽章字 / 大数字（serif）
+  /// 26 / 500 等级徽章字 / 大数字（serif）
   static const TextStyle display26 = TextStyle(
-      fontFamily: TgFonts.serif, fontSize: 26, fontWeight: FontWeight.w600);
+      fontFamily: TgFonts.serif, fontSize: 26, fontWeight: FontWeight.w500);
 
-  /// 24 / 600 页面标题（serif · 字距1）
+  /// 24 / 500 页面标题（serif · 字距1）
   static const TextStyle pageH1 = TextStyle(
       fontFamily: TgFonts.serif, fontSize: 24, height: 1.25,
-      fontWeight: FontWeight.w600, letterSpacing: 1);
+      fontWeight: FontWeight.w500, letterSpacing: 1);
 
   /// 21 / 600 统计数字（tabular-nums）
   static TextStyle stat21(Color c) => TextStyle(
-      fontSize: 21, fontWeight: FontWeight.w600, color: c,
-      fontFeatures: _tnum);
+      fontFamily: TgFonts.sans, fontSize: 21, fontWeight: FontWeight.w600,
+      color: c, fontFeatures: _tnum);
 
-  /// 19 / 600 品牌名 / 兽魂评分（serif · 字距2）
+  /// 19 / 500 品牌名 / 兽魂评分（serif · 字距2）
   static const TextStyle score19 = TextStyle(
       fontFamily: TgFonts.serif, fontSize: 19,
-      fontWeight: FontWeight.w600, letterSpacing: 2);
+      fontWeight: FontWeight.w500, letterSpacing: 2);
 
   /// 17 / 500 顶栏标题（移动端 15）
-  static const TextStyle topTitle =
-      TextStyle(fontSize: 17, fontWeight: FontWeight.w500, letterSpacing: 1);
+  static const TextStyle topTitle = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 17,
+      fontWeight: FontWeight.w500, letterSpacing: 1);
 
   /// 16 / 500 单元格数值
-  static const TextStyle cell16 =
-      TextStyle(fontSize: 16, fontWeight: FontWeight.w500);
+  static const TextStyle cell16 = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 16, fontWeight: FontWeight.w500);
 
   /// 15 / 500 步进器数字 / 操作按钮
-  static const TextStyle control15 =
-      TextStyle(fontSize: 15, fontWeight: FontWeight.w500);
+  static const TextStyle control15 = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 15, fontWeight: FontWeight.w500);
 
   /// 14.5 / 500 卡片标题
-  static const TextStyle cardTitle =
-      TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500);
+  static const TextStyle cardTitle = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 14.5, fontWeight: FontWeight.w500);
 
   /// 14 / 400 正文 / 输入框
-  static const TextStyle body14 = TextStyle(fontSize: 14, height: 1.65);
+  static const TextStyle body14 =
+      TextStyle(fontFamily: TgFonts.sans, fontSize: 14, height: 1.65);
 
   /// 13.5 / 500 按钮 / 导航项
-  static const TextStyle button =
-      TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500);
+  static const TextStyle button = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 13.5, fontWeight: FontWeight.w500);
 
   /// 13 / 400 列表行 / 结果行
-  static const TextStyle row13 =
-      TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
+  static const TextStyle row13 = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 13, fontWeight: FontWeight.w500);
 
   /// 12.5 / 400 表单 label / 小按钮
-  static const TextStyle label =
-      TextStyle(fontSize: 12.5, letterSpacing: .5);
+  static const TextStyle label = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 12.5, letterSpacing: .5);
 
   /// 12 / 400 面包屑 / 结果小注
-  static const TextStyle caption = TextStyle(fontSize: 12);
+  static const TextStyle caption =
+      TextStyle(fontFamily: TgFonts.sans, fontSize: 12);
 
   /// 11.5 / 400 注释 / 表头（字距1.5）
-  static const TextStyle note =
-      TextStyle(fontSize: 11.5, height: 1.7, letterSpacing: 1.5);
+  static const TextStyle note = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 11.5, height: 1.7,
+      letterSpacing: 1.5);
 
   /// 11 / 400 tag / 页脚
-  static const TextStyle tag = TextStyle(fontSize: 11);
+  static const TextStyle tag =
+      TextStyle(fontFamily: TgFonts.sans, fontSize: 11);
 
   /// 10.5 / 400 品牌副标 / 底栏文字
-  static const TextStyle micro =
-      TextStyle(fontSize: 10.5, letterSpacing: 1);
+  static const TextStyle micro = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 10.5, letterSpacing: 1);
 
   /// 10 / 600 hot 角标（字距1）
-  static const TextStyle hot =
-      TextStyle(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1);
+  static const TextStyle hot = TextStyle(
+      fontFamily: TgFonts.sans, fontSize: 10,
+      fontWeight: FontWeight.w600, letterSpacing: 1);
 }
 
 /// ---------------------------------------------------------------------------

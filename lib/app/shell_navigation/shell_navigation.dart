@@ -4,27 +4,27 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/responsive/breakpoints.dart';
 import 'shell_navigation_state.dart';
+import 'widgets/app_info_bar.dart';
+import 'widgets/desktop_sidebar.dart';
 
-/// shell 导航框架（响应式）。
-///
-/// 按窗口宽度自适应两种布局：
+/// shell 导航框架（响应式），按原型双端还原：
 ///
 /// ```
-/// mobile（<900）                desktop（≥900）
-/// ┌──────────────┐          ┌───────┬─────────────────┐
-/// │ 信息条        │          │       │ 信息条           │
-/// ├──────────────┤          │ 侧栏   ├─────────────────┤
-/// │              │          │ 工具箱 │                 │
-/// │   内容区      │          │ 设置   │   内容区         │
-/// │              │          │       │                 │
-/// ├──────────────┤          │       │                 │
-/// │ [工具箱][设置] │          └───────┴─────────────────┘
-/// └──────────────┘
+/// mobile（<900）                  desktop（≥900）
+/// ┌──────────────────┐        ┌────────┬──────────────────┐
+/// │ 信息条(顶栏)      │        │ 品牌    │ 信息条            │
+/// ├──────────────────┤        │ ─总览─  │ ──────────────── │
+/// │                  │        │ 首页    │                  │
+/// │      内容区       │        │ ─宝宝─  │     内容区        │
+/// │                  │        │ …11工具 │                  │
+/// ├──────────────────┤        │ 主题切换 │                  │
+/// │ 首页│宝宝│兽灵│职业│        └────────┴──────────────────┘
+/// └──────────────────┘
 /// ```
 ///
-/// - 信息条：显示当前路由名称；二级页面显示返回按钮；
-/// - mobile：中间内容区 + 底部 tabbar；
-/// - desktop：左侧全高侧边栏，右侧顶部信息条 + 底部内容区。
+/// - 信息条：显示当前路由名；二级页面显示返回按钮；右侧主题切换与设置入口；
+/// - mobile：底部 4 段 tab（首页 / 宝宝 / 兽灵·兽魂 / 职业 → 各分类 hub）；
+/// - desktop：左侧 236 宽原型侧栏（品牌 + 分组工具导航），无底部 tab。
 class AppShellNavigation extends ConsumerWidget {
   const AppShellNavigation({
     super.key,
@@ -34,15 +34,25 @@ class AppShellNavigation extends ConsumerWidget {
   /// go_router 注入的状态化导航壳，负责各 tab 分支的 Navigator 与切换。
   final StatefulNavigationShell navigationShell;
 
-  /// tab 项配置（两种布局共用）。
+  /// 移动端底部 tab 项（分支 0..3 = home/pet/beast/job）。
   static const List<({IconData icon, IconData activeIcon, String label})>
-      _tabs = [
-    (icon: Icons.home_outlined, activeIcon: Icons.home, label: '工具箱'),
-    (icon: Icons.settings_outlined, activeIcon: Icons.settings, label: '设置'),
+      _destinations = [
+    (icon: Icons.home_outlined, activeIcon: Icons.home, label: '首页'),
+    (icon: Icons.pets, activeIcon: Icons.pets, label: '宝宝'),
+    (
+      icon: Icons.diamond_outlined,
+      activeIcon: Icons.diamond,
+      label: '兽灵·兽魂'
+    ),
+    (
+      icon: Icons.sports_martial_arts_outlined,
+      activeIcon: Icons.sports_martial_arts,
+      label: '职业'
+    ),
   ];
 
   void _onTabSelected(int index) {
-    // goBranch 会保留各分支的导航栈状态。
+    // goBranch 保留各分支导航栈；点当前 tab 回到该分支根。
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -50,7 +60,7 @@ class AppShellNavigation extends ConsumerWidget {
   }
 
   void _goBack() {
-    // 返回当前分支的根页面（一级页面）。
+    // 返回当前分支的根页面（如 /pet/calc → 宝宝工具 hub）。
     navigationShell.goBranch(
       navigationShell.currentIndex,
       initialLocation: true,
@@ -64,20 +74,29 @@ class AppShellNavigation extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final layout = Breakpoints.layoutOf(constraints.maxWidth);
+        final desktop = layout == DeviceLayout.desktop;
 
-        // 公共信息条（两种布局共用）。
-        final infoBar = _InfoBar(
+        final infoBar = AppInfoBar(
           key: const Key('shell-info-bar'),
           title: navState.title,
           showBack: navState.isSecondLevel,
           onBack: _goBack,
+          desktop: desktop,
         );
 
         switch (layout) {
           case DeviceLayout.mobile:
             return Scaffold(
-              appBar: AppBar(title: infoBar),
-              body: navigationShell,
+              body: SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    infoBar,
+                    const Divider(height: 1),
+                    Expanded(child: navigationShell),
+                  ],
+                ),
+              ),
               bottomNavigationBar: _MobileTabBar(
                 currentIndex: navigationShell.currentIndex,
                 onSelected: _onTabSelected,
@@ -87,13 +106,12 @@ class AppShellNavigation extends ConsumerWidget {
             return Scaffold(
               body: Row(
                 children: [
-                  // 左侧全高侧边栏。
-                  _DesktopSideBar(
-                    currentIndex: navigationShell.currentIndex,
-                    onSelected: _onTabSelected,
+                  // 左侧 236 宽原型侧栏。
+                  DesktopSidebar(
+                    currentLocation: navState.location,
                   ),
                   const VerticalDivider(width: 1),
-                  // 右侧：顶部信息条 + 底部内容区。
+                  // 右侧：顶栏信息条 + 内容区。
                   Expanded(
                     child: Column(
                       children: [
@@ -112,54 +130,7 @@ class AppShellNavigation extends ConsumerWidget {
   }
 }
 
-/// 公共信息条。
-///
-/// 自绘容器（非 `AppBar`）：`AppBar` 内嵌 `Column` 会与测试的
-/// `pumpAndSettle` 死锁，且语义上信息条更适合用普通容器实现。
-class _InfoBar extends StatelessWidget {
-  const _InfoBar({
-    super.key,
-    required this.title,
-    required this.showBack,
-    required this.onBack,
-  });
-
-  final String title;
-  final bool showBack;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: colorScheme.surface,
-      child: SizedBox(
-        height: kToolbarHeight,
-        child: Row(
-          children: [
-            if (showBack)
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                tooltip: '返回',
-                onPressed: onBack,
-              ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 16),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 移动端底部 tabbar。
+/// 移动端底部 tabbar（4 段：首页 / 宝宝 / 兽灵·兽魂 / 职业）。
 class _MobileTabBar extends StatelessWidget {
   const _MobileTabBar({required this.currentIndex, required this.onSelected});
 
@@ -172,37 +143,11 @@ class _MobileTabBar extends StatelessWidget {
       selectedIndex: currentIndex,
       onDestinationSelected: onSelected,
       destinations: [
-        for (final tab in AppShellNavigation._tabs)
+        for (final tab in AppShellNavigation._destinations)
           NavigationDestination(
             icon: Icon(tab.icon),
             selectedIcon: Icon(tab.activeIcon),
             label: tab.label,
-          ),
-      ],
-    );
-  }
-}
-
-/// 桌面端左侧导航栏。
-class _DesktopSideBar extends StatelessWidget {
-  const _DesktopSideBar({required this.currentIndex, required this.onSelected});
-
-  final int currentIndex;
-  final ValueChanged<int> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return NavigationRail(
-      selectedIndex: currentIndex,
-      onDestinationSelected: onSelected,
-      labelType: NavigationRailLabelType.all,
-      leading: const SizedBox(height: 8),
-      destinations: [
-        for (final tab in AppShellNavigation._tabs)
-          NavigationRailDestination(
-            icon: Icon(tab.icon),
-            selectedIcon: Icon(tab.activeIcon),
-            label: Text(tab.label),
           ),
       ],
     );

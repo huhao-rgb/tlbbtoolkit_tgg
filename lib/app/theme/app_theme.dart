@@ -75,36 +75,40 @@ abstract final class TgTheme {
       highlightColor: c.goldTint(.06),
 
       // ---------- 文字 ----------
+      // 衬线角色（hero/h1/大数字/品牌）保留 TgType 自带的 Noto Serif SC；
+      // 其余无衬线角色显式指定 Noto Sans SC（不能用 apply 全局覆盖，否则会冲掉衬线）。
       textTheme: TextTheme(
         // 38/30 hero 大标题（serif · 字距4）
         displayLarge: TgType.hero.copyWith(color: c.t1),
         displayMedium: TgType.heroMobile.copyWith(color: c.t1),
         // 26 等级徽章 / 大数字（serif）
         displaySmall: TgType.display26.copyWith(color: c.t1),
-        // 21 统计数字
-        headlineLarge: TgType.stat21(c.gold2),
+        // 21 统计数字（sans · tabular）
+        headlineLarge: TgType.stat21(c.gold2).copyWith(fontFamily: TgFonts.sans),
         // 24 页面标题（serif · 字距1）
         headlineMedium: TgType.pageH1.copyWith(color: c.t1),
-        headlineSmall: TgType.stat21(c.gold2),
+        headlineSmall: TgType.stat21(c.gold2).copyWith(fontFamily: TgFonts.sans),
         // 19 品牌名 / 兽魂评分（serif）
         titleLarge: TgType.score19.copyWith(color: c.t1),
-        // 14.5 卡片标题
-        titleMedium: TgType.cardTitle.copyWith(color: c.t1),
-        // 13.5 按钮 / 导航项
-        titleSmall: TgType.button.copyWith(color: c.t1),
-        // 15 步进器数字 / 操作按钮
-        bodyLarge: TgType.control15.copyWith(color: c.t1),
-        // 14 正文
-        bodyMedium: TgType.body14.copyWith(color: c.t1),
-        // 12.5 label
-        bodySmall: TgType.label.copyWith(color: c.t2),
-        // 13.5 按钮文字
-        labelLarge: TgType.button.copyWith(color: c.t1),
-        // 11.5 注释 / 表头
-        labelMedium: TgType.note.copyWith(color: c.t3),
-        // 11 tag / 页脚
-        labelSmall: TgType.tag.copyWith(color: c.t3),
-      ).apply(fontFamily: TgFonts.sans),
+        // 14.5 卡片标题（sans）
+        titleMedium:
+            TgType.cardTitle.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        // 13.5 按钮 / 导航项（sans）
+        titleSmall: TgType.button.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        // 15 步进器数字 / 操作按钮（sans）
+        bodyLarge:
+            TgType.control15.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        // 14 正文（sans）
+        bodyMedium: TgType.body14.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        // 12.5 label（sans）
+        bodySmall: TgType.label.copyWith(color: c.t2, fontFamily: TgFonts.sans),
+        // 13.5 按钮文字（sans）
+        labelLarge: TgType.button.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        // 11.5 注释 / 表头（sans）
+        labelMedium: TgType.note.copyWith(color: c.t3, fontFamily: TgFonts.sans),
+        // 11 tag / 页脚（sans）
+        labelSmall: TgType.tag.copyWith(color: c.t3, fontFamily: TgFonts.sans),
+      ),
 
       // ---------- 顶栏 ----------
       appBarTheme: AppBarTheme(

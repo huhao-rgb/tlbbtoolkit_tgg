@@ -42,6 +42,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.12.0
   shared_preferences: ^2.5.5
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +63,11 @@ dev_dependencies:
   # --- Riverpod / 路由 代码生成 ---
   riverpod_generator: ^4.0.8
   go_router_builder: ^4.4.1
+  flutter_gen_runner: ^5.15.0
+
+# flutter_gen：对 assets 下静态资源做类型化代码生成（见 lib/gen/）。
+flutter_gen:
+  output: lib/gen/
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -73,6 +79,28 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # 设计规范字体（OFL 许可）：正文 Noto Sans SC / 标题 Noto Serif SC。
+  # 见 lib/app/theme/design_tokens.dart 的 TgFonts.sans / .serif。
+  fonts:
+    - family: Noto Sans SC
+      fonts:
+        - asset: assets/fonts/NotoSansSC-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansSC-Medium.ttf
+          weight: 500
+    - family: Noto Serif SC
+      fonts:
+        - asset: assets/fonts/NotoSerifSC-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSerifSC-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSerifSC-SemiBold.ttf
+          weight: 600
+
+  # 静态资源：设计稿线性图标（flutter_gen 生成 AssetsIcons）。
+  assets:
+    - assets/icons/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

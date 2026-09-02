@@ -10,6 +10,7 @@ class ShellNavigationState {
   const ShellNavigationState({
     required this.title,
     required this.isSecondLevel,
+    required this.location,
   });
 
   /// 当前路由名称（信息条标题）。
@@ -17,6 +18,9 @@ class ShellNavigationState {
 
   /// 是否为二级页面（决定是否显示返回按钮）。
   final bool isSecondLevel;
+
+  /// 当前完整 location（如 `/home`、`/pet/calc`），供侧栏高亮判断。
+  final String location;
 }
 
 /// 监听 GoRouter 状态变化，推导信息条所需的标题与是否二级页面。
@@ -42,7 +46,11 @@ class ShellNavigation extends _$ShellNavigation {
     final configuration = router.routerDelegate.currentConfiguration;
     final leaf = configuration.lastOrNull;
     if (leaf == null) {
-      return const ShellNavigationState(title: '', isSecondLevel: false);
+      return const ShellNavigationState(
+        title: '',
+        isSecondLevel: false,
+        location: '',
+      );
     }
 
     // 递归统计匹配数（含 shell 嵌套），> 2 说明当前是二级页面。
@@ -52,6 +60,7 @@ class ShellNavigation extends _$ShellNavigation {
     return ShellNavigationState(
       title: leaf.route.name ?? '',
       isSecondLevel: isSecondLevel,
+      location: configuration.uri.toString(),
     );
   }
 
