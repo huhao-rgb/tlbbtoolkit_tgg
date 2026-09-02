@@ -404,40 +404,71 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-/// 统计：21/600 数字（tabular）+ 11.5 标签。
+/// 首页统计（对应原型 `.stats/.stat`）：
+/// - 每个 stat 居中：数字 21/600 · gold2 · tabular，标签 11 · t3 · 字距1；
+/// - `padding 0 22`，首项无左边框、其余 border-left（移动 0 8 + space-around）；
+/// - 移动端隐藏第 4 项（原型 `.st-4{display:none}`）。
 class _StatsRow extends StatelessWidget {
   const _StatsRow();
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 0; i < ToolCatalog.homeStats.length; i++) ...[
-          if (i != 0)
-            Container(
-              width: 1,
-              height: 26,
-              margin: const EdgeInsets.symmetric(horizontal: 18),
-              color: tg.border,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 640;
+        final visible =
+            narrow ? ToolCatalog.homeStats.take(3).toList() : ToolCatalog.homeStats;
+
+        Widget cell(int i, int value, String label) {
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: narrow ? 8 : 22),
+            decoration: BoxDecoration(
+              border: Border(
+                left: i == 0
+                    ? BorderSide.none
+                    : BorderSide(color: tg.border, width: 1),
+              ),
             ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${ToolCatalog.homeStats[i].value}',
-                style: TgType.stat21(tg.gold2),
-              ),
-              Text(
-                ToolCatalog.homeStats[i].label,
-                style: TgType.note.copyWith(color: tg.t3),
-              ),
-            ],
-          ),
-        ],
-      ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$value',
+                  textAlign: TextAlign.center,
+                  style: TgType.stat21(tg.gold2),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TgType.tag.copyWith(color: tg.t3, letterSpacing: 1),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (narrow) {
+          return SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                for (var i = 0; i < visible.length; i++)
+                  cell(i, visible[i].value, visible[i].label),
+              ],
+            ),
+          );
+        }
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < visible.length; i++)
+              cell(i, visible[i].value, visible[i].label),
+          ],
+        );
+      },
     );
   }
 }
