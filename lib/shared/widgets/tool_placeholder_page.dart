@@ -24,9 +24,14 @@ class ToolPlaceholderPage extends StatelessWidget {
         return SingleChildScrollView(
           padding: compact
               ? const EdgeInsets.fromLTRB(
-                  16, 20 + Breakpoints.topbarOverlayHeight, 16, 40)
+                  16,
+                  20 + Breakpoints.topbarOverlayHeight,
+                  16,
+                  40,
+                )
               : TgSpacing.pagePadding.copyWith(
-                  top: TgSpacing.pagePadding.top +
+                  top:
+                      TgSpacing.pagePadding.top +
                       Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
                 ),
           child: Center(

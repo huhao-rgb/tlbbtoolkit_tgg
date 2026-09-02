@@ -4,6 +4,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/tg_icon.dart';
+import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../../../shared/widgets/tool_card.dart';
 
 /// 首页（工具箱 tab 根页面）：天工阁 Hero + 搜索 + 分类筛选 + 工具网格。
@@ -28,13 +29,16 @@ class _HomePageState extends State<HomePage> {
 
   List<ToolDef> get _visibleTools {
     final kw = _keyword;
-    return ToolCatalog.all.where((t) {
-      final okGroup = _group == null || t.group == _group;
-      final okKw = kw.isEmpty ||
-          t.title.contains(kw) ||
-          t.keywords.any((k) => k.contains(kw));
-      return okGroup && okKw;
-    }).toList(growable: false);
+    return ToolCatalog.all
+        .where((t) {
+          final okGroup = _group == null || t.group == _group;
+          final okKw =
+              kw.isEmpty ||
+              t.title.contains(kw) ||
+              t.keywords.any((k) => k.contains(kw));
+          return okGroup && okKw;
+        })
+        .toList(growable: false);
   }
 
   @override
@@ -42,34 +46,41 @@ class _HomePageState extends State<HomePage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
-        return SingleChildScrollView(
-          padding: compact
-              ? const EdgeInsets.fromLTRB(
-                  16, 20 + Breakpoints.topbarOverlayHeight, 16, 48)
-              : TgSpacing.pagePadding.copyWith(
-                  top: TgSpacing.pagePadding.top +
-                      Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
+        return TgPageEntrance(
+          child: SingleChildScrollView(
+            padding: compact
+                ? const EdgeInsets.fromLTRB(
+                    16,
+                    20 + Breakpoints.topbarOverlayHeight,
+                    16,
+                    48,
+                  )
+                : TgSpacing.pagePadding.copyWith(
+                    top:
+                        TgSpacing.pagePadding.top +
+                        Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
+                  ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1180),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HeroCard(
+                      compact: compact,
+                      onSearch: (kw) => setState(() => _keyword = kw),
+                    ),
+                    const SizedBox(height: TgSpacing.s22),
+                    _Toolbar(
+                      selected: _group,
+                      onSelect: (g) => setState(() => _group = g),
+                    ),
+                    const SizedBox(height: TgSpacing.s22),
+                    _ToolGrid(tools: _visibleTools),
+                    const SizedBox(height: TgSpacing.s34),
+                    const _PageFoot(),
+                  ],
                 ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1180),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _HeroCard(
-                    compact: compact,
-                    onSearch: (kw) => setState(() => _keyword = kw),
-                  ),
-                  const SizedBox(height: TgSpacing.s22),
-                  _Toolbar(
-                    selected: _group,
-                    onSelect: (g) => setState(() => _group = g),
-                  ),
-                  const SizedBox(height: TgSpacing.s22),
-                  _ToolGrid(tools: _visibleTools),
-                  const SizedBox(height: TgSpacing.s34),
-                  const _PageFoot(),
-                ],
               ),
             ),
           ),
@@ -114,15 +125,13 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final isDark = tg.brightness == Brightness.dark;
-    final heroGradient =
-        isDark ? _heroGradientDark : _heroGradientLight;
-    final titleGradient =
-        isDark ? _heroTitleGradientDark : _heroTitleGradientLight;
+    final heroGradient = isDark ? _heroGradientDark : _heroGradientLight;
+    final titleGradient = isDark
+        ? _heroTitleGradientDark
+        : _heroTitleGradientLight;
 
     // 装饰大字：金色 230/170 serif · 低透明度（浅色略升）
-    final decoColor = tg.gold.withValues(
-      alpha: isDark ? .045 : .07,
-    );
+    final decoColor = tg.gold.withValues(alpha: isDark ? .045 : .07);
 
     return Container(
       width: double.infinity,
@@ -155,8 +164,9 @@ class _HeroCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding:
-                compact ? TgSpacing.heroPaddingMobile : TgSpacing.heroPadding,
+            padding: compact
+                ? TgSpacing.heroPaddingMobile
+                : TgSpacing.heroPadding,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 640),
               child: Column(
@@ -248,12 +258,11 @@ class _HeroSearchFieldState extends State<_HeroSearchField> {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final bg =
-        widget.isDark ? const Color(0x8C07090D) : Colors.white; // rgba(7,9,13,.55)
+    final bg = widget.isDark
+        ? const Color(0x8C07090D)
+        : Colors.white; // rgba(7,9,13,.55)
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: widget.maxWidth ?? double.infinity,
-      ),
+      constraints: BoxConstraints(maxWidth: widget.maxWidth ?? double.infinity),
       child: Focus(
         onFocusChange: (focused) => setState(() => _focused = focused),
         child: Container(
@@ -417,8 +426,9 @@ class _StatsRow extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final narrow = constraints.maxWidth < 640;
-        final visible =
-            narrow ? ToolCatalog.homeStats.take(3).toList() : ToolCatalog.homeStats;
+        final visible = narrow
+            ? ToolCatalog.homeStats.take(3).toList()
+            : ToolCatalog.homeStats;
 
         Widget cell(int i, int value, String label) {
           return Container(
@@ -487,27 +497,27 @@ class _ToolGrid extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 48),
         alignment: Alignment.center,
-        child: Text(
-          '未找到相关工具',
-          style: TgType.body14.copyWith(color: tg.t3),
-        ),
+        child: Text('未找到相关工具', style: TgType.body14.copyWith(color: tg.t3)),
       );
     }
     return LayoutBuilder(
       builder: (context, constraints) {
         // 每项至少 300 宽（+14 gap），随可用宽度自适应列数。
         final gap = TgSpacing.gridGap;
-        final cols = (((constraints.maxWidth + gap) /
-                    (TgSpacing.gridMinTile + gap))
-                .floor())
-            .clamp(1, 4);
+        final cols =
+            (((constraints.maxWidth + gap) / (TgSpacing.gridMinTile + gap))
+                    .floor())
+                .clamp(1, 4);
         final tileWidth = (constraints.maxWidth - gap * (cols - 1)) / cols;
         return Wrap(
           spacing: gap,
           runSpacing: gap,
           children: [
             for (final tool in tools)
-              SizedBox(width: tileWidth, child: ToolCard(tool: tool)),
+              SizedBox(
+                width: tileWidth,
+                child: ToolCard(tool: tool),
+              ),
           ],
         );
       },

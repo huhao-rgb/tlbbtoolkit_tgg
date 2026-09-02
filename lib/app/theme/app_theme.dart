@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/theme/tg_fade_slide_transitions.dart';
 
 /// 天工阁 ThemeData 构建（深 / 浅）
 ///
@@ -67,6 +68,17 @@ abstract final class TgTheme {
 
     return ThemeData(
       useMaterial3: true,
+      // 路由 push/pop 统一为原型 fadein：opacity 0→1 + translateY 8px→0，ease
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: TgFadeSlideTransitionsBuilder(),
+          TargetPlatform.iOS: TgFadeSlideTransitionsBuilder(),
+          TargetPlatform.linux: TgFadeSlideTransitionsBuilder(),
+          TargetPlatform.macOS: TgFadeSlideTransitionsBuilder(),
+          TargetPlatform.windows: TgFadeSlideTransitionsBuilder(),
+          TargetPlatform.fuchsia: TgFadeSlideTransitionsBuilder(),
+        },
+      ),
       colorScheme: scheme,
       scaffoldBackgroundColor: c.bg,
       canvasColor: c.bg,
@@ -84,28 +96,46 @@ abstract final class TgTheme {
         // 26 等级徽章 / 大数字（serif）
         displaySmall: TgType.display26.copyWith(color: c.t1),
         // 21 统计数字（sans · tabular）
-        headlineLarge: TgType.stat21(c.gold2).copyWith(fontFamily: TgFonts.sans),
+        headlineLarge: TgType.stat21(c.gold2)
+            .copyWith(fontFamily: TgFonts.sans),
         // 24 页面标题（serif · 字距1）
         headlineMedium: TgType.pageH1.copyWith(color: c.t1),
-        headlineSmall: TgType.stat21(c.gold2).copyWith(fontFamily: TgFonts.sans),
+        headlineSmall: TgType.stat21(c.gold2)
+            .copyWith(fontFamily: TgFonts.sans),
         // 19 品牌名 / 兽魂评分（serif）
         titleLarge: TgType.score19.copyWith(color: c.t1),
         // 14.5 卡片标题（sans）
-        titleMedium:
-            TgType.cardTitle.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        titleMedium: TgType.cardTitle.copyWith(
+          color: c.t1,
+          fontFamily: TgFonts.sans,
+        ),
         // 13.5 按钮 / 导航项（sans）
-        titleSmall: TgType.button.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        titleSmall: TgType.button.copyWith(
+          color: c.t1,
+          fontFamily: TgFonts.sans,
+        ),
         // 15 步进器数字 / 操作按钮（sans）
-        bodyLarge:
-            TgType.control15.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        bodyLarge: TgType.control15.copyWith(
+          color: c.t1,
+          fontFamily: TgFonts.sans,
+        ),
         // 14 正文（sans）
-        bodyMedium: TgType.body14.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        bodyMedium: TgType.body14.copyWith(
+          color: c.t1,
+          fontFamily: TgFonts.sans,
+        ),
         // 12.5 label（sans）
         bodySmall: TgType.label.copyWith(color: c.t2, fontFamily: TgFonts.sans),
         // 13.5 按钮文字（sans）
-        labelLarge: TgType.button.copyWith(color: c.t1, fontFamily: TgFonts.sans),
+        labelLarge: TgType.button.copyWith(
+          color: c.t1,
+          fontFamily: TgFonts.sans,
+        ),
         // 11.5 注释 / 表头（sans）
-        labelMedium: TgType.note.copyWith(color: c.t3, fontFamily: TgFonts.sans),
+        labelMedium: TgType.note.copyWith(
+          color: c.t3,
+          fontFamily: TgFonts.sans,
+        ),
         // 11 tag / 页脚（sans）
         labelSmall: TgType.tag.copyWith(color: c.t3, fontFamily: TgFonts.sans),
       ),
@@ -123,15 +153,16 @@ abstract final class TgTheme {
 
       // ---------- 图标 / 分隔线 ----------
       iconTheme: IconThemeData(size: 20, color: c.t2),
-      dividerTheme: DividerThemeData(
-          color: c.border, thickness: 1, space: 1),
+      dividerTheme: DividerThemeData(color: c.border, thickness: 1, space: 1),
 
       // ---------- 输入框：h42 · r11 · inset 底 · 聚焦金描边 ----------
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: c.inset,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 13,
+          vertical: 10,
+        ),
         constraints: const BoxConstraints(minHeight: 42),
         hintStyle: TgType.body14.copyWith(color: c.t3),
         border: OutlineInputBorder(
@@ -172,28 +203,33 @@ abstract final class TgTheme {
           minimumSize: const Size(64, 41),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           textStyle: TgType.button.copyWith(
-              color: TgTokens.btnInk, fontWeight: FontWeight.w600),
-          shape:
-              RoundedRectangleBorder(borderRadius: TgRadius.btn),
+            color: TgTokens.btnInk,
+            fontWeight: FontWeight.w600,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: TgRadius.btn),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: c.t2,
-          minimumSize: const Size(64, 41),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          side: BorderSide(color: c.borderHi),
-          textStyle: TgType.button.copyWith(color: c.t2),
-          shape:
-              RoundedRectangleBorder(borderRadius: TgRadius.btn),
-        ).copyWith(
-          foregroundColor: WidgetStateProperty.resolveWith((states) =>
-              states.contains(WidgetState.hovered) ? c.t1 : c.t2),
-          side: WidgetStateProperty.resolveWith((states) => BorderSide(
-              color: states.contains(WidgetState.hovered)
-                  ? c.goldTint(.45)
-                  : c.borderHi)),
-        ),
+        style:
+            OutlinedButton.styleFrom(
+              foregroundColor: c.t2,
+              minimumSize: const Size(64, 41),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              side: BorderSide(color: c.borderHi),
+              textStyle: TgType.button.copyWith(color: c.t2),
+              shape: RoundedRectangleBorder(borderRadius: TgRadius.btn),
+            ).copyWith(
+              foregroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.hovered) ? c.t1 : c.t2,
+              ),
+              side: WidgetStateProperty.resolveWith(
+                (states) => BorderSide(
+                  color: states.contains(WidgetState.hovered)
+                      ? c.goldTint(.45)
+                      : c.borderHi,
+                ),
+              ),
+            ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -216,17 +252,19 @@ abstract final class TgTheme {
 
       // ---------- 开关（46×26 视觉规格见 TgSwitch 组件） ----------
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected) ? c.gold : c.t3),
-        trackColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? c.goldTint(.14)
-                : c.inset2),
-        trackOutlineColor:
-            WidgetStateProperty.resolveWith((states) =>
-                states.contains(WidgetState.selected)
-                    ? c.goldTint(.45)
-                    : c.borderHi),
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? c.gold : c.t3,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? c.goldTint(.14)
+              : c.inset2,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? c.goldTint(.45)
+              : c.borderHi,
+        ),
         trackOutlineWidth: const WidgetStatePropertyAll(1),
       ),
 
@@ -236,14 +274,15 @@ abstract final class TgTheme {
         backgroundColor: c.panel,
         indicatorColor: c.goldTint(.14),
         surfaceTintColor: Colors.transparent,
-        labelTextStyle: WidgetStatePropertyAll(TgType.micro
-            .copyWith(color: c.t3, fontWeight: FontWeight.w500)),
-        iconTheme: WidgetStateProperty.resolveWith((states) => IconThemeData(
-              size: 21,
-              color: states.contains(WidgetState.selected)
-                  ? c.gold
-                  : c.t3,
-            )),
+        labelTextStyle: WidgetStatePropertyAll(
+          TgType.micro.copyWith(color: c.t3, fontWeight: FontWeight.w500),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            size: 21,
+            color: states.contains(WidgetState.selected) ? c.gold : c.t3,
+          ),
+        ),
       ),
 
       // ---------- 其他 ----------
@@ -267,8 +306,11 @@ abstract final class TgTheme {
         textStyle: TgType.tag.copyWith(color: c.t2),
       ),
       checkboxTheme: CheckboxThemeData(
-        fillColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected) ? c.gold : Colors.transparent),
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? c.gold
+              : Colors.transparent,
+        ),
         checkColor: const WidgetStatePropertyAll(TgTokens.btnInk),
         side: BorderSide(color: c.borderHi),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
