@@ -77,6 +77,7 @@ class _PlaceholderCard extends StatelessWidget {
           Container(
             width: 64,
             height: 64,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: tg.card2,
               borderRadius: BorderRadius.circular(TgRadius.r14),
