@@ -37,7 +37,7 @@ dependencies:
   flutter_riverpod: ^3.4.2
   # Riverpod 代码生成注解（配合 riverpod_generator）
   riverpod_annotation: ^4.0.6
-  go_router: ^18.0.0
+  go_router: ^17.5.0
   dio: ^5.11.0
   freezed_annotation: ^3.1.0
   json_annotation: ^4.12.0

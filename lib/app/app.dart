@@ -20,8 +20,8 @@ class TlbbApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'TLBB Toolkit',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: TgTheme.light,
+      darkTheme: TgTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
     );

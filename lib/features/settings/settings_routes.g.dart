@@ -10,6 +10,7 @@ List<RouteBase> get $appRoutes => [$settingsRoute];
 
 RouteBase get $settingsRoute => GoRouteData.$route(
   path: '/settings',
+  name: '设置',
   hasOverriddenOnExit: false,
   factory: $SettingsRoute._fromState,
 );

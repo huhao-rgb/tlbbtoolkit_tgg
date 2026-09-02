@@ -7,9 +7,8 @@ part 'settings_routes.g.dart';
 
 /// settings feature 的路由定义。
 ///
-/// 使用 go_router_builder 的 `@TypedGoRoute` 生成类型安全路由，
-/// 提供 `SettingsRoute().location` / `SettingsRoute().push(context)` 等能力。
-@TypedGoRoute<SettingsRoute>(path: '/settings')
+/// settings 是 shell 底部 tab 的第二个分支。
+@TypedGoRoute<SettingsRoute>(path: '/settings', name: '设置')
 class SettingsRoute extends GoRouteData with $SettingsRoute {
   const SettingsRoute();
 

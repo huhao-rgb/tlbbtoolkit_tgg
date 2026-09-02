@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/responsive/breakpoints.dart';
 import '../providers/settings_providers.dart';
 
-/// 设置页。
+/// 设置页（一级 tab 页面）。
+///
+/// 页面自身不包含 Scaffold/AppBar：
+/// 顶部信息条与底部 tabbar 由 shell 框架（`AppShellNavigation`）统一提供。
+/// 桌面宽屏下内容限宽居中（`DesktopContentConstraint`）。
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -14,9 +19,8 @@ class SettingsPage extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final notifier = ref.read(appSettingsControllerProvider.notifier);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
-      body: ListView(
+    return DesktopContentConstraint(
+      child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(
