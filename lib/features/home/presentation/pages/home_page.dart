@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tool_card.dart';
@@ -43,8 +44,12 @@ class _HomePageState extends State<HomePage> {
         final compact = constraints.maxWidth < 640;
         return SingleChildScrollView(
           padding: compact
-              ? const EdgeInsets.fromLTRB(16, 20, 16, 48)
-              : TgSpacing.pagePadding,
+              ? const EdgeInsets.fromLTRB(
+                  16, 20 + Breakpoints.topbarOverlayHeight, 16, 48)
+              : TgSpacing.pagePadding.copyWith(
+                  top: TgSpacing.pagePadding.top +
+                      Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
+                ),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1180),

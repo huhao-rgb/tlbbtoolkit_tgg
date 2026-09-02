@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/design_tokens.dart';
+import '../../core/responsive/breakpoints.dart';
 import '../tools/tool_catalog.dart';
 import 'page_head.dart';
 import 'tg_icon.dart';
@@ -22,8 +23,12 @@ class ToolPlaceholderPage extends StatelessWidget {
         final compact = constraints.maxWidth < 640;
         return SingleChildScrollView(
           padding: compact
-              ? const EdgeInsets.fromLTRB(16, 20, 16, 40)
-              : TgSpacing.pagePadding,
+              ? const EdgeInsets.fromLTRB(
+                  16, 20 + Breakpoints.topbarOverlayHeight, 16, 40)
+              : TgSpacing.pagePadding.copyWith(
+                  top: TgSpacing.pagePadding.top +
+                      Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
+                ),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1180),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/design_tokens.dart';
+import '../../core/responsive/breakpoints.dart';
 import '../tools/tool_catalog.dart';
 import 'page_head.dart';
 import 'tool_card.dart';
@@ -57,6 +58,10 @@ class ToolHubPage extends StatelessWidget {
   }
 
   EdgeInsets _pagePadding(bool compact) => compact
-      ? const EdgeInsets.fromLTRB(16, 20, 16, 40)
-      : TgSpacing.pagePadding;
+      ? const EdgeInsets.fromLTRB(
+          16, 20 + Breakpoints.topbarOverlayHeight, 16, 40)
+      : TgSpacing.pagePadding.copyWith(
+          top: TgSpacing.pagePadding.top +
+              Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
+        );
 }

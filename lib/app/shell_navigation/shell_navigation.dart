@@ -89,11 +89,11 @@ class AppShellNavigation extends ConsumerWidget {
             return Scaffold(
               body: SafeArea(
                 bottom: false,
-                child: Column(
+                // 内容在下可滚动，毛玻璃顶栏悬浮覆盖其上。
+                child: Stack(
                   children: [
-                    infoBar,
-                    const Divider(height: 1),
-                    Expanded(child: navigationShell),
+                    Positioned.fill(child: navigationShell),
+                    Positioned(top: 0, left: 0, right: 0, child: infoBar),
                   ],
                 ),
               ),
@@ -106,18 +106,16 @@ class AppShellNavigation extends ConsumerWidget {
             return Scaffold(
               body: Row(
                 children: [
-                  // 左侧 236 宽原型侧栏。
+                  // 左侧 236 宽原型侧栏（自带竖渐变底 + 右边框）。
                   DesktopSidebar(
                     currentLocation: navState.location,
                   ),
-                  const VerticalDivider(width: 1),
-                  // 右侧：顶栏信息条 + 内容区。
+                  // 右侧：内容在下可滚动，毛玻璃顶栏悬浮覆盖。
                   Expanded(
-                    child: Column(
+                    child: Stack(
                       children: [
-                        infoBar,
-                        const Divider(height: 1),
-                        Expanded(child: navigationShell),
+                        Positioned.fill(child: navigationShell),
+                        Positioned(top: 0, left: 0, right: 0, child: infoBar),
                       ],
                     ),
                   ),

@@ -27,6 +27,10 @@ abstract final class Breakpoints {
 
   /// 内容区在桌面布局下的最大宽度（居中限宽，避免列表/表单被拉太宽）。
   static const double desktopContentMaxWidth = 840;
+
+  /// 悬浮顶栏（毛玻璃）高度：页面滚动内容顶部需预留该高度，
+  /// 使其在初始时不被悬浮栏遮挡，滚动时能滑入玻璃下方被模糊。
+  static const double topbarOverlayHeight = 60;
 }
 
 /// 桌面内容区限宽容器：宽度超过 [Breakpoints.desktopContentMaxWidth] 时居中。

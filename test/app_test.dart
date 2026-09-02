@@ -37,6 +37,17 @@ Finder homeChip(String label) => find.descendant(
       matching: find.text(label),
     );
 
+/// 滚动到目标并令其居于视口中央（默认 ensureVisible 会贴顶，
+/// 在悬浮毛玻璃顶栏下会被玻璃遮挡）。
+Future<void> revealCenter(WidgetTester tester, Finder finder) async {
+  await Scrollable.ensureVisible(
+    tester.element(finder),
+    alignment: 0.5,
+    duration: Duration.zero,
+  );
+  await tester.pump();
+}
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -98,7 +109,7 @@ void main() {
     await tester.tap(bottomTab('宝宝'));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('宝宝资质计算'));
+    await revealCenter(tester, find.text('宝宝资质计算'));
     await tester.tap(find.text('宝宝资质计算'));
     await tester.pumpAndSettle();
 
@@ -114,7 +125,7 @@ void main() {
   testWidgets('首页网格直达工具（跨分支），返回其 hub，再回首页', (tester) async {
     await pumpApp(tester);
 
-    await tester.ensureVisible(find.text('兽魂查询'));
+    await revealCenter(tester, find.text('兽魂查询'));
     await tester.tap(find.text('兽魂查询'));
     await tester.pumpAndSettle();
 
@@ -135,13 +146,13 @@ void main() {
   testWidgets('工具页面包屑可返回所属 hub', (tester) async {
     await pumpApp(tester);
 
-    await tester.ensureVisible(find.text('职业加点计算器'));
+    await revealCenter(tester, find.text('职业加点计算器'));
     await tester.tap(find.text('职业加点计算器'));
     await tester.pumpAndSettle();
     expect(infoBarTitle('职业加点计算器'), findsOneWidget);
 
     // 点击页头面包屑首段「职业」→ 职业中心 hub。
-    await tester.ensureVisible(find.byKey(const Key('crumb-职业')));
+    await revealCenter(tester, find.byKey(const Key('crumb-职业')));
     await tester.tap(find.byKey(const Key('crumb-职业')));
     await tester.pumpAndSettle();
 
@@ -156,7 +167,7 @@ void main() {
     expect(find.text('宝宝资质计算'), findsOneWidget);
     expect(find.text('职业加点计算器'), findsOneWidget);
 
-    await tester.ensureVisible(homeChip('职业'));
+    await revealCenter(tester, homeChip('职业'));
     await tester.tap(homeChip('职业'));
     await tester.pumpAndSettle();
 
@@ -167,7 +178,7 @@ void main() {
   testWidgets('首页搜索按关键词过滤', (tester) async {
     await pumpApp(tester);
 
-    await tester.ensureVisible(find.byType(TextField));
+    await revealCenter(tester, find.byType(TextField));
     await tester.enterText(find.byType(TextField), '兽魂');
     // 输入聚焦会启动光标闪烁计时，用固定时长 pump 而非 pumpAndSettle。
     await tester.pump(const Duration(milliseconds: 100));
@@ -220,7 +231,7 @@ void main() {
   testWidgets('桌面侧栏可直达工具并返回；首页项可回首页', (tester) async {
     await pumpAppAsDesktop(tester);
 
-    await tester.ensureVisible(sidebarItem('宝宝资质计算'));
+    await revealCenter(tester, sidebarItem('宝宝资质计算'));
     await tester.tap(sidebarItem('宝宝资质计算'));
     await tester.pumpAndSettle();
 
