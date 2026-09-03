@@ -269,11 +269,11 @@ abstract final class ToolCatalog {
     beastSoul,
     beastIndex,
     beastSkill,
+    jobSect,
     jobWudao,
     jobSkill,
     jobPoint,
     jobArtifact,
-    jobSect,
   ];
 
   /// 某分组下的工具（hub 页列表顺序）。

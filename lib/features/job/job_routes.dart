@@ -3,7 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../shared/tools/tool_catalog.dart';
 import '../../shared/widgets/tool_hub_page.dart';
-import '../../shared/widgets/tool_placeholder_page.dart';
+import 'presentation/pages/job_artifact_page.dart';
+import 'presentation/pages/job_point_page.dart';
+import 'presentation/pages/job_sect_intro_page.dart';
+import 'presentation/pages/job_skill_page.dart';
+import 'presentation/pages/job_wudao_page.dart';
 
 part 'job_routes.g.dart';
 
@@ -35,7 +39,7 @@ class JobWudaoRoute extends GoRouteData with $JobWudaoRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.jobWudao);
+      const JobWudaoPage();
 }
 
 /// 职业技能库。
@@ -44,7 +48,7 @@ class JobSkillRoute extends GoRouteData with $JobSkillRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.jobSkill);
+      const JobSkillPage();
 }
 
 /// 职业加点计算器（热门）。
@@ -53,7 +57,7 @@ class JobPointRoute extends GoRouteData with $JobPointRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.jobPoint);
+      const JobPointPage();
 }
 
 /// 职业神器。
@@ -62,7 +66,7 @@ class JobArtifactRoute extends GoRouteData with $JobArtifactRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.jobArtifact);
+      const JobArtifactPage();
 }
 
 /// 门派介绍。
@@ -71,5 +75,5 @@ class JobSectRoute extends GoRouteData with $JobSectRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.jobSect);
+      const JobSectIntroPage();
 }
