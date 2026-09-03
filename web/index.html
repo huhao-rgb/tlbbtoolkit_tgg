@@ -33,6 +33,234 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- ===== 首屏加载页（Flutter Web 等待动画，自包含零依赖） =====
+       在 Flutter 引擎下载/初始化期间全屏展示；引擎渲染出首帧后会向 window
+       派发 `flutter-first-frame` 事件，届时淡出移除本页。 -->
+  <div id="boot" aria-label="加载中">
+    <style>
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(120% 90% at 50% 18%, #1C2230 0%, #141823 55%, #0E1118 100%);
+        opacity: 1;
+        transition: opacity .6s ease, transform .6s ease;
+      }
+      #boot.hide {
+        opacity: 0;
+        transform: scale(1.02);
+        pointer-events: none;
+      }
+      #boot .wrap {
+        display: grid;
+        justify-items: center;
+        gap: 0;
+        width: 100%;
+        max-width: 300px;
+        padding: 0 20px;
+      }
+      #boot .seal {
+        width: 96px;
+        height: 96px;
+        position: relative;
+        filter: drop-shadow(0 10px 34px rgba(217, 185, 108, .30));
+        animation: bootIn .55s cubic-bezier(.22, .9, .34, 1.2) both;
+      }
+      #boot .seal svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #boot .ring {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #boot .ring rect {
+        fill: none;
+        stroke: #F2D9A0;
+        stroke-width: 1.4;
+        stroke-linecap: round;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: bootRing 2.3s cubic-bezier(.6, .05, .3, .95) infinite;
+      }
+      @keyframes bootRing {
+        0%   { stroke-dashoffset: 100; opacity: 0; }
+        12%  { opacity: 1; }
+        62%  { stroke-dashoffset: 0; opacity: 1; }
+        100% { stroke-dashoffset: 0; opacity: 0; }
+      }
+      @keyframes bootIn {
+        from { opacity: 0; transform: translateY(10px) scale(.92); }
+        to   { opacity: 1; transform: none; }
+      }
+      #boot h1 {
+        margin: 18px 0 0;
+        font-family: Georgia, "STSong", "SimSun", serif;
+        font-size: 27px;
+        font-weight: 600;
+        color: #E8CA82;
+        letter-spacing: 8px;
+        text-indent: 8px;
+        white-space: nowrap;
+        animation: bootName .7s .18s ease both;
+      }
+      @keyframes bootName {
+        from { opacity: 0; letter-spacing: 14px; }
+        to   { opacity: 1; letter-spacing: 8px; }
+      }
+      #boot .sub {
+        margin: 7px 0 0;
+        font-size: 11.5px;
+        color: #9A8A66;
+        letter-spacing: 3px;
+        text-indent: 3px;
+        animation: bootFade .6s .32s ease both;
+      }
+      #boot .bar {
+        margin-top: 30px;
+        width: 210px;
+        height: 3px;
+        border-radius: 99px;
+        background: rgba(232, 202, 130, .13);
+        overflow: hidden;
+        animation: bootFade .6s .4s ease both;
+      }
+      #boot .bar i {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #B08D4A, #F2D9A0);
+        box-shadow: 0 0 10px rgba(242, 217, 160, .65);
+        transition: width .35s ease;
+      }
+      #boot .tip {
+        margin: 14px 0 0;
+        font-size: 12px;
+        color: #C8B585;
+        letter-spacing: 2px;
+        min-height: 18px;
+        transition: opacity .25s ease;
+        animation: bootFade .6s .46s ease both;
+      }
+      #boot .tip.out { opacity: 0; }
+      #boot .ver {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 26px;
+        text-align: center;
+        font-size: 10.5px;
+        color: #6E614A;
+        letter-spacing: 2px;
+        animation: bootFade .6s .55s ease both;
+      }
+      #boot .retry {
+        display: none;
+        margin-top: 20px;
+        padding: 8px 26px;
+        border: 1px solid #C9A253;
+        border-radius: 9px;
+        background: transparent;
+        color: #E8CA82;
+        font-size: 13px;
+        letter-spacing: 3px;
+        cursor: pointer;
+      }
+      #boot.slow .retry { display: inline-block; }
+      #boot .slowtip {
+        display: none;
+        margin-top: 12px;
+        font-size: 11.5px;
+        color: #8f7c55;
+        letter-spacing: 1px;
+      }
+      #boot.slow .slowtip { display: block; }
+      @keyframes bootFade {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot .ring rect { animation: none; stroke-dashoffset: 0; }
+      }
+    </style>
+    <div class="wrap">
+      <div class="seal">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <defs>
+            <linearGradient id="btInk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262C3B"/><stop offset="1" stop-color="#12151E"/></linearGradient>
+            <linearGradient id="btGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2D9A0"/><stop offset="1" stop-color="#C9A253"/></linearGradient>
+          </defs>
+          <rect x="1.4" y="1.4" width="37.2" height="37.2" rx="9" fill="url(#btInk)" stroke="#D9B96C" stroke-width="1.6"/>
+          <rect x="4.6" y="4.6" width="30.8" height="30.8" rx="6.4" fill="none" stroke="#8F7440" stroke-width=".8" opacity=".85"/>
+          <circle cx="20" cy="9.2" r="1.3" fill="#F4DFA6"/>
+          <path d="M12.6 17.2 Q20 13 27.4 17.2 L26.4 18.5 Q20 15.7 13.6 18.5 Z" fill="url(#btGold)"/>
+          <path d="M16 19.3 h8 v3.1 h-8 z" fill="#C9A253"/>
+          <path d="M10.2 26 Q20 21.6 29.8 26 L28.8 27.3 Q20 23.9 11.2 27.3 Z" fill="url(#btGold)"/>
+          <rect x="12.4" y="28.4" width="15.2" height="1.7" rx=".85" fill="#C9A253" opacity=".9"/>
+          <path d="M9.5 33.6 a1.9 1.9 0 0 1 3.8 0 a1.9 1.9 0 0 1 3.8 0 a1.9 1.9 0 0 1 3.8 0 a1.9 1.9 0 0 1 3.8 0" fill="none" stroke="#B08D4A" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="7.6" cy="12" r=".9" fill="#C9A253" opacity=".8"/>
+          <circle cx="32.4" cy="12" r=".9" fill="#C9A253" opacity=".8"/>
+        </svg>
+        <svg class="ring" viewBox="1.4 1.4 37.2 37.2" aria-hidden="true"><rect x="1.4" y="1.4" width="37.2" height="37.2" rx="9" pathLength="100"/></svg>
+      </div>
+      <h1>天工阁</h1>
+      <div class="sub">天龙八部怀旧版 · 工具箱</div>
+      <div class="bar"><i id="bootBar"></i></div>
+      <div class="tip" id="bootTip">正在研墨…</div>
+      <div class="slowtip">网络稍慢，仍在加载</div>
+      <button class="retry" onclick="location.reload()">重 试</button>
+    </div>
+    <div class="ver">玩家自制 · 与畅游官方无关 · v1.4.0</div>
+    <script>
+      (function () {
+        var boot = document.getElementById('boot');
+        var bar = document.getElementById('bootBar');
+        var tip = document.getElementById('bootTip');
+        var tips = ['正在研墨…', '正在展开舆图…', '正在清点行囊…', '正在唤醒兽灵…', '正在叩响阁门…'];
+        var ti = 0, p = 0, done = false;
+        // 占位进度（无法获知真实下载进度，仅作视觉反馈）。
+        var tick = setInterval(function () {
+          if (done) return;
+          p = Math.min(p + 2 + Math.random() * 6, 92);
+          bar.style.width = p + '%';
+        }, 170);
+        // 文案轮播。
+        var spin = setInterval(function () {
+          if (done) return;
+          tip.classList.add('out');
+          setTimeout(function () {
+            ti = (ti + 1) % tips.length;
+            tip.textContent = tips[ti];
+            tip.classList.remove('out');
+          }, 260);
+        }, 1800);
+        function finish() {
+          if (done) return;
+          done = true;
+          clearInterval(tick);
+          clearInterval(spin);
+          bar.style.width = '100%';
+          tip.textContent = '阁门已开';
+          setTimeout(function () {
+            boot.classList.add('hide');
+            setTimeout(function () { boot.remove(); }, 650);
+          }, 380);
+        }
+        // Flutter 引擎渲染出首帧后派发此事件 → 关闭加载页。
+        // （本脚本同步执行，必然先于引擎事件注册监听，无需额外兜底。）
+        window.addEventListener('flutter-first-frame', finish, { once: true });
+        // 长时间未就绪 → 提示慢网并给出重试入口。
+        setTimeout(function () { if (!done) boot.classList.add('slow'); }, 9000);
+      })();
+    </script>
+  </div>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
