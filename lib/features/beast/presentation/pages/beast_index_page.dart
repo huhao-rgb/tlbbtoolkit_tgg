@@ -5,34 +5,33 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
-import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_modal.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
-import '../../domain/beast_soul.dart';
+import '../../domain/beast_spirit.dart';
 
-/// 兽魂查询（对应原型 `v-beast-soul`）。
+/// 兽灵图鉴（对应原型 `v-beast-index`）。
 ///
-/// 品质 chips 筛选 + 兽魂卡片网格（主/副词条 + 评分条），点卡片打开
-/// 「等级效果」分档弹窗（soulModal）。
-class BeastSoulPage extends StatefulWidget {
-  const BeastSoulPage({super.key});
+/// 流派（内功/外功/平衡）筛选 + 字徽卡片网格，点卡片打开
+/// 「成长档位」分档弹窗（spiritModal）。
+class BeastIndexPage extends StatefulWidget {
+  const BeastIndexPage({super.key});
 
   @override
-  State<BeastSoulPage> createState() => _BeastSoulPageState();
+  State<BeastIndexPage> createState() => _BeastIndexPageState();
 }
 
-class _BeastSoulPageState extends State<BeastSoulPage> {
-  /// 品质筛选（null = 全部）。
-  BeastSoulQuality? _q;
+class _BeastIndexPageState extends State<BeastIndexPage> {
+  /// 流派筛选（null = 全部）。
+  BeastAttr? _attr;
 
-  List<BeastSoul> get _visible => _q == null
-      ? kBeastSouls
-      : kBeastSouls.where((s) => s.quality == _q).toList(growable: false);
+  List<BeastSpirit> get _visible => _attr == null
+      ? kBeastSpirits
+      : kBeastSpirits.where((s) => s.attr == _attr).toList(growable: false);
 
-  void _open(int index) {
+  void _open(BeastSpirit spirit) {
     showTgModal(
       context: context,
-      child: _SoulDetailDialog(soul: kBeastSouls[index]),
+      child: _SpiritDetailDialog(spirit: spirit),
     );
   }
 
@@ -62,42 +61,43 @@ class _BeastSoulPageState extends State<BeastSoulPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TgPageHead(
-                      crumbLeft: ToolCatalog.beastSoul.crumbRoot,
-                      crumbTail: ToolCatalog.beastSoul.crumb.substring(
-                        ToolCatalog.beastSoul.crumbRoot.length,
+                      crumbLeft: ToolCatalog.beastIndex.crumbRoot,
+                      crumbTail: ToolCatalog.beastIndex.crumb.substring(
+                        ToolCatalog.beastIndex.crumbRoot.length,
                       ),
                       onCrumbLeftTap: () =>
-                          context.go(ToolCatalog.beastSoul.group.hubLocation),
-                      title: ToolCatalog.beastSoul.title,
-                      subtitle: ToolCatalog.beastSoul.pageSubtitle,
+                          context.go(ToolCatalog.beastIndex.group.hubLocation),
+                      title: ToolCatalog.beastIndex.title,
+                      subtitle: ToolCatalog.beastIndex.pageSubtitle,
                     ),
-                    // 品质筛选 chips
+                    // 流派筛选 chips
                     Wrap(
                       spacing: TgSpacing.s9,
                       runSpacing: TgSpacing.sm,
                       children: [
-                        _SoulChip(
+                        _AttrChip(
                           label: '全部',
-                          active: _q == null,
-                          onTap: () => setState(() => _q = null),
+                          active: _attr == null,
+                          onTap: () => setState(() => _attr = null),
                         ),
-                        for (final q in BeastSoulQuality.values)
-                          _SoulChip(
-                            label: q.label,
-                            active: _q == q,
-                            onTap: () => setState(() => _q = q),
+                        for (final a in BeastAttr.values)
+                          _AttrChip(
+                            label: a.label,
+                            active: _attr == a,
+                            onTap: () => setState(() => _attr = a),
                           ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // 卡片网格（auto-fill minmax(300,1fr) · gap14）
+                    // 卡片网格（≤640 固定 2 列；否则 auto-fill minmax(208,1fr)）
                     LayoutBuilder(
                       builder: (context, c) {
-                        const minTile = 300.0;
-                        const gap = 14.0;
-                        final cols = ((c.maxWidth + gap) / (minTile + gap))
-                            .floor()
-                            .clamp(1, 4);
+                        const minTile = 208.0;
+                        const gap = 13.0;
+                        final cols = compact
+                            ? 2
+                            : (((c.maxWidth + gap) / (minTile + gap)).floor())
+                                  .clamp(2, 6);
                         final tileW = (c.maxWidth - gap * (cols - 1)) / cols;
                         return Wrap(
                           spacing: gap,
@@ -106,9 +106,9 @@ class _BeastSoulPageState extends State<BeastSoulPage> {
                             for (final s in _visible)
                               SizedBox(
                                 width: tileW,
-                                child: _SoulCard(
-                                  soul: s,
-                                  onTap: () => _open(kBeastSouls.indexOf(s)),
+                                child: _SpiritCard(
+                                  spirit: s,
+                                  onTap: () => _open(s),
                                 ),
                               ),
                           ],
@@ -128,9 +128,9 @@ class _BeastSoulPageState extends State<BeastSoulPage> {
   }
 }
 
-/// 品质筛选 pill（对应原型 `.chip`）。
-class _SoulChip extends StatefulWidget {
-  const _SoulChip({
+/// 流派筛选 pill。
+class _AttrChip extends StatefulWidget {
+  const _AttrChip({
     required this.label,
     required this.active,
     required this.onTap,
@@ -141,10 +141,10 @@ class _SoulChip extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_SoulChip> createState() => _SoulChipState();
+  State<_AttrChip> createState() => _AttrChipState();
 }
 
-class _SoulChipState extends State<_SoulChip> {
+class _AttrChipState extends State<_AttrChip> {
   bool _hover = false;
 
   @override
@@ -190,24 +190,24 @@ class _SoulChipState extends State<_SoulChip> {
   }
 }
 
-/// 兽魂卡（`.soul-card`）。
-class _SoulCard extends StatefulWidget {
-  const _SoulCard({required this.soul, required this.onTap});
+/// 兽灵卡（`.spirit-card`）。
+class _SpiritCard extends StatefulWidget {
+  const _SpiritCard({required this.spirit, required this.onTap});
 
-  final BeastSoul soul;
+  final BeastSpirit spirit;
   final VoidCallback onTap;
 
   @override
-  State<_SoulCard> createState() => _SoulCardState();
+  State<_SpiritCard> createState() => _SpiritCardState();
 }
 
-class _SoulCardState extends State<_SoulCard> {
+class _SpiritCardState extends State<_SpiritCard> {
   bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final soul = widget.soul;
+    final s = widget.spirit;
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -215,14 +215,11 @@ class _SoulCardState extends State<_SoulCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
+        transform: Matrix4.translationValues(0, _hover ? -3 : 0, 0),
         decoration: BoxDecoration(
           color: _hover ? tg.card2 : tg.card,
           borderRadius: TgRadius.card,
-          border: Border.all(
-            color: _hover ? tg.goldTint(.32) : tg.border,
-            width: 1,
-          ),
+          border: Border.all(color: _hover ? tg.borderHi : tg.border, width: 1),
         ),
         child: Material(
           color: Colors.transparent,
@@ -234,88 +231,92 @@ class _SoulCardState extends State<_SoulCard> {
             splashColor: Colors.transparent,
             onTap: widget.onTap,
             child: Padding(
-              padding: const EdgeInsets.all(TgSpacing.lg),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // soul-top：图标 + 名称/品质
+                  // sp-avatar：64 圆字徽
+                  _Avatar(avatar: s.avatar, tone: s.tone),
+                  const SizedBox(height: 12),
+                  // sp-name：名字 + 稀有度 tag
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _SoulIco(quality: soul.quality, icon: soul.icon),
-                      const SizedBox(width: TgSpacing.s13),
-                      Expanded(
+                      Flexible(
                         child: Text(
-                          soul.name,
+                          s.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 14.5,
                             fontWeight: FontWeight.w600,
                             color: tg.t1,
                           ),
                         ),
                       ),
-                      const SizedBox(width: TgSpacing.s9),
-                      _QualityTag(quality: soul.quality),
+                      const SizedBox(width: 7),
+                      _RarityTag(spirit: s),
                     ],
                   ),
-                  // soul-stat：主/副词条
-                  const SizedBox(height: 15),
-                  _StatLine(label: '主词条', value: soul.main),
-                  const SizedBox(height: 8),
-                  _StatLine(label: '副词条', value: soul.subs.join(' / ')),
-                  // soul-score：评分 + 进度条
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 6),
+                  // stars
+                  Text(
+                    List.filled(s.stars, '★').join(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: 2.5,
+                      color: tg.gold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // sp-meta
                   Container(
-                    padding: const EdgeInsets.only(top: 13),
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 11),
                     decoration: BoxDecoration(
                       border: Border(
                         top: BorderSide(color: tg.border, width: 1),
                       ),
                     ),
+                    child: Column(
+                      children: [
+                        _metaLine(
+                          context,
+                          '属性 · ',
+                          s.attr.label,
+                          colored: s.isCommon
+                              ? null
+                              : _attrColor(context, s.attr),
+                        ),
+                        const SizedBox(height: 4),
+                        _metaLine(context, '携带等级 · ', '${s.level}'),
+                        const SizedBox(height: 4),
+                        _metaLine(context, '定位 · ', s.role),
+                      ],
+                    ),
+                  ),
+                  // soul-more 底注
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 10),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: tg.borderHi, width: 1),
+                      ),
+                    ),
                     child: Row(
                       children: [
                         Text(
-                          '评分',
-                          style: TextStyle(
-                            fontSize: 11,
-                            letterSpacing: 1,
-                            color: tg.t3,
-                          ),
+                          '点击查看等级效果',
+                          style: TextStyle(fontSize: 11.5, color: tg.t3),
                         ),
-                        const SizedBox(width: 11),
+                        const Spacer(),
                         Text(
-                          '${soul.score}',
+                          '最高 20 级 · 4 档',
                           style: TextStyle(
-                            fontSize: 19,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
                             color: tg.gold2,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                        const SizedBox(width: 11),
-                        Expanded(
-                          child: Container(
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: tg.inset,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: FractionallySizedBox(
-                              alignment: Alignment.centerLeft,
-                              widthFactor: soul.score / 100,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFC9995A),
-                                      Color(0xFFF2D49B),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(99),
-                                ),
-                              ),
-                            ),
                           ),
                         ),
                       ],
@@ -329,177 +330,211 @@ class _SoulCardState extends State<_SoulCard> {
       ),
     );
   }
-}
 
-/// 主/副词条行：label · 值（值加粗 t1）。
-class _StatLine extends StatelessWidget {
-  const _StatLine({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _metaLine(
+    BuildContext context,
+    String prefix,
+    String value, {
+    Color? colored,
+  }) {
     final tg = context.tg;
     return Text.rich(
       TextSpan(
-        text: '$label · ',
-        style: TextStyle(fontSize: 12.5, color: tg.t2),
+        text: prefix,
+        style: TextStyle(fontSize: 11.5, color: tg.t3),
         children: [
           TextSpan(
             text: value,
             style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w500,
-              color: tg.t1,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w400,
+              color: colored ?? tg.t2,
             ),
           ),
         ],
       ),
     );
   }
+
+  /// 卡片 meta 中「属性」按流派着色（普通灰色除外）。
+  Color? _attrColor(BuildContext context, BeastAttr attr) {
+    final tg = context.tg;
+    return switch (attr) {
+      BeastAttr.nei => tg.tagBlue,
+      BeastAttr.wai => tg.tagRed,
+      BeastAttr.bal => tg.gold2,
+    };
+  }
 }
 
-/// 品质图标底（`.soul-ico` 46·r13，按品质配色）。
-class _SoulIco extends StatelessWidget {
-  const _SoulIco({required this.quality, required this.icon});
+/// 64 圆字徽（径向渐变 + 描边）。
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.avatar, required this.tone});
 
-  final BeastSoulQuality quality;
-  final String icon;
+  final String avatar;
+  final BeastRarityTone tone;
 
   @override
   Widget build(BuildContext context) {
-    final a = _accent(context, quality);
+    final st = _toneStyle(tone);
     return Container(
-      width: 46,
-      height: 46,
+      width: 64,
+      height: 64,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: a.icoBg,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: a.icoBorder, width: 1),
-      ),
-      child: TgIcon(icon, size: 22, color: a.icoFg),
-    );
-  }
-}
-
-/// 品质 tag（`.q-<quality>`）。
-class _QualityTag extends StatelessWidget {
-  const _QualityTag({required this.quality});
-
-  final BeastSoulQuality quality;
-
-  @override
-  Widget build(BuildContext context) {
-    final a = _accent(context, quality);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: a.tagBg,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: a.tagBorder, width: 1),
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          center: const Alignment(-0.4, -0.45),
+          colors: [st.glow, st.base.withValues(alpha: .05)],
+        ),
+        border: Border.all(color: st.border, width: 1),
       ),
       child: Text(
-        quality.label,
-        style: TextStyle(fontSize: 11, height: 1.7, color: a.tagText),
+        avatar,
+        style: TextStyle(
+          fontFamily: TgFonts.serif,
+          fontSize: 26,
+          fontWeight: FontWeight.w600,
+          color: st.charText,
+        ),
       ),
     );
   }
 }
 
-/// 品质 → 图标 / tag 配色（金用 gold2，其余图标用基础色、tag 用提亮色）。
-({
-  Color icoBg,
-  Color icoBorder,
-  Color icoFg,
-  Color tagText,
-  Color tagBg,
-  Color tagBorder,
-})
-_accent(BuildContext context, BeastSoulQuality q) {
-  final tg = context.tg;
-  switch (q) {
-    case BeastSoulQuality.gold:
-      return (
-        icoBg: tg.goldTint(.12),
-        icoBorder: tg.goldTint(.4),
-        icoFg: tg.gold2,
-        tagText: tg.gold2,
-        tagBg: tg.goldTint(.10),
-        tagBorder: tg.goldTint(.45),
-      );
-    case BeastSoulQuality.purple:
-      return (
-        icoBg: tg.tintOf(tg.purple, .12),
-        icoBorder: tg.tagBorderOf(tg.purple),
-        icoFg: tg.purple,
-        tagText: tg.tagPurple,
-        tagBg: tg.tintOf(tg.purple, .10),
-        tagBorder: tg.tintOf(tg.purple, .45),
-      );
-    case BeastSoulQuality.blue:
-      return (
-        icoBg: tg.tintOf(tg.blue, .12),
-        icoBorder: tg.tagBorderOf(tg.blue),
-        icoFg: tg.blue,
-        tagText: tg.tagBlue,
-        tagBg: tg.tintOf(tg.blue, .10),
-        tagBorder: tg.tintOf(tg.blue, .45),
-      );
-    case BeastSoulQuality.green:
-      return (
-        icoBg: tg.tintOf(tg.green, .12),
-        icoBorder: tg.tagBorderOf(tg.green),
-        icoFg: tg.green,
-        tagText: tg.tagGreen,
-        tagBg: tg.tintOf(tg.green, .10),
-        tagBorder: tg.tintOf(tg.green, .45),
-      );
-  }
-}
+/// 稀有度 tag（`.tag tag-<rt>`）。
+class _RarityTag extends StatelessWidget {
+  const _RarityTag({required this.spirit});
 
-/// 等级效果弹窗（对应原型 soulModal）。
-class _SoulDetailDialog extends StatefulWidget {
-  const _SoulDetailDialog({required this.soul});
-
-  final BeastSoul soul;
-
-  @override
-  State<_SoulDetailDialog> createState() => _SoulDetailDialogState();
-}
-
-class _SoulDetailDialogState extends State<_SoulDetailDialog> {
-  int _tier = 0;
-
-  BeastSoul get _soul => widget.soul;
-  BeastSoulTier get _t => _soul.tiers[_tier];
+  final BeastSpirit spirit;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final a = _accent(context, _soul.quality);
+    final Color text;
+    final Color border;
+    final Color bg;
+    switch (spirit.tone) {
+      case BeastRarityTone.normal:
+        text = tg.t2;
+        border = tg.borderHi;
+        bg = Colors.transparent;
+      case BeastRarityTone.gold:
+        text = tg.gold2;
+        border = tg.goldTint(.4);
+        bg = tg.goldTint(.08);
+      case BeastRarityTone.blue:
+        text = tg.tagBlue;
+        border = tg.tagBorderOf(tg.blue);
+        bg = tg.tintOf(tg.blue, .08);
+      case BeastRarityTone.red:
+        text = tg.tagRed;
+        border = tg.tagBorderOf(tg.red);
+        bg = tg.tintOf(tg.red, .08);
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: border, width: 1),
+      ),
+      child: Text(
+        spirit.rarity,
+        style: TextStyle(fontSize: 11, height: 1.7, color: text),
+      ),
+    );
+  }
+}
+
+/// 稀有度 → 头像配色。
+({Color base, Color border, Color charText, Color glow}) _toneStyle(
+  BeastRarityTone tone,
+) {
+  switch (tone) {
+    case BeastRarityTone.gold:
+      return (
+        base: const Color(0xFFE2B872),
+        border: const Color(0x73E2B872),
+        charText: const Color(0xFFF2D49B),
+        glow: const Color(0x66E2B872),
+      );
+    case BeastRarityTone.blue:
+      return (
+        base: const Color(0xFF5B9BFF),
+        border: const Color(0x735B9BFF),
+        charText: const Color(0xFFBFDCFF),
+        glow: const Color(0x665B9BFF),
+      );
+    case BeastRarityTone.red:
+      return (
+        base: const Color(0xFFFF7069),
+        border: const Color(0x73FF7069),
+        charText: const Color(0xFFFFC9C5),
+        glow: const Color(0x66FF7069),
+      );
+    case BeastRarityTone.normal:
+      return (
+        base: const Color(0xFF94A3B8),
+        border: const Color(0x6694A3B8),
+        charText: const Color(0xFFCBD5E1),
+        glow: const Color(0x4D94A3B8),
+      );
+  }
+}
+
+/// 成长档位弹窗（对应原型 spiritModal）。
+class _SpiritDetailDialog extends StatefulWidget {
+  const _SpiritDetailDialog({required this.spirit});
+
+  final BeastSpirit spirit;
+
+  @override
+  State<_SpiritDetailDialog> createState() => _SpiritDetailDialogState();
+}
+
+class _SpiritDetailDialogState extends State<_SpiritDetailDialog> {
+  int _tier = 0;
+
+  BeastSpirit get _spirit => widget.spirit;
+  BeastSpiritTier get _t => _spirit.tiers[_tier];
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final st = _toneStyle(_spirit.tone);
     return LayoutBuilder(
       builder: (context, c) {
         final narrow = c.maxWidth < 500;
-        final seg = _Seg(
-          labels: [for (final t in _soul.tiers) t.segLabel],
+        final seg = _SpSeg(
+          labels: [for (final t in _spirit.tiers) t.lv],
           selected: _tier,
           onSelect: (i) => setState(() => _tier = i),
         );
         final head = Row(
           children: [
-            // tile 40 · 品质配色
+            // 字徽 tile 40
             Container(
               width: 40,
               height: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: a.icoBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: a.icoBorder, width: 1),
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  center: const Alignment(-0.4, -0.45),
+                  colors: [st.glow, Colors.white.withValues(alpha: .03)],
+                ),
+                border: Border.all(color: st.border, width: 1),
               ),
-              child: TgIcon(_soul.icon, size: 20, color: a.icoFg),
+              child: Text(
+                _spirit.avatar,
+                style: TextStyle(
+                  fontFamily: TgFonts.serif,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: st.charText,
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -507,7 +542,7 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _soul.name,
+                    _spirit.name,
                     style: TextStyle(
                       fontFamily: TgFonts.serif,
                       fontSize: 15.5,
@@ -517,7 +552,7 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  _QualityTag(quality: _soul.quality),
+                  _RarityTag(spirit: _spirit),
                 ],
               ),
             ),
@@ -542,20 +577,94 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
                 ],
               ),
             ],
+            const SizedBox(height: 14),
+            // sp-meta：属性/携带等级/定位 + 星级
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 11),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: tg.border, width: 1)),
+              ),
+              child: Column(
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      text: '属性 · ',
+                      style: TextStyle(fontSize: 11.5, color: tg.t3),
+                      children: [
+                        TextSpan(
+                          text: _spirit.attr.label,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w400,
+                            color: _spirit.isCommon
+                                ? tg.t2
+                                : switch (_spirit.attr) {
+                                    BeastAttr.nei => tg.tagBlue,
+                                    BeastAttr.wai => tg.tagRed,
+                                    BeastAttr.bal => tg.gold2,
+                                  },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text.rich(
+                    TextSpan(
+                      text: '携带等级 · ',
+                      style: TextStyle(fontSize: 11.5, color: tg.t3),
+                      children: [
+                        TextSpan(
+                          text: '${_spirit.level}',
+                          style: TextStyle(fontSize: 11.5, color: tg.t2),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text.rich(
+                    TextSpan(
+                      text: '定位 · ',
+                      style: TextStyle(fontSize: 11.5, color: tg.t3),
+                      children: [
+                        TextSpan(
+                          text: _spirit.role,
+                          style: TextStyle(fontSize: 11.5, color: tg.t2),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // 星级（实星+空星，金色）
+                  Text(
+                    List.generate(
+                      5,
+                      (i) => i < _spirit.stars ? '★' : '☆',
+                    ).join(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: 2,
+                      color: tg.gold2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 18),
-            // 档位标题 + 分隔线
-            _SectionTitle(title: _t.title),
+            // 档位标题
+            _SpSectionTitle(title: _t.title),
             const SizedBox(height: 10),
-            // 主/副词条 mats
+            // mats（成长·主 / 副）
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _MatItem(badge: '主', name: '主词条', value: _t.main),
+                _GrowthMatItem(badge: '主', name: '成长 · 主', value: _t.main),
                 for (var i = 0; i < _t.subs.length; i++)
-                  _MatItem(
+                  _GrowthMatItem(
                     badge: '${i + 1}',
-                    name: '副词条 ${i + 1}',
+                    name: '成长 · 副${i + 1}',
                     value: _t.subs[i],
                   ),
               ],
@@ -583,7 +692,7 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
                         color: tg.gold2,
                       ),
                     ),
-                    ..._boldSpans(
+                    ..._fxSpans(
                       _t.fx,
                       TextStyle(fontSize: 12.5, height: 1.6, color: tg.t2),
                       tg,
@@ -593,7 +702,6 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
               ),
             ),
             const SizedBox(height: 14),
-            // calc-note
             Text.rich(
               TextSpan(
                 style: TextStyle(fontSize: 11.5, color: tg.t3),
@@ -603,7 +711,7 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
                     text: '20 级',
                     style: TextStyle(fontSize: 11.5, color: tg.gold2),
                   ),
-                  const TextSpan(text: '，共 4 个效果档位；升级保留已解锁效果。'),
+                  const TextSpan(text: '，共 4 个成长档位；升级保留已解锁效果。'),
                 ],
               ),
             ),
@@ -613,8 +721,8 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
     );
   }
 
-  /// 解析 fx 里的 `<b>…</b>` → 金加粗。
-  List<InlineSpan> _boldSpans(String raw, TextStyle base, TgColors tg) {
+  /// 解析 `<b>…</b>` → 金加粗。
+  List<InlineSpan> _fxSpans(String raw, TextStyle base, TgColors tg) {
     final reg = RegExp(r'<b>(.*?)</b>');
     final out = <InlineSpan>[];
     var last = 0;
@@ -637,9 +745,9 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
   }
 }
 
-/// 材质条（`.mat-item`）：badge + 名称 + 数值。
-class _MatItem extends StatelessWidget {
-  const _MatItem({
+/// 成长材料条（`.mat-item`）。
+class _GrowthMatItem extends StatelessWidget {
+  const _GrowthMatItem({
     required this.badge,
     required this.name,
     required this.value,
@@ -703,9 +811,9 @@ class _MatItem extends StatelessWidget {
   }
 }
 
-/// 档位分段控件（`.lv-seg`）。
-class _Seg extends StatelessWidget {
-  const _Seg({
+/// 档位分段（`.lv-seg`）。
+class _SpSeg extends StatelessWidget {
+  const _SpSeg({
     required this.labels,
     required this.selected,
     required this.onSelect,
@@ -719,12 +827,12 @@ class _Seg extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     return Container(
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: tg.inset,
         borderRadius: BorderRadius.circular(9),
         border: Border.all(color: tg.borderHi, width: 1),
       ),
-      padding: const EdgeInsets.all(3),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -766,9 +874,9 @@ class _Seg extends StatelessWidget {
   }
 }
 
-/// 小节标题（标题右侧分隔细线，对应 `.mat-sec h4::after`）。
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
+/// 小节标题（标题右侧分隔线）。
+class _SpSectionTitle extends StatelessWidget {
+  const _SpSectionTitle({required this.title});
 
   final String title;
 
@@ -785,7 +893,7 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-/// 页脚（与其它二级页保持一致）。
+/// 页脚。
 class _PageFoot extends StatelessWidget {
   const _PageFoot();
 

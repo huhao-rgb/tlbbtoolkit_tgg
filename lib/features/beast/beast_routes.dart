@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../shared/tools/tool_catalog.dart';
 import '../../shared/widgets/tool_hub_page.dart';
-import '../../shared/widgets/tool_placeholder_page.dart';
+import 'presentation/pages/beast_index_page.dart';
+import 'presentation/pages/beast_skill_page.dart';
 import 'presentation/pages/beast_soul_page.dart';
 
 part 'beast_routes.g.dart';
@@ -43,7 +44,7 @@ class BeastIndexRoute extends GoRouteData with $BeastIndexRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.beastIndex);
+      const BeastIndexPage();
 }
 
 /// 兽灵技能效果。
@@ -52,5 +53,5 @@ class BeastSkillRoute extends GoRouteData with $BeastSkillRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.beastSkill);
+      const BeastSkillPage();
 }
