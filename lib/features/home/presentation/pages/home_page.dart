@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
-import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
+import '../../../../shared/widgets/tg_text_field.dart';
 import '../../../../shared/widgets/tool_card.dart';
 
 /// 首页（工具箱 tab 根页面）：天工阁 Hero + 搜索 + 分类筛选 + 工具网格。
@@ -233,9 +233,9 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
-/// Hero 搜索框（对应原型 `.hero-search`）：
-/// h44 · r11 · 半透明底（透出渐变）· 放大镜 left:13 宽17 · 文字从 39px 起（gap 9）。
-class _HeroSearchField extends StatefulWidget {
+/// Hero 搜索框（对应原型 `.hero-search`）：h44 · r11 · 半透明底 · 放大镜。
+/// 复用共享 [TgTextField]（聚焦 = 金描边 + 光环，文字垂直居中）。
+class _HeroSearchField extends StatelessWidget {
   const _HeroSearchField({
     required this.onSearch,
     required this.isDark,
@@ -249,67 +249,18 @@ class _HeroSearchField extends StatefulWidget {
   final double? maxWidth;
 
   @override
-  State<_HeroSearchField> createState() => _HeroSearchFieldState();
-}
-
-class _HeroSearchFieldState extends State<_HeroSearchField> {
-  bool _focused = false;
-
-  @override
   Widget build(BuildContext context) {
-    final tg = context.tg;
-    final bg = widget.isDark
-        ? const Color(0x8C07090D)
-        : Colors.white; // rgba(7,9,13,.55)
     return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: widget.maxWidth ?? double.infinity),
-      child: Focus(
-        onFocusChange: (focused) => setState(() => _focused = focused),
-        child: Container(
-          height: 44,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(TgRadius.lg),
-            border: Border.all(
-              color: _focused ? tg.goldTint(.55) : tg.border,
-              width: 1,
-            ),
-            boxShadow: _focused ? TgShadows.focusRing : null,
-          ),
-          child: Row(
-            children: [
-              // 放大镜：left 13 · 17px
-              const SizedBox(width: 13),
-              TgIcon('search', size: 17, color: tg.t3),
-              const SizedBox(width: 9),
-              Expanded(
-                child: TextField(
-                  onChanged: widget.onSearch,
-                  textInputAction: TextInputAction.search,
-                  style: TgType.body14.copyWith(color: tg.t1),
-                  cursorColor: tg.gold,
-                  // 关键：清除主题 inputDecorationTheme 的默认（filled/边框/
-                  // 最小高度/内距），否则会在外层自绘框里再渲染一层“输入框”。
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    isDense: true,
-                    filled: false,
-                    constraints: const BoxConstraints(),
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    hintText: '搜索工具，如「资质」「武道」「兽魂」…',
-                    hintStyle: TgType.body14.copyWith(color: tg.t3),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-            ],
-          ),
-        ),
+      constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+      child: TgTextField(
+        hintText: '搜索工具，如「资质」「武道」「兽魂」…',
+        onChanged: onSearch,
+        textInputAction: TextInputAction.search,
+        prefixIcon: 'search',
+        height: 44,
+        horizontalPadding: 13,
+        radius: BorderRadius.circular(TgRadius.lg),
+        background: isDark ? const Color(0x8C07090D) : Colors.white,
       ),
     );
   }

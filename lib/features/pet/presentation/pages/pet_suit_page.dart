@@ -80,8 +80,9 @@ class _PetSuitPageState extends State<PetSuitPage> {
                   children: [
                     TgPageHead(
                       crumbLeft: ToolCatalog.petSuit.crumbRoot,
-                      crumbTail: ToolCatalog.petSuit.crumb
-                          .substring(ToolCatalog.petSuit.crumbRoot.length),
+                      crumbTail: ToolCatalog.petSuit.crumb.substring(
+                        ToolCatalog.petSuit.crumbRoot.length,
+                      ),
                       onCrumbLeftTap: () =>
                           context.go(ToolCatalog.petSuit.group.hubLocation),
                       title: ToolCatalog.petSuit.title,
@@ -100,8 +101,7 @@ class _PetSuitPageState extends State<PetSuitPage> {
                         _SuitChip(
                           label: '材料计算器',
                           active: _view == _SuitView.calc,
-                          onTap: () =>
-                              setState(() => _view = _SuitView.calc),
+                          onTap: () => setState(() => _view = _SuitView.calc),
                         ),
                       ],
                     ),
@@ -111,8 +111,7 @@ class _PetSuitPageState extends State<PetSuitPage> {
                       _SuitGrid(
                         cardLv: _cardLv,
                         onCardTap: _openParts,
-                        onLvChanged: (i, lv) =>
-                            setState(() => _cardLv[i] = lv),
+                        onLvChanged: (i, lv) => setState(() => _cardLv[i] = lv),
                       ),
                     // 材料计算器
                     if (_view == _SuitView.calc)
@@ -199,8 +198,7 @@ class _SuitGrid extends StatelessWidget {
         final cols = ((constraints.maxWidth + gap) / (cardMin + gap))
             .floor()
             .clamp(1, 3);
-        final itemWidth =
-            (constraints.maxWidth - gap * (cols - 1)) / cols;
+        final itemWidth = (constraints.maxWidth - gap * (cols - 1)) / cols;
         return Wrap(
           spacing: gap,
           runSpacing: gap,
@@ -223,7 +221,7 @@ class _SuitGrid extends StatelessWidget {
 }
 
 /// 单张套装卡（`.suit-card`）：图标 + 名称/分类 + 档位 seg + 效果 + 适配 + 底部提示。
-class _SuitCard extends StatelessWidget {
+class _SuitCard extends StatefulWidget {
   const _SuitCard({
     required this.suit,
     required this.lv,
@@ -237,112 +235,133 @@ class _SuitCard extends StatelessWidget {
   final ValueChanged<String> onLvChanged;
 
   @override
+  State<_SuitCard> createState() => _SuitCardState();
+}
+
+class _SuitCardState extends State<_SuitCard> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: TgRadius.card,
-        child: Ink(
-          padding: const EdgeInsets.all(TgSpacing.lg),
-          decoration: BoxDecoration(
-            color: tg.card,
-            borderRadius: TgRadius.card,
-            border: Border.all(color: tg.border, width: 1),
+    final suit = widget.suit;
+    final lv = widget.lv;
+    // hover 与首页工具卡一致（200ms easeOut：上浮 -2 · 底 card2 · 描边泛金）
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
+        decoration: BoxDecoration(
+          color: _hover ? tg.card2 : tg.card,
+          borderRadius: TgRadius.card,
+          border: Border.all(
+            color: _hover ? tg.goldTint(.32) : tg.border,
+            width: 1,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // suit-top：tile + 名称/分类 + 档位 seg
-              Row(
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: TgRadius.card,
+          child: InkWell(
+            borderRadius: TgRadius.card,
+            hoverColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onTap: widget.onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(TgSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SuitTile(icon: suit.icon),
-                  const SizedBox(width: TgSpacing.s12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // suit-top：tile + 名称/分类 + 档位 seg
+                  Row(
+                    children: [
+                      _SuitTile(icon: suit.icon),
+                      const SizedBox(width: TgSpacing.s12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(suit.name, style: _suitNameStyle(tg)),
+                            const SizedBox(height: 3),
+                            _CatTag(text: suit.cat, color: suit.catColor),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: TgSpacing.sm),
+                      _Seg(
+                        values: kSuitLvKeys,
+                        selected: lv,
+                        onSelect: widget.onLvChanged,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: TgSpacing.s14),
+                  // suit-effect
+                  Column(
+                    children: [
+                      for (final e
+                          in suit.levels[lv] ?? const <PetSuitEffect>[])
+                        _EffectRow(effect: e),
+                    ],
+                  ),
+                  // suit-fit（分隔线用主题 --border-hi；适配区 11.5 · gap7）
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(top: TgSpacing.s14),
+                    padding: const EdgeInsets.only(top: TgSpacing.s13),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: tg.borderHi, width: 1),
+                      ),
+                    ),
+                    child: Wrap(
+                      spacing: 7,
+                      runSpacing: 7,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          suit.name,
-                          style: TgType.control15.copyWith(
-                            fontFamily: TgFonts.serif,
-                            color: tg.t1,
-                            letterSpacing: 1,
-                          ),
+                          '适配：',
+                          style: TextStyle(fontSize: 11.5, color: tg.t3),
                         ),
-                        const SizedBox(height: 3),
-                        _CatTag(text: suit.cat, color: suit.catColor),
+                        for (final f in suit.fits) _NeutralTag(text: f),
                       ],
                     ),
                   ),
-                  const SizedBox(width: TgSpacing.sm),
-                  _Seg(
-                    values: kSuitLvKeys,
-                    selected: lv,
-                    onSelect: onLvChanged,
-                  ),
-                ],
-              ),
-              const SizedBox(height: TgSpacing.s14),
-              // suit-effect
-              Column(
-                children: [
-                  for (final e in suit.levels[lv] ?? const <PetSuitEffect>[])
-                    _EffectRow(effect: e),
-                ],
-              ),
-              // suit-fit
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(top: TgSpacing.s14),
-                padding: const EdgeInsets.only(top: TgSpacing.s13),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Color(0x4D2B3547), width: 1),
-                  ),
-                ),
-                child: Wrap(
-                  spacing: TgSpacing.xs,
-                  runSpacing: TgSpacing.xs,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      '适配：',
-                      style: TgType.caption.copyWith(color: tg.t3),
-                    ),
-                    for (final f in suit.fits) _NeutralTag(text: f),
-                  ],
-                ),
-              ),
-              // suit-more
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(top: TgSpacing.s14),
-                padding: const EdgeInsets.only(top: TgSpacing.s12),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Color(0x4D2B3547), width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      '点击查看 5 件套部件',
-                      style: TgType.caption.copyWith(color: tg.t3),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '$lv 级档',
-                      style: TgType.caption.copyWith(
-                        color: tg.gold2,
-                        fontWeight: FontWeight.w500,
+                  // suit-more
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(top: TgSpacing.s14),
+                    padding: const EdgeInsets.only(top: TgSpacing.s12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: tg.borderHi, width: 1),
                       ),
                     ),
-                  ],
-                ),
+                    child: Row(
+                      children: [
+                        Text(
+                          '点击查看 5 件套部件',
+                          style: TgType.caption.copyWith(color: tg.t3),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '$lv 级档',
+                          style: TgType.caption.copyWith(
+                            color: tg.gold2,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -350,25 +369,36 @@ class _SuitCard extends StatelessWidget {
   }
 }
 
-/// 卡片图标底（`.tile`：44×44 · r12 · 金底）。
+/// 套装名称样式（原型 `.suit-name`：serif 15.5 · 600 · 字距1）。
+TextStyle _suitNameStyle(TgColors tg) => TextStyle(
+  fontFamily: TgFonts.serif,
+  fontSize: 15.5,
+  fontWeight: FontWeight.w600,
+  letterSpacing: 1,
+  color: tg.t1,
+);
+
+/// 图标底（`.tile`：卡内 44×44 · r12 金底；弹窗头传 size:40）。
 class _SuitTile extends StatelessWidget {
-  const _SuitTile({required this.icon});
+  const _SuitTile({required this.icon, this.size = 44, this.iconSize = 21});
 
   final String icon;
+  final double size;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
     return Container(
-      width: 44,
-      height: 44,
+      width: size,
+      height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: tg.goldTint(.10),
         borderRadius: BorderRadius.circular(TgRadius.r12),
         border: Border.all(color: tg.goldTint(.28), width: 1),
       ),
-      child: TgIcon(icon, size: 21, color: tg.gold),
+      child: TgIcon(icon, size: iconSize, color: tg.gold),
     );
   }
 }
@@ -415,10 +445,7 @@ class _CatTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(TgRadius.sm),
         border: Border.all(color: border, width: 1),
       ),
-      child: Text(
-        text,
-        style: TgType.tag.copyWith(color: textC, height: 1.7),
-      ),
+      child: Text(text, style: TgType.tag.copyWith(color: textC, height: 1.7)),
     );
   }
 }
@@ -439,10 +466,7 @@ class _NeutralTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(TgRadius.sm),
         border: Border.all(color: tg.borderHi, width: 1),
       ),
-      child: Text(
-        text,
-        style: TgType.tag.copyWith(color: tg.t2, height: 1.7),
-      ),
+      child: Text(text, style: TgType.tag.copyWith(color: tg.t2, height: 1.7)),
     );
   }
 }
@@ -457,7 +481,8 @@ class _EffectRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      // 原型 `.suit-effect{display:grid;gap:9px}` → 每行上下 4.5 合计 9
+      padding: const EdgeInsets.symmetric(vertical: 4.5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -519,11 +544,7 @@ class _Seg extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final v in values)
-            _SegBtn(
-              label: v,
-              active: v == selected,
-              onTap: () => onSelect(v),
-            ),
+            _SegBtn(label: v, active: v == selected, onTap: () => onSelect(v)),
         ],
       ),
     );
@@ -602,7 +623,10 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
       elevation: 0,
       insetPadding: const EdgeInsets.all(18),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460, maxHeight: 0.84 * double.infinity),
+        constraints: const BoxConstraints(
+          maxWidth: 460,
+          maxHeight: 0.84 * double.infinity,
+        ),
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
@@ -633,7 +657,11 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                             children: [
                               Row(
                                 children: [
-                                  _SuitTile(icon: _suit.icon),
+                                  _SuitTile(
+                                    icon: _suit.icon,
+                                    size: 40,
+                                    iconSize: 19,
+                                  ),
                                   const SizedBox(width: TgSpacing.s12),
                                   Expanded(
                                     child: Column(
@@ -642,11 +670,7 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                                       children: [
                                         Text(
                                           _suit.name,
-                                          style: TgType.control15.copyWith(
-                                            fontFamily: TgFonts.serif,
-                                            color: tg.t1,
-                                            letterSpacing: 1,
-                                          ),
+                                          style: _suitNameStyle(tg),
                                         ),
                                         const SizedBox(height: 3),
                                         _CatTag(
@@ -656,7 +680,9 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                                       ],
                                     ),
                                   ),
-                                  _DialogClose(onTap: () => Navigator.pop(context)),
+                                  _DialogClose(
+                                    onTap: () => Navigator.pop(context),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: TgSpacing.s12),
@@ -672,20 +698,17 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                           )
                         : Row(
                             children: [
-                              _SuitTile(icon: _suit.icon),
+                              _SuitTile(
+                                icon: _suit.icon,
+                                size: 40,
+                                iconSize: 19,
+                              ),
                               const SizedBox(width: TgSpacing.s12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      _suit.name,
-                                      style: TgType.control15.copyWith(
-                                        fontFamily: TgFonts.serif,
-                                        color: tg.t1,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
+                                    Text(_suit.name, style: _suitNameStyle(tg)),
                                     const SizedBox(height: 3),
                                     _CatTag(
                                       text: _suit.cat,
@@ -704,9 +727,7 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                                 },
                               ),
                               const SizedBox(width: TgSpacing.s10),
-                              _DialogClose(
-                                onTap: () => Navigator.pop(context),
-                              ),
+                              _DialogClose(onTap: () => Navigator.pop(context)),
                             ],
                           );
                   },
@@ -746,19 +767,14 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                     borderRadius: const BorderRadius.horizontal(
                       right: Radius.circular(10),
                     ),
-                    border: Border(
-                      left: BorderSide(color: tg.gold2, width: 3),
-                    ),
+                    border: Border(left: BorderSide(color: tg.gold2, width: 3)),
                   ),
                   child: Wrap(
                     spacing: TgSpacing.xs,
                     runSpacing: TgSpacing.xs,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text(
-                        '适配：',
-                        style: TgType.caption.copyWith(color: tg.t2),
-                      ),
+                      Text('适配：', style: TgType.caption.copyWith(color: tg.t2)),
                       for (final f in _suit.fits) _NeutralTag(text: f),
                     ],
                   ),
@@ -792,9 +808,7 @@ class _DialogClose extends StatelessWidget {
             borderRadius: BorderRadius.circular(9),
             border: Border.all(color: tg.borderHi, width: 1),
           ),
-          child: Center(
-            child: TgIcon('x', size: 14, color: tg.t2),
-          ),
+          child: Center(child: TgIcon('x', size: 14, color: tg.t2)),
         ),
       ),
     );
@@ -820,9 +834,7 @@ class _SectionTitle extends StatelessWidget {
           ),
         ),
         const SizedBox(width: TgSpacing.sm),
-        Expanded(
-          child: Container(height: 1, color: tg.borderHi),
-        ),
+        Expanded(child: Container(height: 1, color: tg.borderHi)),
       ],
     );
   }
@@ -920,11 +932,7 @@ class _CalcCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final result = suitMatsCalc(
-      SuitMatCalcInput(
-        lv: lv,
-        currentStar: star,
-        withExchange: withExchange,
-      ),
+      SuitMatCalcInput(lv: lv, currentStar: star, withExchange: withExchange),
     );
     return Container(
       width: double.infinity,
@@ -969,9 +977,7 @@ class _CalcCard extends StatelessWidget {
             Wrap(
               spacing: TgSpacing.sm,
               runSpacing: TgSpacing.sm,
-              children: [
-                for (final m in result.exchange) _MatItem(item: m),
-              ],
+              children: [for (final m in result.exchange) _MatItem(item: m)],
             ),
             const SizedBox(height: TgSpacing.s18),
           ],
@@ -1005,9 +1011,7 @@ class _CalcCard extends StatelessWidget {
                 Wrap(
                   spacing: TgSpacing.sm,
                   runSpacing: TgSpacing.sm,
-                  children: [
-                    for (final m in result.total) _MatItem(item: m),
-                  ],
+                  children: [for (final m in result.total) _MatItem(item: m)],
                 ),
               ],
             ),
@@ -1031,10 +1035,7 @@ class _CalcLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Text(
-      text,
-      style: TgType.label.copyWith(color: tg.t3),
-    );
+    return Text(text, style: TgType.label.copyWith(color: tg.t3));
   }
 }
 
@@ -1078,10 +1079,7 @@ class _MatItem extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                item.name,
-                style: TgType.caption.copyWith(color: tg.t2),
-              ),
+              Text(item.name, style: TgType.caption.copyWith(color: tg.t2)),
               Text(
                 '× ${suitFmtCount(item.count)}',
                 style: TgType.row13.copyWith(
@@ -1112,10 +1110,8 @@ class _StarLine extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 9),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0x33FFFFFF), width: 1),
-        ),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: tg.border, width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1131,10 +1127,7 @@ class _StarLine extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TgType.caption.copyWith(
-                color: tg.t2,
-                height: 1.5,
-              ),
+              style: TgType.caption.copyWith(color: tg.t2, height: 1.5),
             ),
           ),
         ],

@@ -7,6 +7,7 @@ import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
+import '../../../../shared/widgets/tg_text_field.dart';
 import '../../domain/pet_calc.dart';
 
 /// 宝宝资质计算（对应原型 `v-pet-calc`）。
@@ -89,8 +90,9 @@ class _PetCalcPageState extends State<PetCalcPage> {
                   children: [
                     TgPageHead(
                       crumbLeft: ToolCatalog.petCalc.crumbRoot,
-                      crumbTail: ToolCatalog.petCalc.crumb
-                          .substring(ToolCatalog.petCalc.crumbRoot.length),
+                      crumbTail: ToolCatalog.petCalc.crumb.substring(
+                        ToolCatalog.petCalc.crumbRoot.length,
+                      ),
                       onCrumbLeftTap: () =>
                           context.go(ToolCatalog.petCalc.group.hubLocation),
                       title: ToolCatalog.petCalc.title,
@@ -116,13 +118,15 @@ class _PetCalcPageState extends State<PetCalcPage> {
                                   setState(() => _curWu = _bump(_curWu, -1)),
                               onCurWuPlus: () =>
                                   setState(() => _curWu = _bump(_curWu, 1)),
-                              onCurLingMinus: () =>
-                                  setState(() => _curLing = _bump(_curLing, -1)),
+                              onCurLingMinus: () => setState(
+                                () => _curLing = _bump(_curLing, -1),
+                              ),
                               onCurLingPlus: () =>
                                   setState(() => _curLing = _bump(_curLing, 1)),
                               onWuMinus: () =>
                                   setState(() => _wu = _bump(_wu, -1)),
-                              onWuPlus: () => setState(() => _wu = _bump(_wu, 1)),
+                              onWuPlus: () =>
+                                  setState(() => _wu = _bump(_wu, 1)),
                               onLingMinus: () =>
                                   setState(() => _ling = _bump(_ling, -1)),
                               onLingPlus: () =>
@@ -163,7 +167,8 @@ class _PetCalcPageState extends State<PetCalcPage> {
                                 setState(() => _curLing = _bump(_curLing, -1)),
                             onCurLingPlus: () =>
                                 setState(() => _curLing = _bump(_curLing, 1)),
-                            onWuMinus: () => setState(() => _wu = _bump(_wu, -1)),
+                            onWuMinus: () =>
+                                setState(() => _wu = _bump(_wu, -1)),
                             onWuPlus: () => setState(() => _wu = _bump(_wu, 1)),
                             onLingMinus: () =>
                                 setState(() => _ling = _bump(_ling, -1)),
@@ -189,8 +194,7 @@ class _PetCalcPageState extends State<PetCalcPage> {
     );
   }
 
-  int _bump(int v, int delta) =>
-      (v + delta).clamp(kWuLingMin, kWuLingMax);
+  int _bump(int v, int delta) => (v + delta).clamp(kWuLingMin, kWuLingMax);
 }
 
 /// 表单卡（`.form-card`）：超灵开关 + 当前资质 + 当前/目标悟灵 + 开始计算。
@@ -259,13 +263,7 @@ class _FormCard extends StatelessWidget {
           // frow 2：当前资质
           _Label('当前资质', '（攻击 / 属性资质，按当前悟灵状态填写）'),
           const SizedBox(height: TgSpacing.sm),
-          TextField(
-            controller: baseController,
-            keyboardType: TextInputType.number,
-            style: TgType.body14.copyWith(color: tg.t1),
-            cursorColor: tg.gold,
-            decoration: const InputDecoration(hintText: '如 2200'),
-          ),
+          _NumberField(controller: baseController),
           const SizedBox(height: TgSpacing.lg),
           // frow 3：当前悟性 / 当前灵性
           _StepperPair(
@@ -307,6 +305,23 @@ class _FormCard extends StatelessWidget {
           _PrimaryButton(label: '开始计算', onTap: onCalc),
         ],
       ),
+    );
+  }
+}
+
+/// 「当前资质」数字输入：复用共享 TgTextField（聚焦 = 金描边 + 光环）。
+class _NumberField extends StatelessWidget {
+  const _NumberField({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return TgTextField(
+      controller: controller,
+      hintText: '如 2200',
+      keyboardType: TextInputType.number,
+      textInputAction: TextInputAction.done,
     );
   }
 }
@@ -406,16 +421,13 @@ class _Stepper extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TgType.cell16.copyWith(
               color: tg.t1,
+              fontWeight: FontWeight.w700,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ),
         const SizedBox(width: TgSpacing.s10),
-        _StepperButton(
-          label: '＋',
-          enabled: value < kWuLingMax,
-          onTap: onPlus,
-        ),
+        _StepperButton(label: '＋', enabled: value < kWuLingMax, onTap: onPlus),
       ],
     );
   }
@@ -444,9 +456,7 @@ class _StepperButtonState extends State<_StepperButton> {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final usable = widget.enabled;
-    final color = usable
-        ? (_hover ? tg.gold2 : tg.t2)
-        : tg.t2;
+    final color = usable ? (_hover ? tg.gold2 : tg.t2) : tg.t2;
     final border = usable && _hover ? tg.goldTint(.4) : tg.borderHi;
     return Opacity(
       opacity: usable ? 1 : .3,
@@ -494,7 +504,10 @@ class _Label extends StatelessWidget {
         text: text,
         style: TgType.label.copyWith(color: tg.t2),
         children: [
-          TextSpan(text: hint, style: TgType.label.copyWith(color: tg.t3)),
+          TextSpan(
+            text: hint,
+            style: TgType.label.copyWith(color: tg.t3),
+          ),
         ],
       ),
     );
@@ -591,9 +604,7 @@ class _TgSwitch extends StatelessWidget {
             child: AnimatedAlign(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOut,
-              alignment: value
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
+              alignment: value ? Alignment.centerRight : Alignment.centerLeft,
               child: Container(
                 width: 20,
                 height: 20,
@@ -609,9 +620,7 @@ class _TgSwitch extends StatelessWidget {
             const SizedBox(width: TgSpacing.s10),
             Text(
               label,
-              style: TgType.label.copyWith(
-                color: value ? tg.gold2 : tg.t3,
-              ),
+              style: TgType.label.copyWith(color: value ? tg.gold2 : tg.t3),
             ),
           ],
         ],
@@ -663,9 +672,7 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
               decoration: BoxDecoration(
                 borderRadius: TgRadius.btn,
                 // hover 提亮（brightness 1.08）
-                gradient: _hover
-                    ? tg.gradGold
-                    : null,
+                gradient: _hover ? tg.gradGold : null,
               ),
               child: Center(
                 child: Text(
@@ -710,6 +717,7 @@ class _ResultCard extends StatelessWidget {
           Text(
             '预估成品资质',
             style: TgType.note.copyWith(
+              fontSize: 12,
               color: tg.t3,
               letterSpacing: 2,
             ),
@@ -721,9 +729,8 @@ class _ResultCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   r.resultLocale,
-                  style: TgType.numResult(tg.gold2).copyWith(
-                    fontSize: compact ? 36 : 42,
-                  ),
+                  style: TgType.numResult(tg.gold2)
+                      .copyWith(fontSize: compact ? 36 : 42, letterSpacing: 1),
                 ),
               ),
               const SizedBox(width: TgSpacing.s18),
@@ -742,7 +749,7 @@ class _ResultCard extends StatelessWidget {
                   text: r.pctText,
                   style: TgType.caption.copyWith(
                     color: tg.gold2,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -764,11 +771,7 @@ class _ResultCard extends StatelessWidget {
                   value: r.targetWlText,
                   highlight: true,
                 ),
-                _ResultRow(
-                  label: '超灵加成',
-                  value: r.clText,
-                  highlight: true,
-                ),
+                _ResultRow(label: '超灵加成', value: r.clText, highlight: true),
                 _ResultRow(
                   label: '满悟满灵估算',
                   value: r.maxEstLocale,
@@ -810,6 +813,7 @@ class _GradeBox extends StatelessWidget {
         grade,
         style: TgType.display26.copyWith(
           color: blue ? tg.tagBlue : tg.gold2,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -847,6 +851,7 @@ class _ResultRow extends StatelessWidget {
             label,
             style: TgType.row13.copyWith(
               color: tg.t2,
+              fontWeight: FontWeight.w400,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),

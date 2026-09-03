@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/design_tokens.dart';
@@ -6,6 +7,7 @@ import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_icon.dart';
+import '../../../../shared/widgets/tg_modal.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/pet_prob.dart';
 
@@ -36,6 +38,14 @@ class _PetProbPageState extends State<PetProbPage> {
       ? kPetSkills
       : kPetSkills.where((s) => s.cat == _cat).toList(growable: false);
 
+  /// 打开技能详情弹窗（对应原型 skillModal / openSkillDetail）。
+  void _openDetail(PetSkill skill) {
+    showTgModal(
+      context: context,
+      child: _SkillDetailDialog(skill: skill, char: _char),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -63,8 +73,9 @@ class _PetProbPageState extends State<PetProbPage> {
                   children: [
                     TgPageHead(
                       crumbLeft: ToolCatalog.petProb.crumbRoot,
-                      crumbTail: ToolCatalog.petProb.crumb
-                          .substring(ToolCatalog.petProb.crumbRoot.length),
+                      crumbTail: ToolCatalog.petProb.crumb.substring(
+                        ToolCatalog.petProb.crumbRoot.length,
+                      ),
                       onCrumbLeftTap: () =>
                           context.go(ToolCatalog.petProb.group.hubLocation),
                       title: ToolCatalog.petProb.title,
@@ -108,6 +119,7 @@ class _PetProbPageState extends State<PetProbPage> {
                       compact: compact,
                       char: _char,
                       skills: _visibleSkills,
+                      onDetail: _openDetail,
                     ),
                     const SizedBox(height: TgSpacing.s14),
                     const _FormulaNote(),
@@ -125,7 +137,7 @@ class _PetProbPageState extends State<PetProbPage> {
 }
 
 /// 筛选 chip（胶囊 · 选中金色提亮）。
-class _TgChip extends StatelessWidget {
+class _TgChip extends StatefulWidget {
   const _TgChip({
     required this.label,
     required this.active,
@@ -137,26 +149,50 @@ class _TgChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_TgChip> createState() => _TgChipState();
+}
+
+class _TgChipState extends State<_TgChip> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: TgRadius.pillShape,
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: active ? tg.goldTint(.14) : tg.inset,
-            borderRadius: TgRadius.pillShape,
-            border: Border.all(
-              color: active ? tg.goldTint(.5) : tg.border,
-              width: 1,
+    final active = widget.active;
+    final hover = _hover;
+    // 描边优先级：active 金 .5 > hover 金 .45 > borderHi（原型 .chip/.chip:hover）
+    final borderC = active
+        ? tg.goldTint(.5)
+        : (hover ? tg.goldTint(.45) : tg.borderHi);
+    final textC = active ? tg.gold2 : (hover ? tg.t1 : tg.t2);
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: TgRadius.pillShape,
+          hoverColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          child: Ink(
+            // 原型 .chip：padding 6.5px 15px · 12.5px · active 底 .10
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6.5),
+            decoration: BoxDecoration(
+              color: active ? tg.goldTint(.10) : Colors.transparent,
+              borderRadius: TgRadius.pillShape,
+              border: Border.all(color: borderC, width: 1),
             ),
-          ),
-          child: Text(
-            label,
-            style: TgType.row13.copyWith(color: active ? tg.gold2 : tg.t2),
+            child: Text(
+              widget.label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                color: textC,
+              ),
+            ),
           ),
         ),
       ),
@@ -170,11 +206,13 @@ class _ProbListCard extends StatelessWidget {
     required this.compact,
     required this.char,
     required this.skills,
+    required this.onDetail,
   });
 
   final bool compact;
   final PetChar char;
   final List<PetSkill> skills;
+  final ValueChanged<PetSkill> onDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +238,7 @@ class _ProbListCard extends StatelessWidget {
               skill: skills[i],
               char: char,
               last: i == skills.length - 1,
+              onDetail: onDetail,
             ),
           ],
         ],
@@ -208,7 +247,7 @@ class _ProbListCard extends StatelessWidget {
   }
 }
 
-/// 表头：技能 / 类型 / 触发概率 / 判定。
+/// 表头：技能 / 类型 / 触发概率 / 判定 / 详情。
 class _ListHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -225,6 +264,7 @@ class _ListHead extends StatelessWidget {
           Expanded(flex: 75, child: _headText(tg, '类型')),
           Expanded(flex: 150, child: _headText(tg, '触发概率')),
           Expanded(flex: 55, child: _headText(tg, '判定', right: true)),
+          Expanded(flex: 50, child: _headText(tg, '详情', right: true)),
         ],
       ),
     );
@@ -249,12 +289,14 @@ class _ProbRow extends StatelessWidget {
     required this.skill,
     required this.char,
     required this.last,
+    required this.onDetail,
   });
 
   final bool compact;
   final PetSkill skill;
   final PetChar char;
   final bool last;
+  final ValueChanged<PetSkill> onDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -263,10 +305,7 @@ class _ProbRow extends StatelessWidget {
     final w = petProbBarWidth(p);
 
     final name = _SkillName(skill: skill);
-    final typeTag = _Tag(
-      label: skill.tag,
-      color: skill.tagColor,
-    );
+    final typeTag = _Tag(label: skill.tag, color: skill.tagColor);
     final bar = _ProbBar(p: p, w: w);
     final judgeTag = _Tag(label: skill.judge);
 
@@ -292,6 +331,12 @@ class _ProbRow extends StatelessWidget {
             bar,
             const SizedBox(height: TgSpacing.s9),
             judgeTag,
+            const SizedBox(height: 6),
+            // 移动端详情按钮整行右对齐（对应 @media 640 .sk-info）
+            Align(
+              alignment: Alignment.centerRight,
+              child: _DetailButton(onTap: () => onDetail(skill)),
+            ),
           ],
         ),
       );
@@ -309,9 +354,22 @@ class _ProbRow extends StatelessWidget {
         children: [
           Expanded(flex: 125, child: name),
           // Align 使 tag 按内容自适应宽度（Expanded 直接包裹会撑满整列）
-          Expanded(flex: 75, child: Align(alignment: Alignment.centerLeft, child: typeTag)),
+          Expanded(
+            flex: 75,
+            child: Align(alignment: Alignment.centerLeft, child: typeTag),
+          ),
           Expanded(flex: 150, child: bar),
-          Expanded(flex: 55, child: Align(alignment: Alignment.centerRight, child: judgeTag)),
+          Expanded(
+            flex: 55,
+            child: Align(alignment: Alignment.centerRight, child: judgeTag),
+          ),
+          Expanded(
+            flex: 50,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: _DetailButton(onTap: () => onDetail(skill)),
+            ),
+          ),
         ],
       ),
     );
@@ -329,7 +387,12 @@ class _SkillName extends StatelessWidget {
     final tg = context.tg;
     return Text.rich(
       TextSpan(
-        style: TgType.cardTitle.copyWith(color: tg.t1),
+        // 原型 .l-name：13.5px · 500；描述 small 11/t3
+        style: TextStyle(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w500,
+          color: tg.t1,
+        ),
         children: [
           TextSpan(text: skill.name),
           if (skill.hasDesc)
@@ -384,7 +447,10 @@ class _ProbBar extends StatelessWidget {
           child: Text(
             '$p%',
             textAlign: TextAlign.right,
-            style: TgType.cardTitle.copyWith(
+            // 原型 .l-pct：13.5px · 600
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
               color: tg.gold2,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
@@ -443,10 +509,7 @@ class _Tag extends StatelessWidget {
         borderRadius: BorderRadius.circular(TgRadius.sm),
         border: Border.all(color: border, width: 1),
       ),
-      child: Text(
-        label,
-        style: TgType.tag.copyWith(color: text, height: 1.7),
-      ),
+      child: Text(label, style: TgType.tag.copyWith(color: text, height: 1.7)),
     );
   }
 }
@@ -508,6 +571,244 @@ class _PageFoot extends StatelessWidget {
             '界面数据均为演示样例，正式版接入实战回归数值',
             textAlign: TextAlign.center,
             style: TgType.tag.copyWith(color: tg.t3),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 详情按钮（对应原型 `.sk-info`）：book 图标 + 详情，hover 泛金。
+class _DetailButton extends StatefulWidget {
+  const _DetailButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_DetailButton> createState() => _DetailButtonState();
+}
+
+class _DetailButtonState extends State<_DetailButton> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final fg = _hover ? tg.gold2 : tg.t2;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(8),
+          hoverColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: _hover ? tg.goldTint(.09) : tg.inset,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _hover ? tg.goldTint(.5) : tg.borderHi,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TgIcon('book', size: 13, color: fg),
+                const SizedBox(width: 5),
+                Text(
+                  '详情',
+                  style: TextStyle(fontSize: 11.5, letterSpacing: 1, color: fg),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 技能详情弹窗（对应原型 skillModal）：图标/名称/双 tag + 长描述 +
+/// 三格数据（基准概率 · 当前性格概率 · 判定方式）+ 公式注。
+class _SkillDetailDialog extends StatelessWidget {
+  const _SkillDetailDialog({required this.skill, required this.char});
+
+  final PetSkill skill;
+  final PetChar char;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final current = petProbOf(skill, char);
+    final nowLabel = char.key == 'general' ? '通用概率' : '${char.name}性格概率';
+
+    // 图标配色（对应原型 .tile + .tile.t-<color>）
+    final Color iconC;
+    final Color tileBorder;
+    final Color tileBg;
+    switch (skill.tagColor) {
+      case PetTagColor.gold:
+        iconC = tg.gold2;
+        tileBorder = tg.goldTint(.45);
+        tileBg = tg.goldTint(.10);
+      case PetTagColor.cyan:
+        iconC = tg.tagCyan;
+        tileBorder = tg.tagBorderOf(tg.cyan);
+        tileBg = tg.tintOf(tg.cyan, .10);
+      case PetTagColor.red:
+        iconC = tg.tagRed;
+        tileBorder = tg.tagBorderOf(tg.red);
+        tileBg = tg.tintOf(tg.red, .10);
+      case PetTagColor.blue:
+        iconC = tg.tagBlue;
+        tileBorder = tg.tagBorderOf(tg.blue);
+        tileBg = tg.tintOf(tg.blue, .10);
+      case PetTagColor.green:
+        iconC = tg.tagGreen;
+        tileBorder = tg.tagBorderOf(tg.green);
+        tileBg = tg.tintOf(tg.green, .10);
+    }
+
+    // 外壳/卡片由共享 TgModalShell 提供（Dialog 内自带 Material 上下文，
+    // 正文文字不会出现黄色双下划线）。
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // modal-head：图标 + 名称/双 tag + 关闭
+        Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: tileBg,
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: tileBorder, width: 1),
+              ),
+              child: SvgPicture.asset(
+                'assets/icons/${skill.icon}.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(iconC, BlendMode.srcIn),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    skill.name,
+                    style: TextStyle(
+                      fontFamily: TgFonts.serif,
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1,
+                      color: tg.t1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      _Tag(label: skill.tag, color: skill.tagColor),
+                      const SizedBox(width: 5),
+                      _Tag(label: skill.cat.label),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            TgModalCloseButton(onTap: () => Navigator.pop(context)),
+          ],
+        ),
+        const SizedBox(height: 15),
+        // sk-fx：长描述
+        Text(
+          skill.fx,
+          textAlign: TextAlign.justify,
+          style: TextStyle(fontSize: 13, height: 1.8, color: tg.t2),
+        ),
+        const SizedBox(height: 15),
+        // sk-stat3：三格数据
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _Stat3Cell(value: '${skill.base}%', label: '基准概率'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _Stat3Cell(value: '$current%', label: nowLabel),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _Stat3Cell(value: skill.judge, label: '判定方式', text: true),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          '※ 概率 = 基准值 × 性格系数（上限 100%），实际还受悟性与技能等级影响。',
+          style: TextStyle(fontSize: 11.5, color: tg.t3),
+        ),
+      ],
+    );
+  }
+}
+
+/// sk-stat3 单格：大数字 + 下注（b / span）。
+class _Stat3Cell extends StatelessWidget {
+  const _Stat3Cell({
+    required this.value,
+    required this.label,
+    this.text = false,
+  });
+
+  final String value;
+  final String label;
+
+  /// 判定方式格：文字为大字号（17→13，对应 `.sk-stat3 b.txt`）。
+  final bool text;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+      decoration: BoxDecoration(
+        color: tg.inset,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tg.border, width: 1),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: text ? 13 : 17,
+              fontWeight: FontWeight.w600,
+              color: tg.gold2,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 10.5, letterSpacing: 1, color: tg.t3),
           ),
         ],
       ),

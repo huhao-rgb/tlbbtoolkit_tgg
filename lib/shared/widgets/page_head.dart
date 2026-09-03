@@ -38,39 +38,30 @@ class TgPageHead extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 面包屑
-          SizedBox(
-            height: 18,
-            child: Row(
-              children: [
-                if (hasLeft) ...[
-                  InkWell(
-                    key: Key('crumb-$crumbLeft'),
-                    onTap: onCrumbLeftTap,
-                    borderRadius: TgRadius.pillShape,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 2,
-                        vertical: 2,
-                      ),
-                      child: Text(
-                        crumbLeft!,
-                        style: TgType.caption.copyWith(
-                          color: tg.gold,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (tail.isNotEmpty)
-                    Text(
-                      tail,
+          // 面包屑（首段链接 + 尾部同基线；不加固定高/垂直内边距，
+          // 避免首段文字错位或被裁切）
+          Row(
+            children: [
+              if (hasLeft) ...[
+                InkWell(
+                  key: Key('crumb-$crumbLeft'),
+                  onTap: onCrumbLeftTap,
+                  borderRadius: TgRadius.pillShape,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Text(
+                      crumbLeft!,
                       style: TgType.caption.copyWith(
-                        color: tg.t2,
+                        color: tg.gold,
                         letterSpacing: 1,
                       ),
                     ),
-                ] else if (tail.isNotEmpty)
+                  ),
+                ),
+                if (tail.isNotEmpty)
                   Text(
                     tail,
                     style: TgType.caption.copyWith(
@@ -78,8 +69,15 @@ class TgPageHead extends StatelessWidget {
                       letterSpacing: 1,
                     ),
                   ),
-              ],
-            ),
+              ] else if (tail.isNotEmpty)
+                Text(
+                  tail,
+                  style: TgType.caption.copyWith(
+                    color: tg.t2,
+                    letterSpacing: 1,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: TgSpacing.sm),
           // 标题（金色圆点 + serif 24）
@@ -95,10 +93,7 @@ class TgPageHead extends StatelessWidget {
               ),
               const SizedBox(width: TgSpacing.s10),
               Flexible(
-                child: Text(
-                  title,
-                  style: TgType.pageH1.copyWith(color: tg.t1),
-                ),
+                child: Text(title, style: TgType.pageH1.copyWith(color: tg.t1)),
               ),
             ],
           ),
