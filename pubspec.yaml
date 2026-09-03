@@ -43,6 +43,8 @@ dependencies:
   json_annotation: ^4.12.0
   shared_preferences: ^2.5.5
   flutter_svg: ^2.3.0
+  # 桌面 frameless 窗口：自定义标题栏（Windows / macOS / Linux）
+  window_manager: ^0.5.2
 
 dev_dependencies:
   flutter_test:

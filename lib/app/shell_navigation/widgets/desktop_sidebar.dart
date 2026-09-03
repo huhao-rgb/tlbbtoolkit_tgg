@@ -27,10 +27,18 @@ const _hoverLight = Color(0x0D2A251D);
 ///   `gold2` 文字 + 贴左缘 2.5px 金色渐变指示条；
 /// - 底部：主题切换按钮(h36·r10·加强描边) + 版本/免责。
 class DesktopSidebar extends ConsumerWidget {
-  const DesktopSidebar({super.key, required this.currentLocation});
+  const DesktopSidebar({
+    super.key,
+    required this.currentLocation,
+    this.hideBrand = false,
+  });
 
   /// 当前 location（`/home`、`/pet/calc` …），用于高亮。
   final String currentLocation;
+
+  /// 隐藏顶部品牌区（桌面自定义标题栏已展示品牌时，对应原型 desk 下
+  /// `.brand{display:none}`）。
+  final bool hideBrand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,17 +52,18 @@ class DesktopSidebar extends ConsumerWidget {
           end: Alignment.bottomCenter,
           colors: isDark ? _sbGradientDark : _sbGradientLight,
         ),
-        border: Border(
-          right: BorderSide(color: tg.border, width: 1),
-        ),
+        border: Border(right: BorderSide(color: tg.border, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 20, 8, 18),
-            child: _Brand(),
-          ),
+          if (hideBrand)
+            const SizedBox(height: 22)
+          else
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 8, 18),
+              child: _Brand(),
+            ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.only(top: 2, bottom: 6),
@@ -118,10 +127,7 @@ class _Brand extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // brand-name：serif 19 · 字距2
-              Text(
-                '天工阁',
-                style: TgType.score19.copyWith(color: tg.t1),
-              ),
+              Text('天工阁', style: TgType.score19.copyWith(color: tg.t1)),
               const SizedBox(height: 1),
               // brand-sub：10.5 · 字距1
               Text(
@@ -154,18 +160,12 @@ class _GroupLabel extends StatelessWidget {
           Container(
             width: 3,
             height: 3,
-            decoration: BoxDecoration(
-              color: tg.goldDp,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: tg.goldDp, shape: BoxShape.circle),
           ),
           const SizedBox(width: 7),
           Text(
             label,
-            style: TgType.tag.copyWith(
-              color: tg.t3,
-              letterSpacing: 2,
-            ),
+            style: TgType.tag.copyWith(color: tg.t3, letterSpacing: 2),
           ),
         ],
       ),
@@ -338,11 +338,7 @@ class _SidebarFooter extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    TgIcon(
-                      isDark ? 'sun' : 'moon',
-                      size: 18,
-                      color: tg.t2,
-                    ),
+                    TgIcon(isDark ? 'sun' : 'moon', size: 18, color: tg.t2),
                     const SizedBox(width: 9),
                     Text(
                       isDark ? '浅色模式' : '深色模式',
@@ -361,10 +357,7 @@ class _SidebarFooter extends ConsumerWidget {
               children: [
                 TextSpan(
                   text: 'v1.6.0',
-                  style: TextStyle(
-                    color: tg.t2,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(color: tg.t2, fontWeight: FontWeight.w500),
                 ),
                 const TextSpan(text: ' · 数据每日 06:00 同步\n'),
                 const TextSpan(text: '玩家自制工具 · 与官方无关'),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/platform/app_window.dart';
+import '../shared/widgets/window_title_bar.dart';
 import '../features/settings/presentation/providers/settings_providers.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
@@ -24,6 +26,17 @@ class TlbbApp extends ConsumerWidget {
       darkTheme: TgTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
+      // 原生桌面：窗口顶部加 40px 自定义标题栏（frameless），内容整体下移；
+      // Web / 移动端由宿主负责标题栏，原样返回。
+      builder: (context, child) {
+        if (!isDesktopWindow) return child ?? const SizedBox.shrink();
+        return Column(
+          children: [
+            const TgWindowTitleBar(),
+            Expanded(child: child ?? const SizedBox.shrink()),
+          ],
+        );
+      },
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/platform/app_window.dart';
 import '../../core/responsive/breakpoints.dart';
 import 'shell_navigation_state.dart';
 import 'widgets/app_info_bar.dart';
@@ -109,6 +110,8 @@ class AppShellNavigation extends ConsumerWidget {
                   // 左侧 236 宽原型侧栏（自带竖渐变底 + 右边框）。
                   DesktopSidebar(
                     currentLocation: navState.location,
+                    // 原生桌面（frameless + 自定义标题栏）隐藏品牌，见原型 desk。
+                    hideBrand: isDesktopWindow,
                   ),
                   // 右侧：内容在下可滚动，毛玻璃顶栏悬浮覆盖。
                   Expanded(

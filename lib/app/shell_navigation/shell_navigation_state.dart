@@ -31,10 +31,24 @@ class ShellNavigationState {
 /// - 二级页面：shell → 分支根 → 二级路由，共 3 个及以上匹配。
 @riverpod
 class ShellNavigation extends _$ShellNavigation {
+  /// 是否已排队一次“延迟同步”（router 在构建期连续通知时避免重复调度）。
+  bool _updateScheduled = false;
+
   @override
   ShellNavigationState build() {
     final router = ref.watch(routerProvider);
-    void onChanged() => state = _derive(router);
+    void onChanged() {
+      // go_router 在启动首帧 / 首次重定向时可能于 widget 树构建期间通知，
+      // 此时不能同步修改 provider（Riverpod 会抛错）。改为本次构建结束后
+      // 再取 router 最新配置更新，保证各监听方拿到一致状态。
+      if (_updateScheduled) return;
+      _updateScheduled = true;
+      Future(() {
+        _updateScheduled = false;
+        if (!ref.mounted) return;
+        state = _derive(router);
+      });
+    }
 
     router.routerDelegate.addListener(onChanged);
     ref.onDispose(() => router.routerDelegate.removeListener(onChanged));

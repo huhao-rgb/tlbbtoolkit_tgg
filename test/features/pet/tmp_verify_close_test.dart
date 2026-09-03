@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/pet_suit_page.dart';
-import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 
 Future<void> pumpPage(WidgetTester tester) async {
   tester.view.physicalSize = const Size(1180, 900) * tester.view.devicePixelRatio;

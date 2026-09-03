@@ -25,8 +25,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
   FlutterWindow window(project);
-  Win32Window::Point origin(10, 10);
-  Win32Window::Size size(1280, 720);
+  // 初始尺寸与 Dart window_manager WindowOptions(1240×820) 保持一致，
+  // 并在主屏居中，避免就绪后 window_manager 重新 resize/居中造成二次跳变。
+  Win32Window::Size size(1240, 820);
+  const int screen_w = ::GetSystemMetrics(SM_CXSCREEN);
+  const int screen_h = ::GetSystemMetrics(SM_CYSCREEN);
+  Win32Window::Point origin((screen_w - size.width) / 2,
+                            (screen_h - size.height) / 2);
   if (!window.Create(L"tlbbtoolkit", origin, size)) {
     return EXIT_FAILURE;
   }

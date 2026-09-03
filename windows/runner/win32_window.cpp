@@ -146,6 +146,13 @@ bool Win32Window::Create(const std::wstring& title,
 
   UpdateTheme(window);
 
+  // —— frameless from creation ——
+  // 与 Dart window_manager(titleBarStyle: hidden) 一致：创建窗口即刻用 DWM
+  // 0 边距扩展隐藏原生标题栏，避免“启动先闪原生标题栏、首帧后再由插件隐藏”
+  // 的闪变（保留 WS_OVERLAPPEDWINDOW 样式，尺寸调整/按钮行为不受影响）。
+  MARGINS margins = {};
+  DwmExtendFrameIntoClientArea(window, &margins);
+
   return OnCreate();
 }
 
