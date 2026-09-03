@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../shared/tools/tool_catalog.dart';
 import '../../shared/widgets/tool_hub_page.dart';
 import '../../shared/widgets/tool_placeholder_page.dart';
+import 'presentation/pages/beast_soul_page.dart';
 
 part 'beast_routes.g.dart';
 
@@ -33,7 +34,7 @@ class BeastSoulRoute extends GoRouteData with $BeastSoulRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ToolPlaceholderPage(tool: ToolCatalog.beastSoul);
+      const BeastSoulPage();
 }
 
 /// 兽灵图鉴。
