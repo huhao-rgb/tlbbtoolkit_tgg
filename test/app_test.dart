@@ -64,10 +64,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// 以桌面窗口尺寸（1440×900，逻辑像素）泵入应用。
+  /// 以桌面窗口尺寸（1440×1024，逻辑像素）泵入应用。
   Future<void> pumpAppAsDesktop(WidgetTester tester) async {
     tester.view.physicalSize =
-        const Size(1440, 900) * tester.view.devicePixelRatio;
+        const Size(1440, 1024) * tester.view.devicePixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
     await pumpApp(tester);
   }

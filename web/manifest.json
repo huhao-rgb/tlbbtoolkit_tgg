@@ -1,11 +1,11 @@
 {
-    "name": "tlbbtoolkit",
-    "short_name": "tlbbtoolkit",
+    "name": "天工阁 · 天龙八部怀旧工具箱",
+    "short_name": "天工阁",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0C1016",
+    "theme_color": "#0C1016",
+    "description": "天工阁 · 天龙八部怀旧版玩家自制工具箱",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

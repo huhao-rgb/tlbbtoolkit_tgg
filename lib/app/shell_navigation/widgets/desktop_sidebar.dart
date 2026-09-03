@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../features/settings/presentation/providers/settings_providers.dart';
+import '../../../gen/assets.gen.dart';
 import '../../../shared/tools/tool_catalog.dart';
 import '../../../shared/widgets/tg_icon.dart';
 import '../../theme/design_tokens.dart';
@@ -19,7 +21,7 @@ const _hoverLight = Color(0x0D2A251D);
 ///
 /// 按原型 CSS 还原：
 /// - 宽 236 · 竖渐变底 · `border-right` 1px（不再额外放分隔线）；
-/// - 品牌区：金渐变 mark 图标(38·r11) + serif 名称 + 副标；
+/// - 品牌区：天工阁 logo 徽标(38·r11·徽章投影) + serif 名称 + 副标；
 /// - 分组标签：3px 金点（`--gold-dp`）+ 11px 字距2；
 /// - 导航项：h38·r10 · 图标18 · 文字13.5；hover 提亮；激活项 金 .09/.10 底 +
 ///   `gold2` 文字 + 贴左缘 2.5px 金色渐变指示条；
@@ -85,7 +87,7 @@ class DesktopSidebar extends ConsumerWidget {
   }
 }
 
-/// 品牌区：金渐变 mark 图标 + serif 名称 + 副标。
+/// 品牌区：天工阁 logo（深墨底金字徽标） + serif 名称 + 副标。
 class _Brand extends StatelessWidget {
   const _Brand();
 
@@ -94,17 +96,21 @@ class _Brand extends StatelessWidget {
     final tg = context.tg;
     return Row(
       children: [
-        // brand-mark：38·r11 · grad-gold · 徽章投影
+        // brand-mark：38·r11 · 徽章投影（logo 自带深墨底与金描边，不再套金色渐变容器）
         Container(
           width: 38,
           height: 38,
-          alignment: Alignment.center,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            gradient: tg.gradGold,
             borderRadius: BorderRadius.circular(TgRadius.lg),
             boxShadow: TgShadows.goldBadge,
           ),
-          child: const TgIcon('mark', size: 21, color: TgTokens.btnInk),
+          child: SvgPicture.asset(
+            Assets.logo.logo,
+            width: 38,
+            height: 38,
+            fit: BoxFit.cover,
+          ),
         ),
         const SizedBox(width: 11),
         Expanded(

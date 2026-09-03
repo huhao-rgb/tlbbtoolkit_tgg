@@ -101,6 +101,7 @@ flutter:
   # 静态资源：设计稿线性图标（flutter_gen 生成 AssetsIcons）。
   assets:
     - assets/icons/
+    - assets/logo/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

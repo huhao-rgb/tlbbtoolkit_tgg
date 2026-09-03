@@ -93,6 +93,17 @@ class $AssetsIconsGen {
   ];
 }
 
+class $AssetsLogoGen {
+  const $AssetsLogoGen();
+
+  /// File path: assets/logo/logo.svg
+  String get logo => 'assets/logo/logo.svg';
+
+  /// List of all assets
+  List<String> get values => [logo];
+}
+
 abstract final class Assets {
   static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsLogoGen logo = $AssetsLogoGen();
 }

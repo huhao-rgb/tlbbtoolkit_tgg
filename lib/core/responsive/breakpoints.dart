@@ -12,14 +12,16 @@ enum DeviceLayout {
 /// 响应式断点。
 ///
 /// 按窗口宽度（而非平台）判断：桌面窗口可缩放、还有平板/折叠屏，
-/// 宽度是唯一可靠的依据。阈值参考 Material 3 窗口尺寸类
-/// （compact <600 / medium 600~840 / expanded ≥840），
-/// 本项目简化为两档：≥ [desktop] 视为桌面布局。
+/// 宽度是唯一可靠的依据。本项目简化为两档：≥ [desktop] 视为桌面布局。
+///
+/// 断点值 1024 与 UI 原型（天工阁 · 天龙怀旧工具箱）一致：
+/// 原型使用 `max-width:1023px` 隐藏侧栏、显示底部 tabbar，
+/// 因此本实现以 1024 为"移动端 ↔ 桌面侧栏"的分界。
 abstract final class Breakpoints {
   const Breakpoints._();
 
-  /// 桌面布局的最小宽度。
-  static const double desktop = 900;
+  /// 桌面布局的最小宽度（对齐 UI 原型 1024 断点）。
+  static const double desktop = 1024;
 
   /// 根据宽度推导布局形态。
   static DeviceLayout layoutOf(double width) =>
