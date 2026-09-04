@@ -131,6 +131,8 @@ class _ToolTile extends StatelessWidget {
       ToolGroup.pet => tg.gold,
       ToolGroup.beast => tg.purple,
       ToolGroup.job => tg.blue,
+      // 原型 misc 卡 tile 无分类 class（默认金，同 pet）。
+      ToolGroup.misc => tg.gold,
     };
     return Container(
       width: 44,

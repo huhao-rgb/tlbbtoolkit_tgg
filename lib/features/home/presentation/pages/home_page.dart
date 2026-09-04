@@ -277,7 +277,9 @@ class _Toolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final narrow = constraints.maxWidth < 640;
+        // 对齐原型：宽度不足以并排 chips+stats 时，stats 换行独占一行
+        // （原型 `@media(max-width:1023px){.stats{width:100%}}`）。
+        final narrow = constraints.maxWidth < Breakpoints.desktop;
         final chips = <Widget>[
           _FilterChip(
             label: '全部',

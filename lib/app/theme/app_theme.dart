@@ -268,23 +268,6 @@ abstract final class TgTheme {
         trackOutlineWidth: const WidgetStatePropertyAll(1),
       ),
 
-      // ---------- 底部导航（tabbar） ----------
-      navigationBarTheme: NavigationBarThemeData(
-        height: TgSpacing.tabbarHeight + 6,
-        backgroundColor: c.panel,
-        indicatorColor: c.goldTint(.14),
-        surfaceTintColor: Colors.transparent,
-        labelTextStyle: WidgetStatePropertyAll(
-          TgType.micro.copyWith(color: c.t3, fontWeight: FontWeight.w500),
-        ),
-        iconTheme: WidgetStateProperty.resolveWith(
-          (states) => IconThemeData(
-            size: 21,
-            color: states.contains(WidgetState.selected) ? c.gold : c.t3,
-          ),
-        ),
-      ),
-
       // ---------- 其他 ----------
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: c.gold,

@@ -16,6 +16,7 @@ enum ToolGroup {
     path: 'pet',
     label: '宝宝',
     short: '宝宝',
+    tabIcon: 'paw',
     hubTitle: '宝宝工具',
     hubCrumb: '宝宝 BABY',
     hubSubtitle: '资质、技能、套装 —— 从选宠到成品的三件套',
@@ -24,6 +25,7 @@ enum ToolGroup {
     path: 'beast',
     label: '兽灵 · 兽魂',
     short: '兽灵',
+    tabIcon: 'gem',
     hubTitle: '兽灵 · 兽魂',
     hubCrumb: '兽灵 BEAST',
     hubSubtitle: '图鉴、词条、技能 —— 兽灵系统的三本账',
@@ -32,15 +34,26 @@ enum ToolGroup {
     path: 'job',
     label: '职业',
     short: '职业',
+    tabIcon: 'sword',
     hubTitle: '职业中心',
     hubCrumb: '职业 CLASS',
     hubSubtitle: '武道、技能、加点 —— 九大门派的修炼手册',
+  ),
+  misc(
+    path: 'misc',
+    label: '实用',
+    short: '实用',
+    tabIcon: 'spark',
+    hubTitle: '实用工具',
+    hubCrumb: '实用 TOOLS',
+    hubSubtitle: '账号管理 · 周期计时 —— 日常实用小工具合集',
   );
 
   const ToolGroup({
     required this.path,
     required this.label,
     required this.short,
+    required this.tabIcon,
     required this.hubTitle,
     required this.hubCrumb,
     required this.hubSubtitle,
@@ -55,6 +68,9 @@ enum ToolGroup {
   /// 面包屑链接文本（如 宝宝 / 兽灵 / 职业）。
   final String short;
 
+  /// 移动端底部 tab 图标资产名（首页单独为 home）。
+  final String tabIcon;
+
   /// hub 页标题 / 面包屑尾段。
   final String hubTitle;
   final String hubCrumb;
@@ -62,6 +78,18 @@ enum ToolGroup {
 
   /// hub 路由 location（与各 feature 的 hub 根路由路径一致）。
   String get hubLocation => '/$path';
+
+  /// 桌面侧栏分组顺序（对应原型 sidebar）：
+  /// 首页(总览)之后紧跟「实用」，再 宝宝 → 兽灵·兽魂 → 职业。
+  ///
+  /// 与 [values]（首页 chips / 移动 tab 顺序，misc 在最后）不同，因此侧栏
+  /// 遍历本列表而非 `ToolGroup.values`。
+  static const List<ToolGroup> sidebarOrder = [
+    misc,
+    pet,
+    beast,
+    job,
+  ];
 }
 
 /// 单个工具的元信息。
@@ -261,7 +289,32 @@ abstract final class ToolCatalog {
     icon: 'shield',
   );
 
-  /// 全部 11 个工具（首页网格顺序）。
+  // ---- 实用 misc ----
+  static const ToolDef miscRegress = ToolDef(
+    id: 'misc-regress',
+    group: ToolGroup.misc,
+    title: '卡回归计算器',
+    crumb: '实用 / 卡回归计算器',
+    pageSubtitle: '多账号回归周期记录 · 卡满 7 天提醒上线领奖',
+    cardDesc: '多账号回归周期计时 · 满 7 天自动开启回归 · 完成记录',
+    keywords: ['回归', '计算', '卡回归', '多账号', '计时', '上线', '奖励', '周期'],
+    location: '/misc/regress',
+    icon: 'clock',
+  );
+
+  static const ToolDef miscMarket = ToolDef(
+    id: 'misc-market',
+    group: ToolGroup.misc,
+    title: '珍兽行情',
+    crumb: '实用 / 珍兽行情',
+    pageSubtitle: '神仙代售平台 · 天龙八部怀旧原始服「宝宝」类目在售数据分析',
+    cardDesc: '神仙代售平台数据 · 价位分布 · 品种均价 · 性价比推荐',
+    keywords: ['行情', '珍兽', '价格', '售价', '神仙代售', '均价', '性价比'],
+    location: '/misc/market',
+    icon: 'pct',
+  );
+
+  /// 全部 13 个工具（首页网格顺序）。
   static const List<ToolDef> all = [
     petCalc,
     petProb,
@@ -274,6 +327,8 @@ abstract final class ToolCatalog {
     jobSkill,
     jobPoint,
     jobArtifact,
+    miscRegress,
+    miscMarket,
   ];
 
   /// 某分组下的工具（hub 页列表顺序）。

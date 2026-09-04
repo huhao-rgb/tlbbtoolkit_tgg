@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/beast/beast_routes.dart' as beast;
 import '../../features/home/home_routes.dart' as home;
 import '../../features/job/job_routes.dart' as job;
+import '../../features/misc/misc_routes.dart' as misc;
 import '../../features/pet/pet_routes.dart' as pet;
 import '../../features/settings/settings_routes.dart' as settings;
 import '../shell_navigation/shell_navigation.dart';
@@ -11,11 +12,12 @@ import '../shell_navigation/shell_navigation.dart';
 /// 全局路由表。
 ///
 /// 根路由是 shell 导航框架（`StatefulShellRoute.indexedStack`），移动端底部
-/// tab 与桌面侧栏一一对应四个一级页面（首页 / 宝宝 / 兽灵·兽魂 / 职业）：
+/// tab 与桌面侧栏一一对应五个一级页面（首页 / 宝宝 / 兽灵·兽魂 / 职业 / 实用）：
 /// - `home`   → `/home`    首页（工具目录）
 /// - `pet`    → `/pet`     宝宝工具 hub（+ 3 个二级工具）
 /// - `beast`  → `/beast`   兽灵·兽魂 hub（+ 3 个二级工具）
 /// - `job`    → `/job`     职业中心 hub（+ 5 个二级工具）
+/// - `misc`   → `/misc`    实用工具 hub（+ 2 个二级工具）
 ///
 /// 各 feature 通过 `@TypedGoRoute` 生成 `$appRoutes`，在此按 tab 聚合为分支。
 /// 「设置」为 shell 之外的独立全屏页（顶栏齿轮 / 桌面侧栏入口 push 打开）。
@@ -35,6 +37,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [...beast.$appRoutes]),
           // tab 4：职业（job）
           StatefulShellBranch(routes: [...job.$appRoutes]),
+          // tab 5：实用（misc）
+          StatefulShellBranch(routes: [...misc.$appRoutes]),
         ],
       ),
       // 设置：独立全屏页（不在 shell 内，自带返回）。

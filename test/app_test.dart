@@ -19,9 +19,11 @@ Finder infoBarTitle(String title) => find.descendant(
       matching: find.text(title),
     );
 
-/// 移动端底部 NavigationBar 中的 tab。
+/// 移动端底部自绘 tabbar 中的 tab。
+const _tabBarKey = Key('mobile-tab-bar');
+
 Finder bottomTab(String label) => find.descendant(
-      of: find.byType(NavigationBar),
+      of: find.byKey(_tabBarKey),
       matching: find.text(label),
     );
 
@@ -74,17 +76,18 @@ void main() {
 
   // ---------- 移动端 ----------
 
-  testWidgets('移动端首页：Hero + 信息条 + 4 段底部 tab', (tester) async {
+  testWidgets('移动端首页：Hero + 信息条 + 5 段底部 tab', (tester) async {
     await pumpApp(tester);
 
     expect(infoBarTitle('首页'), findsOneWidget);
     expect(find.text('天工阁'), findsOneWidget);
-    // 底部 tab 四段：首页 / 宝宝 / 兽灵·兽魂 / 职业。
-    expect(find.byType(NavigationBar), findsOneWidget);
+    // 底部 tab 五段：首页 / 宝宝 / 兽灵 / 职业 / 实用。
+    expect(find.byKey(_tabBarKey), findsOneWidget);
     expect(bottomTab('首页'), findsOneWidget);
     expect(bottomTab('宝宝'), findsOneWidget);
-    expect(bottomTab('兽灵·兽魂'), findsOneWidget);
+    expect(bottomTab('兽灵'), findsOneWidget);
     expect(bottomTab('职业'), findsOneWidget);
+    expect(bottomTab('实用'), findsOneWidget);
     // 工具网格入口存在。
     expect(find.text('宝宝资质计算'), findsOneWidget);
     // 一级页面无返回按钮。
@@ -221,7 +224,7 @@ void main() {
   testWidgets('桌面布局：236 侧栏（品牌+分组工具导航），无底部 tab', (tester) async {
     await pumpAppAsDesktop(tester);
 
-    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byKey(_tabBarKey), findsNothing);
     expect(find.byType(DesktopSidebar), findsOneWidget);
     expect(sidebarItem('首页'), findsOneWidget);
     expect(sidebarItem('宝宝资质计算'), findsOneWidget);
@@ -244,10 +247,14 @@ void main() {
     expect(infoBarTitle('首页'), findsOneWidget);
   });
 
-  testWidgets('桌面侧栏分组完整列出 11 个工具', (tester) async {
+  testWidgets('桌面侧栏分组完整列出各分组工具，实用组第二', (tester) async {
     await pumpAppAsDesktop(tester);
 
-    // 滚动到侧栏列表末尾，确认「职业加点计算器」等项存在。
+    // misc（实用）紧跟首页之后：直接列出卡回归/珍兽行情两个工具。
+    expect(sidebarItem('卡回归计算器'), findsOneWidget);
+    expect(sidebarItem('珍兽行情'), findsOneWidget);
+
+    // 滚动到侧栏列表末尾，确认「门派介绍」等项存在。
     final sideList = find.descendant(
       of: find.byType(DesktopSidebar),
       matching: find.byType(Scrollable),
