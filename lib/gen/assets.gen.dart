@@ -51,6 +51,12 @@ class $AssetsIconsGen {
   /// File path: assets/icons/pct.svg
   String get pct => 'assets/icons/pct.svg';
 
+  /// File path: assets/icons/pen.svg
+  String get pen => 'assets/icons/pen.svg';
+
+  /// File path: assets/icons/plus.svg
+  String get plus => 'assets/icons/plus.svg';
+
   /// File path: assets/icons/search.svg
   String get search => 'assets/icons/search.svg';
 
@@ -99,6 +105,12 @@ class $AssetsIconsGen {
   /// File path: assets/icons/sword.svg
   String get sword => 'assets/icons/sword.svg';
 
+  /// File path: assets/icons/trash.svg
+  String get trash => 'assets/icons/trash.svg';
+
+  /// File path: assets/icons/user.svg
+  String get user => 'assets/icons/user.svg';
+
   /// File path: assets/icons/x.svg
   String get x => 'assets/icons/x.svg';
 
@@ -117,6 +129,8 @@ class $AssetsIconsGen {
     moon,
     paw,
     pct,
+    pen,
+    plus,
     search,
     shield,
     skChihuan,
@@ -133,6 +147,8 @@ class $AssetsIconsGen {
     spark,
     sun,
     sword,
+    trash,
+    user,
     x,
   ];
 }

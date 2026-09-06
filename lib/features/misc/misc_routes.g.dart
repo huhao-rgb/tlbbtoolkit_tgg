@@ -25,6 +25,14 @@ RouteBase get $miscHubRoute => GoRouteData.$route(
       name: '珍兽行情',
       hasOverriddenOnExit: false,
       factory: $MiscMarketRoute._fromState,
+      routes: [
+        GoRouteData.$route(
+          path: 'detail',
+          name: '商品详情',
+          hasOverriddenOnExit: false,
+          factory: $MiscPetDetailRoute._fromState,
+        ),
+      ],
     ),
   ],
 );
@@ -76,6 +84,27 @@ mixin $MiscMarketRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/misc/market');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $MiscPetDetailRoute on GoRouteData {
+  static MiscPetDetailRoute _fromState(GoRouterState state) =>
+      const MiscPetDetailRoute();
+
+  @override
+  String get location => GoRouteData.$location('/misc/market/detail');
 
   @override
   void go(BuildContext context) => context.go(location);

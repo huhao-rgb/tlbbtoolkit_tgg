@@ -19,10 +19,13 @@ class TgTextField extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.prefixIcon,
+    this.suffix,
+    this.maxLength,
     this.height = 42,
     this.horizontalPadding = 13,
     this.background,
     this.radius,
+    this.fontSize = 14,
   });
 
   final String hintText;
@@ -35,6 +38,12 @@ class TgTextField extends StatefulWidget {
   /// 前缀线性图标资源名（如 'search'）；为 null 不显示。
   final String? prefixIcon;
 
+  /// 输入框右侧组件（如「清空」按钮）；为 null 不显示。
+  final Widget? suffix;
+
+  /// 最大输入长度（如角色名上限 12）；为 null 不限。
+  final int? maxLength;
+
   /// 外框高度（含边框）。
   final double height;
 
@@ -46,6 +55,9 @@ class TgTextField extends StatefulWidget {
 
   /// 外框圆角；默认 `TgRadius.input`。
   final BorderRadius? radius;
+
+  /// 输入文字字号（hint 同号）；默认 14。
+  final double fontSize;
 
   @override
   State<TgTextField> createState() => _TgTextFieldState();
@@ -84,7 +96,11 @@ class _TgTextFieldState extends State<TgTextField> {
                 onSubmitted: widget.onSubmitted,
                 keyboardType: widget.keyboardType,
                 textInputAction: widget.textInputAction,
-                style: TgType.body14.copyWith(color: tg.t1),
+                maxLength: widget.maxLength,
+                style: TgType.body14.copyWith(
+                  color: tg.t1,
+                  fontSize: widget.fontSize,
+                ),
                 cursorColor: tg.gold,
                 // 清除主题 inputDecorationTheme 默认（filled/边框/最小高/内距）
                 decoration: InputDecoration(
@@ -93,16 +109,21 @@ class _TgTextFieldState extends State<TgTextField> {
                   filled: false,
                   constraints: const BoxConstraints(),
                   contentPadding: EdgeInsets.zero,
+                  counterText: '', // 隐藏 maxLength 计数
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   errorBorder: InputBorder.none,
                   disabledBorder: InputBorder.none,
                   hintText: widget.hintText,
-                  hintStyle: TgType.body14.copyWith(color: tg.t3),
+                  hintStyle: TgType.body14.copyWith(
+                    color: tg.t3,
+                    fontSize: widget.fontSize,
+                  ),
                 ),
               ),
             ),
+            if (widget.suffix != null) widget.suffix!,
           ],
         ),
       ),
