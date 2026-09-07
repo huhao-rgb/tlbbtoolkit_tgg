@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
+import '../../../../shared/widgets/chainable_scroll_physics.dart';
 import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_modal.dart';
@@ -21,8 +22,7 @@ import '../../domain/account_market_stats.dart';
 ///
 /// - 数据完全来自神仙代售平台真实接口（`fetchSxdsAccountMarket`），无静态快照；
 /// - 首次进入自动拉取；顶部筛选（大区 / 服务器 / 角色等级）联动统计；
-/// - 统计卡、价位分布、价位段画像、区服在售分布、职业中位价排行、
-///   性价比推荐、在售明细；
+/// - 统计卡、价位分布、价位段画像、区服在售分布、性价比推荐、在售明细；
 /// - 「一键获取」可手动重新拉取；Web 端被 CORS 拦截时显示
 ///   「浏览器跨域拦截」提示与空态，桌面/移动端可直连。
 class MiscAccountMarketPage extends StatefulWidget {
@@ -206,7 +206,8 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
         final compact = constraints.maxWidth < 640;
         final data = _items;
         // 页面主体（行情列表）作为垂直区块序列，交由整页 CustomScrollView
-        // 统一滚动（单滚动体：明细随页滚动，惯性/缓动原生）。
+        // 统一滚动；明细表行数超出可视上限时在表体内独立滚动 + 惰性构建
+        // （见 _DetailTable），避免大数据量下一次性构建全部行导致卡顿。
         final blocks = <Widget>[
           _MarketHead(
             onCrumbTap: () => context.go(
@@ -242,7 +243,7 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
             const SizedBox(height: 14),
             _SegCard(filtered: amFiltered(data, _filter)),
             const SizedBox(height: 14),
-            _JobBestCard(filtered: amFiltered(data, _filter)),
+            _BestCard(filtered: amFiltered(data, _filter)),
             const SizedBox(height: 14),
             _ListCard(data: data, filter: _filter, onDetail: _openDetail),
           ],
@@ -1222,30 +1223,21 @@ class _SectRow extends StatelessWidget {
 
 TgColors tgOf(BuildContext context) => context.tg;
 
-/* ============================== 职业排行 + 性价比推荐 ============================== */
+/* ============================== 性价比推荐 ============================== */
 
-class _JobBestCard extends StatelessWidget {
-  const _JobBestCard({required this.filtered});
+class _BestCard extends StatelessWidget {
+  const _BestCard({required this.filtered});
 
   final List<AccountListing> filtered;
 
   @override
   Widget build(BuildContext context) {
-    final rows = amJobRows(filtered);
     final best = amBestItems(filtered);
-    final double jobMax = rows.isEmpty ? 1.0 : rows.first.median;
     return _BlockCard(
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SecHead(title: '职业中位价排行（样本 ≥3）'),
-          const SizedBox(height: 14),
-          if (filtered.isEmpty || rows.isEmpty)
-            const _EmptyTip('当前筛选无数据')
-          else
-            for (final r in rows) _JobRow(row: r, max: jobMax),
-          const SizedBox(height: 20),
           const _SecHead(title: '性价比推荐 · 主属性 / 万元价（主属性 ≥4000）'),
           const SizedBox(height: 12),
           if (best.isEmpty)
@@ -1256,83 +1248,6 @@ class _JobBestCard extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _BestRow(index: i, item: best[i]),
               ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 职业中位价排行行。
-class _JobRow extends StatelessWidget {
-  const _JobRow({required this.row, required this.max});
-
-  final AmJobRow row;
-  final double max;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final width = max <= 0 ? 0.0 : row.median / max;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 9),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 118,
-            child: Text(
-              row.job,
-              textAlign: TextAlign.right,
-              style: TextStyle(fontSize: 12, color: tg.t2, letterSpacing: .5),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: Container(
-                height: 6,
-                color: tg.inset,
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: width.clamp(0, 1),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFC9995A), Color(0xFFF2D49B)],
-                      ),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 150,
-            child: Text.rich(
-              TextSpan(
-                style: TextStyle(
-                  fontSize: 11,
-                  color: tg.t3,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-                children: [
-                  TextSpan(
-                    text: _p(row.median),
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: tg.gold2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextSpan(text: ' · ${row.count} 条'),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
         ],
       ),
     );
@@ -1603,32 +1518,65 @@ class _DetailTable extends StatelessWidget {
             SizedBox(width: opW, child: th('操作')),
           ],
         );
-        // 明细行直接铺在整页滚动里（不做区内独立滚动）。
+        // 大数据量虚拟化：明细行不再一次性全部铺进 Column，而是放进固定行高的
+        // ListView（SliverFixedExtentList）按需惰性构建。行数超过可视高度上限时
+        // 表体改为区内滚动，缩略图随之按需加载，避免上千行 widget + 上千个
+        // Image.network 同时创建导致的卡顿；未超限时禁用内滚，保持「随页滚动」。
+        // 行高取 84：64 缩略图 + 上下 9px 单元格内距，可容纳标题/区服两行文案。
+        final rowExtent = 84.0;
+        final maxTableH = math.min(
+          560.0,
+          MediaQuery.sizeOf(context).height * .75,
+        );
+        final overflow = rows.length * rowExtent > maxTableH;
+        final bodyH = math.min(rows.length * rowExtent, maxTableH);
+        Widget rowItem(int i) => tr(
+          last: i == rows.length - 1,
+          cells: _rowCells(
+            context,
+            rows[i],
+            compact: compact,
+            cell: cell,
+            thumbW: thumbW,
+            priceW: priceW,
+            lvW: lvW,
+            jobW: jobW,
+            areaW: areaW,
+            attrW: attrW,
+            titleW: titleW,
+            opW: opW,
+          ),
+        );
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
             width: tableW,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 header,
-                for (var i = 0; i < rows.length; i++)
-                  tr(
-                    last: i == rows.length - 1,
-                    cells: _rowCells(
-                      context,
-                      rows[i],
-                      compact: compact,
-                      cell: cell,
-                      thumbW: thumbW,
-                      priceW: priceW,
-                      lvW: lvW,
-                      jobW: jobW,
-                      areaW: areaW,
-                      attrW: attrW,
-                      titleW: titleW,
-                      opW: opW,
-                    ),
+                SizedBox(
+                  height: bodyH,
+                  child: ListView.builder(
+                    key: const ValueKey('acc-detail-list'),
+                    padding: EdgeInsets.zero,
+                    itemCount: rows.length,
+                    itemExtent: rowExtent,
+                    // 表体未超出可视上限时禁用内滚，避免遮蔽外层整页滚动；
+                    // 超出后启用惰性构建 + 区内滚动，且滚到顶/底时把越界位移
+                    // 转交外层整页，使页面能继续滚动（见 ChainableScrollPhysics）。
+                    physics: overflow
+                        ? ChainableScrollPhysics(
+                            outer:
+                                Scrollable.maybeOf(
+                                  context,
+                                )?.position
+                                    as ScrollPositionWithSingleContext?,
+                          )
+                        : const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, i) => rowItem(i),
                   ),
+                ),
               ],
             ),
           ),

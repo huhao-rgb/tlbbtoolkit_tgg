@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
+import '../../../../shared/widgets/chainable_scroll_physics.dart';
 import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_modal.dart';
@@ -1617,34 +1618,64 @@ class _DetailTable extends StatelessWidget {
             SizedBox(width: opW, child: th('操作')),
           ],
         );
-        // 明细行直接铺在整页滚动里（不做区内独立滚动）：明细与页面其余内容
-        // 属于同一条滚动，滚动惯性 / 缓动 / 回弹均由系统整页物理统一提供，
-        // 不存在「明细滚到边界再切换给整页」的手感断层。
-        // 行内图片均已 cacheWidth 降采样解码，行数几百时构建与滚动仍流畅。
+        // 大数据量虚拟化：明细行不再一次性全部铺进 Column，而是放进固定行高的
+        // ListView（SliverFixedExtentList）按需惰性构建。行数超过可视高度上限时
+        // 表体改为区内滚动，缩略图随之按需加载，避免上千行 widget + 上千个
+        // Image.network 同时创建导致的卡顿；未超限时禁用内滚，保持「随页滚动」。
+        // 行高取 84：64 缩略图 + 上下 9px 单元格内距，可容纳特征标签两行。
+        final rowExtent = 84.0;
+        final maxTableH = math.min(
+          560.0,
+          MediaQuery.sizeOf(context).height * .75,
+        );
+        final overflow = rows.length * rowExtent > maxTableH;
+        final bodyH = math.min(rows.length * rowExtent, maxTableH);
+        Widget rowItem(int i) => tr(
+          last: i == rows.length - 1,
+          cells: _rowCells(
+            context,
+            rows[i],
+            compact: compact,
+            cell: cell,
+            thumbW: thumbW,
+            priceW: priceW,
+            carryW: carryW,
+            lingW: lingW,
+            areaW: areaW,
+            titleW: titleW,
+            opW: opW,
+          ),
+        );
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
             width: tableW,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 header,
-                for (var i = 0; i < rows.length; i++)
-                  tr(
-                    last: i == rows.length - 1,
-                    cells: _rowCells(
-                      context,
-                      rows[i],
-                      compact: compact,
-                      cell: cell,
-                      thumbW: thumbW,
-                      priceW: priceW,
-                      carryW: carryW,
-                      lingW: lingW,
-                      areaW: areaW,
-                      titleW: titleW,
-                      opW: opW,
-                    ),
+                SizedBox(
+                  height: bodyH,
+                  child: ListView.builder(
+                    key: const ValueKey('pet-detail-list'),
+                    padding: EdgeInsets.zero,
+                    itemCount: rows.length,
+                    itemExtent: rowExtent,
+                    // 表体未超出可视上限时禁用内滚，避免遮蔽外层整页滚动；
+                    // 超出后启用惰性构建 + 区内滚动，且滚到顶/底时把越界位移
+                    // 转交外层整页，使页面能继续滚动（见 ChainableScrollPhysics）。
+                    physics: overflow
+                        ? ChainableScrollPhysics(
+                            outer:
+                                Scrollable.maybeOf(
+                                  context,
+                                )?.position
+                                    as ScrollPositionWithSingleContext?,
+                          )
+                        : const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, i) => rowItem(i),
                   ),
+                ),
               ],
             ),
           ),

@@ -47,7 +47,7 @@ Future<List<SxdsRegion>> _defaultRegions() async {
 /// 「详情」点击会按真实逻辑 push 独立商品详情页，返回为 pop。
 Future<void> pumpPage(
   WidgetTester tester, {
-  Size size = const Size(1180, 14000),
+  Size size = const Size(1180, 20000),
   Future<PetMarketFetchResult> Function()? fetch,
   Future<List<SxdsRegion>> Function()? regions,
 }) async {
@@ -455,5 +455,105 @@ void main() {
     // 进入独立详情页（路由 push）
     expect(find.text('珍兽详情'), findsOneWidget);
     expect(find.text('返回行情列表'), findsOneWidget);
+  });
+
+  testWidgets('大数据量（500 条）：明细表惰性构建，无异常且表内行可进入详情', (tester) async {
+    final big = List<PetListing>.generate(500, (i) {
+      final g = _good(
+        title: '测试珍兽 ${i + 1}',
+        price: 100 + i,
+        sn: 'BBG$i',
+      );
+      return PetListing.fromJson(g);
+    });
+    await pumpPage(
+      tester,
+      fetch: () async => PetMarketFetchResult(raw: big.length, parsed: big),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('共 500 条'), findsOneWidget);
+    // 表体区独立滚动且惰性构建：页面上只构建可视区附近的行，而非全部 500 行。
+    expect(find.text('操作'), findsOneWidget); // 表头固定在表体上方
+    final list = find.byKey(const ValueKey('pet-detail-list'));
+    expect(list, findsOneWidget);
+    final detailCount = find.text('详情').evaluate().length;
+    expect(detailCount, greaterThan(0));
+    expect(detailCount, lessThan(100));
+
+    // 明细表内首行「详情」仍可进入商品详情页。
+    final tableDetail = find.descendant(
+      of: list,
+      matching: find.text('详情'),
+    );
+    await tester.ensureVisible(tableDetail.first);
+    await tester.pumpAndSettle();
+    await tester.tap(tableDetail.first);
+    await tester.pumpAndSettle();
+    expect(find.text('珍兽详情'), findsOneWidget);
+  });
+
+  testWidgets('在售明细滚到顶/底后，越界滚动转交外层整页', (tester) async {
+    final big = List<PetListing>.generate(500, (i) {
+      final g = _good(title: '测试珍兽 ${i + 1}', price: 100 + i, sn: 'BBH$i');
+      return PetListing.fromJson(g);
+    });
+    await pumpPage(
+      tester,
+      size: const Size(1180, 900),
+      fetch: () async => PetMarketFetchResult(raw: big.length, parsed: big),
+    );
+
+    final list = find.byKey(const ValueKey('pet-detail-list'));
+    final scrollable = find.byType(Scrollable).first;
+    final outerScrollable = tester.state<ScrollableState>(scrollable);
+    // 惰性 sliver：分多次下拖直到页尾的在售明细表被构建（不依赖估算的 max）。
+    var guard = 0;
+    while (list.evaluate().isEmpty && guard < 80) {
+      await tester.drag(scrollable, const Offset(0, -600));
+      await tester.pump();
+      guard++;
+    }
+    await tester.pumpAndSettle();
+    expect(list, findsOneWidget);
+    // 确保内层回到顶部（场景 A 的前置状态）。
+    final innerScrollable = tester.state<ScrollableState>(
+      find.descendant(of: list, matching: find.byType(Scrollable)).first,
+    );
+    innerScrollable.position.jumpTo(0);
+    await tester.pumpAndSettle();
+    Future<void> centerList() async {
+      final rect = tester.getRect(list);
+      final target = (outerScrollable.position.pixels + rect.center.dy - 450)
+          .clamp(0.0, outerScrollable.position.maxScrollExtent);
+      outerScrollable.position.jumpTo(target);
+      await tester.pumpAndSettle();
+    }
+    await centerList();
+
+    final outerBottom = outerScrollable.position.pixels;
+    expect(outerBottom, greaterThan(0));
+
+    // 场景 A：内层在顶部，手指下移 → 内层不动，越界位移转交外层 → 整页向上滚动。
+    await tester.drag(list, const Offset(0, 600));
+    await tester.pumpAndSettle();
+    expect(outerScrollable.position.pixels, lessThan(outerBottom));
+
+    // 场景 B：把内层直接滚到自身底部；整页上移 200px 留出下方余量（表体仍可见）；
+    // 再上滑 → 内层已到底，越界位移转交外层 → 整页向下滚动。
+    await centerList();
+    innerScrollable.position.jumpTo(innerScrollable.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    outerScrollable.position.jumpTo(
+      (outerScrollable.position.pixels - 200).clamp(
+        0.0,
+        outerScrollable.position.maxScrollExtent,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final beforeDown = outerScrollable.position.pixels;
+    await tester.drag(list, const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    expect(outerScrollable.position.pixels, greaterThan(beforeDown));
   });
 }

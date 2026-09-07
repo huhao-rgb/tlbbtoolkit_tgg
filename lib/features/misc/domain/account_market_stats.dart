@@ -301,31 +301,6 @@ List<AmSectRow> amSectRows(List<AccountListing> d) {
   return sr;
 }
 
-/// 职业中位价排行项（原型 `amJob` 一行，样本 ≥3）。
-@immutable
-class AmJobRow {
-  const AmJobRow({required this.job, required this.count, required this.median});
-
-  final String job;
-  final int count;
-  final double median;
-}
-
-List<AmJobRow> amJobRows(List<AccountListing> d) {
-  final jg = <String, List<int>>{};
-  for (final x in d) {
-    if (x.job.isNotEmpty) (jg[x.job] ??= <int>[]).add(x.price);
-  }
-  final pr = jg.entries
-      .where((e) => e.value.length >= 3)
-      .map(
-        (e) => AmJobRow(job: e.key, count: e.value.length, median: pmMedian(e.value)),
-      )
-      .toList()
-    ..sort((a, b) => b.median.compareTo(a.median));
-  return pr;
-}
-
 /// 性价比推荐项（原型 `amBest`：主属性≥4000，ix=attr/(p/10000)，top8）。
 @immutable
 class AmBestItem {

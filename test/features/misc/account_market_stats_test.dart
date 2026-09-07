@@ -123,21 +123,12 @@ void main() {
     });
   });
 
-  group('amSectRows / amJobRows / amBestItems / amDetailRows', () {
+  group('amSectRows / amBestItems / amDetailRows', () {
     test('区服在售分布按数量降序', () {
       final rows = amSectRows(kAccountMarketData);
       expect(rows, isNotEmpty);
       for (var i = 0; i + 1 < rows.length; i++) {
         expect(rows[i].count >= rows[i + 1].count, isTrue);
-      }
-    });
-
-    test('职业中位价排行样本 ≥3 且按中位价降序', () {
-      final rows = amJobRows(kAccountMarketData);
-      expect(rows, isNotEmpty);
-      expect(rows.every((r) => r.count >= 3), isTrue);
-      for (var i = 0; i + 1 < rows.length; i++) {
-        expect(rows[i].median >= rows[i + 1].median, isTrue);
       }
     });
 

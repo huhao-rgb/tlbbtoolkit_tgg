@@ -113,7 +113,6 @@ void main() {
     expect(find.text('价位分布 · 在售数量'), findsOneWidget);
     expect(find.text('价位段画像'), findsOneWidget);
     expect(find.text('区服在售分布'), findsOneWidget);
-    expect(find.text('职业中位价排行（样本 ≥3）'), findsOneWidget);
     expect(find.text('性价比推荐 · 主属性 / 万元价（主属性 ≥4000）'), findsOneWidget);
 
     // 价位分布段（5 段 label，同时出现在下方价位段画像行，故 findsWidgets）
@@ -150,6 +149,121 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('账号行情分析'), findsOneWidget);
     expect(find.text('共 132 条'), findsOneWidget);
+  });
+
+  testWidgets('大数据量（500 条）：明细表惰性构建，无异常且首行可操作', (tester) async {
+    // 由快照数据循环生成 500 条（无 img，避免测试网络请求）。
+    final big = List<AccountListing>.generate(500, (i) {
+      final base = kAccountMarketData[i % kAccountMarketData.length];
+      return AccountListing(
+        sn: '${base.sn}-$i',
+        title: '测试账号 ${i + 1} · ${base.title}',
+        price: base.price + i,
+        views: base.views,
+        area: base.area,
+        server: base.server,
+        job: base.job,
+        sex: base.sex,
+        lv: base.lv,
+        atk: base.atk,
+        attr: base.attr,
+        attr2: base.attr2,
+        areaId: base.areaId,
+        serverId: base.serverId,
+      );
+    });
+    await pumpPage(
+      tester,
+      fetch: () async => AccountMarketFetchResult(raw: big.length, parsed: big),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('共 500 条'), findsOneWidget);
+    // 表体区独立滚动且惰性构建：页面上只构建可视区附近的行，而非全部 500 行。
+    expect(find.text('操作'), findsOneWidget); // 表头固定在表体上方
+    final detailCount = find.text('详情').evaluate().length;
+    expect(detailCount, greaterThan(0));
+    expect(detailCount, lessThan(100));
+
+    // 首行「详情」仍可进入账号详情页。
+    await tester.tap(find.text('详情').first);
+    await tester.pumpAndSettle();
+    expect(find.text('账号详情'), findsOneWidget);
+  });
+
+  testWidgets('在售明细滚到顶/底后，越界滚动转交外层整页', (tester) async {
+    // 500 条数据让表体进入「区内滚动 + 越界转交」模式；视口 900 高让整页可滚动。
+    final big = List<AccountListing>.generate(500, (i) {
+      final base = kAccountMarketData[i % kAccountMarketData.length];
+      return AccountListing(
+        sn: '${base.sn}-$i',
+        title: '测试账号 ${i + 1} · ${base.title}',
+        price: base.price + i,
+        views: base.views,
+        area: base.area,
+        server: base.server,
+        job: base.job,
+        sex: base.sex,
+        lv: base.lv,
+        atk: base.atk,
+        attr: base.attr,
+        attr2: base.attr2,
+        areaId: base.areaId,
+        serverId: base.serverId,
+      );
+    });
+    await pumpPage(
+      tester,
+      size: const Size(1180, 900),
+      fetch: () async => AccountMarketFetchResult(raw: big.length, parsed: big),
+    );
+
+    final list = find.byKey(const ValueKey('acc-detail-list'));
+    // 外层整页滚动位置（页面 CustomScrollView 是最外层 Scrollable）。
+    final outerScrollable = tester.state<ScrollableState>(
+      find.byType(Scrollable).first,
+    );
+    // 先把在售明细表（页尾）构建出来，再把表体居中到视口（视口高 900），
+    // 避免表体中心落到屏幕外导致拖拽落空。
+    outerScrollable.position.jumpTo(outerScrollable.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(list, findsOneWidget);
+    Future<void> centerList() async {
+      final rect = tester.getRect(list);
+      final target = (outerScrollable.position.pixels + rect.center.dy - 450)
+          .clamp(0.0, outerScrollable.position.maxScrollExtent);
+      outerScrollable.position.jumpTo(target);
+      await tester.pumpAndSettle();
+    }
+    await centerList();
+
+    final outerBottom = outerScrollable.position.pixels;
+    expect(outerBottom, greaterThan(0));
+
+    // 场景 A：内层在顶部，手指下移 → 内层不动，越界位移转交外层 → 整页向上滚动。
+    await tester.drag(list, const Offset(0, 600));
+    await tester.pumpAndSettle();
+    expect(outerScrollable.position.pixels, lessThan(outerBottom));
+
+    // 场景 B：把内层直接滚到自身底部；整页上移 200px 留出下方余量（表体仍可见）；
+    // 再上滑 → 内层已到底，越界位移转交外层 → 整页向下滚动。
+    await centerList();
+    final innerScrollable = tester.state<ScrollableState>(
+      find.descendant(of: list, matching: find.byType(Scrollable)).first,
+    );
+    innerScrollable.position.jumpTo(innerScrollable.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    outerScrollable.position.jumpTo(
+      (outerScrollable.position.pixels - 200).clamp(
+        0.0,
+        outerScrollable.position.maxScrollExtent,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final beforeDown = outerScrollable.position.pixels;
+    await tester.drag(list, const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    expect(outerScrollable.position.pixels, greaterThan(beforeDown));
   });
 
   testWidgets('大区筛选联动：选「万人大区」后统计更新为该大区样本数', (tester) async {
