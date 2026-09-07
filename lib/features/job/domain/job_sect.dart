@@ -1,6 +1,6 @@
 /// 职业 —— 门派领域模型与数据（与 UI 原型 `SECTS` 一致）。
 ///
-/// 九大门派：少林/明教/丐帮/天山/逍遥/峨眉/武当/星宿/慕容；
+/// 十个门派：少林/明教/丐帮/天山/逍遥/峨眉/武当/星宿/慕容/曼陀山庄；
 /// 每个门派有名称、定位（如 内功 · 控制）与主题色
 /// （用于门派字徽 / 定位 tag / 门派筛选 pill）。
 library;
@@ -33,7 +33,7 @@ class JobSect {
   String get mark => name.substring(0, 1);
 }
 
-/// 九大门派（对应原型 `SECTS`，顺序即筛选行顺序）。
+/// 十大门派（对应原型 `SECTS`，顺序即筛选行顺序）。
 const List<JobSect> kJobSects = [
   JobSect(key: 'shaolin', name: '少林', type: '外功 · 坦克', colorValue: 0xFFF0A25A),
   JobSect(key: 'mingjiao', name: '明教', type: '外功 · 爆发', colorValue: 0xFFFF7069),
@@ -44,4 +44,7 @@ const List<JobSect> kJobSects = [
   JobSect(key: 'wudang', name: '武当', type: '内功 · 均衡', colorValue: 0xFFA292FF),
   JobSect(key: 'xingxiu', name: '星宿', type: '内功 · 毒系', colorValue: 0xFF9ACD6A),
   JobSect(key: 'murong', name: '慕容', type: '内外 · 兼修', colorValue: 0xFFC3B8FF),
+  // 曼陀山庄（怀旧服第十大新门派）：内功门派，武器为古琴，主玄副毒、
+  // 会心成长率高，综合生存与输出（六边形）；主题色曼陀罗紫。
+  JobSect(key: 'mantuo', name: '曼陀山庄', type: '内功 · 综合', colorValue: 0xFFE3A7D4),
 ];

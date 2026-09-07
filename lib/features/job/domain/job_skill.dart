@@ -127,6 +127,16 @@ const Map<String, List<JobMind>> kJobMinds = {
     JobMind(name: '以彼之道', desc: '模拟敌招，反制其人'),
     JobMind(name: '燕坞心诀', desc: '慕容心法，内外兼修'),
   ],
+  // 曼陀山庄：七本心法名称为网络整理初稿，待游戏内校对。
+  'mantuo': [
+    JobMind(name: '心法·壹', desc: '琴音入心，增益于己（名待校）'),
+    JobMind(name: '心法·贰', desc: '琴音入心，增益于己（名待校）'),
+    JobMind(name: '心法·叁', desc: '琴音入心，增益于己（名待校）'),
+    JobMind(name: '心法·肆', desc: '琴音入心，增益于己（名待校）'),
+    JobMind(name: '心法·伍', desc: '琴音入心，增益于己（名待校）'),
+    JobMind(name: '心法·陆', desc: '琴音入心，增益于己（名待校）'),
+    JobMind(name: '心法·柒', desc: '琴音入心，增益于己（名待校）'),
+  ],
 };
 
 /// 九大门派技能（对应原型 `SKILLS`）。
@@ -791,5 +801,19 @@ const Map<String, List<JobSkill>> kJobSkills = {
       desc: '慕容内功心法，永久提升会心与内力上限',
       mind: 6,
     ),
+  ],
+  // 曼陀山庄：技能为网络整理初稿（琴音 / 词牌风格），待游戏内校对。
+  'mantuo': [
+    JobSkill(name: '云鹰袅袅', type: '增益', cd: '—', desc: '琴音袅袅，提升自身内功（网络初稿）', mind: 0),
+    JobSkill(name: '寒江雪', type: '攻击', cd: '—', desc: '群攻并令目标减速，持续走弱（网络初稿）', mind: 0),
+    JobSkill(name: '望穿秋水', type: '增益', cd: '—', desc: '望尽秋水，提升自身命中（网络初稿）', mind: 0),
+    JobSkill(name: '列子御风', type: '身法', cd: '—', desc: '御风而行，两段瞬移快速走位（网络初稿）', mind: 1),
+    JobSkill(name: '拈花眼', type: '攻击', cd: '—', desc: '拈花一笑，有概率使目标破防（网络初稿）', mind: 2),
+    JobSkill(name: '长相思', type: '攻击', cd: '—', desc: '相思入弦，内功伤害并有概率降低目标闪避（网络初稿）', mind: 3),
+    JobSkill(name: '心无旁骛', type: '增益', cd: '—', desc: '专注凝神，提升自身内防（网络初稿）', mind: 3),
+    JobSkill(name: '如梦令', type: '攻击', cd: '—', desc: '如梦似幻，玄功伤害并有概率致盲目标（网络初稿）', mind: 4),
+    JobSkill(name: '沁园春', type: '攻击', cd: '—', desc: '春意入弦，造成玄功伤害（网络初稿）', mind: 4),
+    JobSkill(name: '广陵散', type: '攻击', cd: '—', desc: '慷慨一曲，消耗怒气多次连击（网络初稿）', mind: 5),
+    JobSkill(name: '飞花乱红', type: '攻击', cd: '—', desc: '飞花落红，连线汲取目标气血（网络初稿）', mind: 6),
   ],
 };

@@ -45,6 +45,8 @@ const Map<String, Map<String, double>> kJobWeights = {
   'wudang': {'ling': .5, 'ding': .3, 'shen': .2},
   'xingxiu': {'ling': .45, 'ding': .3, 'ti': .25},
   'murong': {'li': .3, 'ling': .3, 'ti': .2, 'ding': .2},
+  // 曼陀山庄：内功 + 高会心，常见身法流（会心/闪避），辅以灵气堆内功。
+  'mantuo': {'shen': .5, 'ling': .3, 'ti': .2},
 };
 
 /// 总潜能：等级 10 起每级 5 点，最高按 119 计。
@@ -60,6 +62,16 @@ List<String> get kAttrKeys => [for (final a in kJobAttrs) a.key];
 Map<String, int> recommendPoints(String sectKey, int total) {
   final w = kJobWeights[sectKey] ?? {};
   final sum = w.values.fold<double>(0, (a, b) => a + b);
+  // 门派权重缺失（如新门派资料整理中）：按五维均分兜底，
+  // 避免除零或下方逐点分配的死循环。
+  if (sum <= 0) {
+    final base = total ~/ kAttrKeys.length;
+    final rem = total % kAttrKeys.length;
+    return {
+      for (var i = 0; i < kAttrKeys.length; i++)
+        kAttrKeys[i]: base + (i < rem ? 1 : 0),
+    };
+  }
   final pts = <String, int>{
     for (final k in kAttrKeys)
       k: (w[k] ?? 0) == 0 ? 0 : (total * (w[k]! / sum)).floor(),

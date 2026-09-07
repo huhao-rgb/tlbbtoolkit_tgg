@@ -127,4 +127,16 @@ const Map<String, JobSectInfo> kJobSectInfo = {
     ],
     suit: '适合讲究反制博弈、钟意门派背景的情怀玩家。',
   ),
+  // 曼陀山庄（怀旧服第十大新门派）：内功门派、武器古琴，主玄副毒、会心成长
+  // 高；综合生存与输出。技能/心法专有名词待游戏内核对后补全。
+  'mantuo': JobSectInfo(
+    intro: '曼陀山庄，天龙怀旧服第十大全新门派。山门隐于烂漫花海，弟子抚琴而动，弦音既能削敌之锐，亦可护己周全。兼修玄毒之力，会心之高冠绝十派，攻守兼备，实为六边形全能之选。',
+    traits: [
+      JobTrait(label: '定位', value: '内功综合'),
+      JobTrait(label: '主修', value: '身法 灵气'),
+      JobTrait(label: '武器', value: '古琴'),
+      JobTrait(label: '特色', value: '琴音控场，高会心'),
+    ],
+    suit: '适合喜欢攻守兼备、追求高会心爆发与琴音控场体验的全能型玩家。',
+  ),
 };

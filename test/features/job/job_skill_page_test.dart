@@ -98,4 +98,21 @@ void main() {
     expect(find.text('天山折梅手'), findsWidgets);
     expect(find.text('北冥神功'), findsNothing);
   });
+
+  testWidgets('切换门派：曼陀山庄显示网络初稿技能且不崩溃', (tester) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(find.text('曼陀山庄'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('曼陀山庄'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('曼陀山庄'), findsNWidgets(2)); // pill + 当前门派名
+    expect(find.text('内功 · 综合'), findsOneWidget);
+    expect(find.textContaining('七本心法 · 共 11 门绝技'), findsOneWidget);
+    // 心法占位 chips（待校）与初稿技能
+    expect(find.text('心法·壹'), findsWidgets);
+    expect(find.text('广陵散'), findsWidgets);
+    expect(find.text('飞花乱红'), findsWidgets);
+  });
 }

@@ -131,7 +131,7 @@ class _JobSkillPageState extends State<JobSkillPage> {
                     // xf-note：心法计数 / 说明
                     Text(
                       _mind == -1
-                          ? '七本心法 · 共 ${_skills.length} 门绝技 —— 点击心法名可单独查看'
+                          ? '${_minds.length == 7 ? '七本心法' : '${_minds.length} 本心法'} · 共 ${_skills.length} 门绝技 —— 点击心法名可单独查看'
                           : '「${_minds[_mind].name}」 · ${_minds[_mind].desc}',
                       style: TextStyle(fontSize: 12, color: tg.t3),
                     ),

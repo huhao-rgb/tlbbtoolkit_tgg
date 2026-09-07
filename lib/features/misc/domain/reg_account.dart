@@ -37,6 +37,7 @@ const List<RegSect> kRegSects = [
   RegSect(key: 'wudang', name: '武当', type: '内功 · 均衡', colorValue: 0xFFA292FF),
   RegSect(key: 'xingxiu', name: '星宿', type: '内功 · 毒系', colorValue: 0xFF9ACD6A),
   RegSect(key: 'murong', name: '慕容', type: '内外 · 兼修', colorValue: 0xFFC3B8FF),
+  RegSect(key: 'mantuo', name: '曼陀山庄', type: '内功 · 综合', colorValue: 0xFFE3A7D4),
 ];
 
 /// 按 key 取门派（未知回退逍遥）。

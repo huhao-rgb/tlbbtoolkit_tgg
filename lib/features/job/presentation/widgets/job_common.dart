@@ -121,6 +121,11 @@ class JobMatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
+    // 空条目直接不渲染，避免下方 clamp(1, 0) 抛「Invalid argument(s): 1」
+    // （例如资料整理中的新门派神器基础属性暂缺）。
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return LayoutBuilder(
       builder: (context, c) {
         const gap = 8.0;

@@ -441,10 +441,12 @@ void main() {
     expect((after - before).abs(), lessThan(900));
   });
 
-  testWidgets('性价比推荐：行内「查看详情」进入独立商品详情页', (tester) async {
+  testWidgets('性价比推荐：行内「详情」进入独立商品详情页', (tester) async {
     await pumpPage(tester);
 
-    final goBtn = find.text('查看详情').first;
+    // 性价比推荐卡位于明细表之前，其行尾的「详情」按钮是页面第一个「详情」。
+    // （明细表同样使用「详情」文案，二者行为一致：push 独立商品详情页）
+    final goBtn = find.text('详情').first;
     await tester.ensureVisible(goBtn);
     await tester.pumpAndSettle();
     await tester.tap(goBtn);

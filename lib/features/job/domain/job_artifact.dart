@@ -734,4 +734,42 @@ const Map<String, JobArtifact> kJobArtifacts = {
       ),
     ],
   ),
+  // 曼陀山庄（怀旧服第十大新门派）：武器为古琴；四档神器名称待游戏内校对。
+  'mantuo': JobArtifact(
+    weapon: '古琴（名称待校）',
+    tiers: [
+      JobArtifactTier(
+        lv: 42,
+        name: '资料整理中',
+        intro: '曼陀山庄专属神器资料整理中，敬请期待。',
+        stats: <JobArtifactStat>[],
+        extra: '—',
+        how: <String>['曼陀山庄神器资料整理中，敬请期待。'],
+      ),
+      JobArtifactTier(
+        lv: 62,
+        name: '资料整理中',
+        intro: '曼陀山庄专属神器资料整理中，敬请期待。',
+        stats: <JobArtifactStat>[],
+        extra: '—',
+        how: <String>['曼陀山庄神器资料整理中，敬请期待。'],
+      ),
+      JobArtifactTier(
+        lv: 82,
+        name: '资料整理中',
+        intro: '曼陀山庄专属神器资料整理中，敬请期待。',
+        stats: <JobArtifactStat>[],
+        extra: '—',
+        how: <String>['曼陀山庄神器资料整理中，敬请期待。'],
+      ),
+      JobArtifactTier(
+        lv: 102,
+        name: '资料整理中',
+        intro: '曼陀山庄专属神器资料整理中，敬请期待。',
+        stats: <JobArtifactStat>[],
+        extra: '—',
+        how: <String>['曼陀山庄神器资料整理中，敬请期待。'],
+      ),
+    ],
+  ),
 };

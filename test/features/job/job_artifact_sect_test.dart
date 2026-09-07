@@ -37,7 +37,7 @@ void main() {
       await _pumpArtifact(tester);
 
       expect(find.text('职业神器'), findsWidgets);
-      expect(find.textContaining('九大门派专属神兵'), findsOneWidget);
+      expect(find.textContaining('十大门派专属神兵'), findsOneWidget);
 
       // 门派 pill + 门派名（默认少林）
       expect(find.text('少林'), findsNWidgets(2));
@@ -88,6 +88,25 @@ void main() {
       expect(find.text('峨眉'), findsNWidgets(2));
       expect(find.text('灵犀双影剑'), findsOneWidget);
       expect(find.text('42 级神器'), findsOneWidget);
+    });
+
+    testWidgets('切换门派到曼陀山庄：资料占位展示且不崩溃', (tester) async {
+      await _pumpArtifact(tester);
+
+      await tester.ensureVisible(find.text('曼陀山庄'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('曼陀山庄'));
+      await tester.pumpAndSettle();
+
+      // 曼陀山庄 = 曼陀罗紫 pill + 门派名，定位为占位资料（基础属性为空不应抛错）
+      expect(find.text('曼陀山庄'), findsNWidgets(2)); // pill + 当前门派名
+      expect(find.text('内功 · 综合'), findsOneWidget);
+      expect(find.textContaining('资料整理中'), findsWidgets);
+
+      // 切换档位到 102 也不崩溃（占位四档）
+      await tester.tap(find.text('102'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('资料整理中'), findsWidgets);
     });
   });
 

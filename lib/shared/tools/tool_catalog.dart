@@ -37,7 +37,7 @@ enum ToolGroup {
     tabIcon: 'sword',
     hubTitle: '职业中心',
     hubCrumb: '职业 CLASS',
-    hubSubtitle: '武道、技能、加点 —— 九大门派的修炼手册',
+    hubSubtitle: '武道、技能、加点 —— 十大门派的修炼手册',
   ),
   misc(
     path: 'misc',
@@ -270,7 +270,7 @@ abstract final class ToolCatalog {
     group: ToolGroup.job,
     title: '职业神器',
     crumb: '职业 / 神器',
-    pageSubtitle: '九大门派专属神兵 · 简介 / 属性 / 获取途径 · 42-102 级',
+    pageSubtitle: '十大门派专属神兵 · 简介 / 属性 / 获取途径 · 42-102 级',
     cardDesc: '简介 · 属性 · 获取途径 · 42-102 级',
     keywords: ['神器', '神兵', '新莽神符', '42级', '62级', '82级', '102级', '获取', '途径'],
     location: '/job/artifact',
@@ -282,7 +282,7 @@ abstract final class ToolCatalog {
     group: ToolGroup.job,
     title: '门派介绍',
     crumb: '职业 / 门派',
-    pageSubtitle: '九大门派背景 · 门派特色 · 属性倾向 · 适合人群',
+    pageSubtitle: '十大门派背景 · 门派特色 · 属性倾向 · 适合人群',
     cardDesc: '背景 · 特色 · 属性倾向 · 适合人群',
     keywords: ['门派', '背景', '特色', '介绍', '属性', '适合'],
     location: '/job/sect',
@@ -340,6 +340,6 @@ abstract final class ToolCatalog {
     HomeStat(48, '兽灵图鉴'),
     HomeStat(216, '技能数据'),
     HomeStat(24, '套装收录'),
-    HomeStat(9, '门派覆盖'),
+    HomeStat(10, '门派覆盖'),
   ];
 }
