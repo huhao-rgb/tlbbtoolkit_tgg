@@ -12,6 +12,7 @@ import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_modal.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
+import '../../../../shared/widgets/tg_select.dart';
 import '../../../../shared/widgets/tg_text_field.dart';
 import '../../data/pet_market_fetcher.dart';
 import '../../domain/pet_market.dart';
@@ -399,7 +400,7 @@ class _FilterBar extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, c) {
           final selects = <Widget>[
-            _PmSelect(
+            TgSelect(
               label: '大区',
               value: filter.area,
               hint: '全部大区',
@@ -407,7 +408,7 @@ class _FilterBar extends StatelessWidget {
               options: [for (final a in areas) (a, a)],
               onChanged: onArea,
             ),
-            _PmSelect(
+            TgSelect(
               label: '服务器',
               value: filter.server,
               hint: '全部服务器',
@@ -415,7 +416,7 @@ class _FilterBar extends StatelessWidget {
               options: [for (final s in serverNames) (s, s)],
               onChanged: onServer,
             ),
-            _PmSelect(
+            TgSelect(
               label: '可携带等级',
               value: filter.carryBand.label,
               hint: PetCarryBand.all.label,
@@ -463,134 +464,7 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-/// 下拉筛选（`pm-f-item select` 的 Flutter 实现）。
-class _PmSelect extends StatelessWidget {
-  const _PmSelect({
-    required this.label,
-    required this.value,
-    required this.hint,
-    required this.options,
-    required this.onChanged,
-    this.width = 150,
-  });
-
-  final String label;
-
-  /// 当前选中值（显示文本）；为空显示 hint。
-  final String value;
-  final String hint;
-
-  /// (value, label)。
-  final List<(String, String)> options;
-  final ValueChanged<String> onChanged;
-
-  /// 下拉框固定宽（对齐原生 select 稳定宽度）。
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final text = value.isEmpty ? hint : value;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 10.5, color: tg.t3, letterSpacing: 1.5),
-        ),
-        const SizedBox(height: 6),
-        PopupMenuButton<String>(
-          key: ValueKey('pm-select-$label'),
-          tooltip: '',
-          onSelected: onChanged,
-          position: PopupMenuPosition.under,
-          color: tg.inset2,
-          elevation: 8,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9),
-            side: BorderSide(color: tg.borderHi),
-          ),
-          itemBuilder: (context) => [
-            PopupMenuItem<String>(
-              value: '',
-              height: 34,
-              child: Text(hint, style: TextStyle(fontSize: 12.5, color: tg.t2)),
-            ),
-            for (final (v, l) in options)
-              PopupMenuItem<String>(
-                value: v,
-                height: 34,
-                child: Text(l, style: TextStyle(fontSize: 12.5, color: tg.t1)),
-              ),
-          ],
-          child: Container(
-            width: width,
-            height: 34,
-            padding: const EdgeInsets.only(left: 12, right: 10),
-            decoration: BoxDecoration(
-              color: tg.inset,
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: tg.border, width: 1),
-            ),
-            child: Row(
-              children: [
-                // 文本占满中间空间（左对齐），箭头固定贴右缘。
-                Expanded(
-                  child: Text(
-                    text,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12.5, color: tg.t1),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _Chevron(color: tg.t3),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// 下拉右箭头（内联三角，对应原型 select 的箭头 SVG）。
-class _Chevron extends StatelessWidget {
-  const _Chevron({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(10, 6),
-      painter: _ChevronPainter(color),
-    );
-  }
-}
-
-class _ChevronPainter extends CustomPainter {
-  _ChevronPainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-    final p = Path()
-      ..moveTo(1, 1)
-      ..lineTo(size.width / 2, size.height - 1)
-      ..lineTo(size.width - 1, 1);
-    canvas.drawPath(p, paint);
-  }
-
-  @override
-  bool shouldRepaint(_ChevronPainter old) => old.color != color;
-}
+/* ============================== 筛选条 ============================== */
 
 /// 「一键获取最新数据」主按钮（`.btn btn-primary pm-fetch`）。
 ///
