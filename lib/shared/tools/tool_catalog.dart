@@ -314,7 +314,19 @@ abstract final class ToolCatalog {
     icon: 'pct',
   );
 
-  /// 全部 13 个工具（首页网格顺序）。
+  static const ToolDef miscAccountMarket = ToolDef(
+    id: 'acc-market',
+    group: ToolGroup.misc,
+    title: '账号行情',
+    crumb: '实用 / 账号行情',
+    pageSubtitle: '神仙代售平台 · 天龙八部怀旧服「游戏账号」类目在售数据分析',
+    cardDesc: '神仙代售平台数据 · 区服筛选 · 职业均价 · 性价比推荐',
+    keywords: ['行情', '账号', '价格', '售价', '神仙代售', '均价', '职业', '性价比'],
+    location: '/misc/acc-market',
+    icon: 'user',
+  );
+
+  /// 全部 14 个工具（首页网格顺序）。
   static const List<ToolDef> all = [
     petCalc,
     petProb,
@@ -329,6 +341,7 @@ abstract final class ToolCatalog {
     jobArtifact,
     miscRegress,
     miscMarket,
+    miscAccountMarket,
   ];
 
   /// 某分组下的工具（hub 页列表顺序）。

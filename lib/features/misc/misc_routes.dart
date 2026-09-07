@@ -3,7 +3,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../shared/tools/tool_catalog.dart';
 import '../../shared/widgets/tool_hub_page.dart';
+import 'domain/account_market.dart';
 import 'domain/pet_market.dart';
+import 'presentation/pages/misc_account_detail_page.dart';
+import 'presentation/pages/misc_account_market_page.dart';
 import 'presentation/pages/misc_market_page.dart';
 import 'presentation/pages/misc_regress_page.dart';
 
@@ -11,7 +14,7 @@ part 'misc_routes.g.dart';
 
 /// misc（实用）feature 的路由定义。
 ///
-/// 分类根 `/misc` 是「实用工具」hub；两个工具为其二级页。
+/// 分类根 `/misc` 是「实用工具」hub；工具为其二级页。
 @TypedGoRoute<MiscHubRoute>(
   path: '/misc',
   name: '实用工具',
@@ -24,6 +27,13 @@ part 'misc_routes.g.dart';
         // 商品详情作为嵌套子路由：push 压栈在行情列表之上，返回 pop 后列表
         // 滚动位置天然保留（不销毁），避免同页内切换详情导致的回顶跳动。
         TypedGoRoute<MiscPetDetailRoute>(path: 'detail', name: '商品详情'),
+      ],
+    ),
+    TypedGoRoute<MiscAccountMarketRoute>(
+      path: 'acc-market',
+      name: '账号行情',
+      routes: [
+        TypedGoRoute<MiscAccountDetailRoute>(path: 'detail', name: '账号详情'),
       ],
     ),
   ],
@@ -52,6 +62,27 @@ class MiscMarketRoute extends GoRouteData with $MiscMarketRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const MiscMarketPage();
+}
+
+/// 账号行情分析（对应原型 `v-acc-market`）。
+class MiscAccountMarketRoute extends GoRouteData with $MiscAccountMarketRoute {
+  const MiscAccountMarketRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const MiscAccountMarketPage();
+}
+
+/// 账号详情（账号对象经路由 extra 传入）。
+class MiscAccountDetailRoute extends GoRouteData with $MiscAccountDetailRoute {
+  const MiscAccountDetailRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    final acc =
+        state.extra is AccountListing ? state.extra! as AccountListing : null;
+    return AccountDetailPage(account: acc);
+  }
 }
 
 /// 珍兽商品详情（对应原型 `v-pet-detail`）。商品对象经路由 extra 传入。
