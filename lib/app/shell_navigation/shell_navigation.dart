@@ -89,15 +89,20 @@ class AppShellNavigation extends ConsumerWidget {
         switch (layout) {
           case DeviceLayout.mobile:
             return Scaffold(
-              body: SafeArea(
-                bottom: false,
-                // 内容在下可滚动，毛玻璃顶栏悬浮覆盖其上。
-                child: Stack(
-                  children: [
-                    Positioned.fill(child: navigationShell),
-                    Positioned(top: 0, left: 0, right: 0, child: infoBar),
-                  ],
-                ),
+              body: Stack(
+                children: [
+                  // 内容区保留顶部安全区（不被状态栏遮挡），内容在下可滚动，
+                  // 毛玻璃顶栏悬浮覆盖其上。
+                  Positioned.fill(
+                    child: SafeArea(
+                      bottom: false,
+                      child: navigationShell,
+                    ),
+                  ),
+                  // 顶栏从屏幕顶部（含状态栏区域）铺开，实现沉浸式状态栏；
+                  // 栏内内容由 AppInfoBar 按安全区内缩，见其 build。
+                  Positioned(top: 0, left: 0, right: 0, child: infoBar),
+                ],
               ),
               bottomNavigationBar: _MobileTabBar(
                 currentIndex: navigationShell.currentIndex,

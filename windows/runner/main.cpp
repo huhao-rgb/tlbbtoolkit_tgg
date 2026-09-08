@@ -32,7 +32,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   const int screen_h = ::GetSystemMetrics(SM_CYSCREEN);
   Win32Window::Point origin((screen_w - size.width) / 2,
                             (screen_h - size.height) / 2);
-  if (!window.Create(L"tlbbtoolkit", origin, size)) {
+  if (!window.Create(L"\u5929\u5DE5\u9601", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

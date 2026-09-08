@@ -15,6 +15,9 @@ const _blurLight = Color.fromRGBO(251, 250, 247, .82);
 
 /// 公共信息条（对应原型 `.topbar`）。
 ///
+/// 移动端为沉浸式顶栏：栏的背景（毛玻璃底）从屏幕顶部铺到状态栏背后，
+/// 内容按顶部安全区内缩，保证按钮/标题不被状态栏（含刘海/挖孔）遮挡。
+///
 /// 按原型 CSS 还原：
 /// - 桌面 `padding 13/34`，移动 `12/16`；`gap 12`；底部分隔线由 shell 的 Divider 提供；
 /// - 标题：桌面 16.5/600 · 字距.5，移动 15；
@@ -41,6 +44,8 @@ class AppInfoBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tg = context.tg;
     final isDark = tg.brightness == Brightness.dark;
+    // 移动端：状态栏/刘海/挖孔所在的安全区内缩，使栏内内容避开系统栏。
+    final insets = MediaQuery.paddingOf(context);
     final titleStyle = TextStyle(
       fontSize: desktop ? 16.5 : 15,
       fontWeight: FontWeight.w600,
@@ -58,10 +63,14 @@ class AppInfoBar extends ConsumerWidget {
               bottom: BorderSide(color: tg.border, width: 1),
             ),
           ),
+          // 背景（DecoratedBox）铺满整个栏（含状态栏区域），
+          // 内容在此基础上再叠加安全区内缩。
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: desktop ? 34 : 16,
-              vertical: desktop ? 13 : 12,
+            padding: EdgeInsets.fromLTRB(
+              (desktop ? 34 : 16) + insets.left,
+              (desktop ? 13 : 12) + insets.top,
+              (desktop ? 34 : 16) + insets.right,
+              desktop ? 13 : 12,
             ),
             child: Row(
               children: [

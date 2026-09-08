@@ -2,7 +2,7 @@
     <!-- 访问神仙代售平台等外部接口所需（release 亦需要） -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="tlbbtoolkit"
+        android:label="天工阁"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

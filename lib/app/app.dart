@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/platform/app_window.dart';
@@ -28,12 +29,31 @@ class TlbbApp extends ConsumerWidget {
       routerConfig: router,
       // 原生桌面：窗口顶部加 40px 自定义标题栏（frameless），内容整体下移；
       // Web / 移动端由宿主负责标题栏，原样返回。
+      //
+      // 同时在这里按当前主题设置系统栏（状态栏/导航栏）透明 + 图标明暗，
+      // 配合 shell 顶栏毛玻璃 + Android edge-to-edge 实现沉浸式效果。
       builder: (context, child) {
-        if (!isDesktopWindow) return child ?? const SizedBox.shrink();
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final body = AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            // Android：状态栏/导航栏透明，露出顶栏毛玻璃与底部 tabbar 背景。
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarDividerColor: Colors.transparent,
+            // 图标明暗跟随主题：深色 → 亮图标，浅色 → 暗图标。
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+            systemNavigationBarIconBrightness: isDark
+                ? Brightness.light
+                : Brightness.dark,
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+        if (!isDesktopWindow) return body;
         return Column(
           children: [
             const TgWindowTitleBar(),
-            Expanded(child: child ?? const SizedBox.shrink()),
+            Expanded(child: body),
           ],
         );
       },
