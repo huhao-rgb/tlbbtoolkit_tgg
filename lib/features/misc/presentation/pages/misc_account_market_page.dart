@@ -9,7 +9,7 @@ import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/chainable_scroll_physics.dart';
 import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_icon.dart';
-import '../../../../shared/widgets/tg_modal.dart';
+import '../../../../shared/widgets/tg_image_gallery.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../../../shared/widgets/tg_select.dart';
 import '../../data/account_market_fetcher.dart';
@@ -1723,10 +1723,17 @@ class _ThumbState extends State<_Thumb> {
       cursor: hasImg ? SystemMouseCursors.click : MouseCursor.defer,
       child: GestureDetector(
         onTap: hasImg
-            ? () => _showLightbox(
+            ? () => showTgImageGallery(
                   context,
-                  imageUrl: url,
-                  caption: widget.account.title,
+                  images: [
+                    TgGalleryImage(
+                      url: url,
+                      caption: widget.account.title,
+                      errorIcon: 'user',
+                    ),
+                  ],
+                  sourceRect: _widgetRect(context),
+                  title: '商品图片预览',
                 )
             : null,
         child: ClipRRect(
@@ -1751,115 +1758,11 @@ class _ThumbState extends State<_Thumb> {
   }
 }
 
-/// 图片预览弹窗（与珍兽行情同款 TgModal 卡片样式）。
-Future<void> _showLightbox(
-  BuildContext context, {
-  required String imageUrl,
-  String? caption,
-}) {
-  return showTgModal(
-    context: context,
-    maxWidth: 720,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.tg.goldTint(.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: context.tg.goldTint(.28), width: 1),
-              ),
-              child: TgIcon('user', size: 21, color: context.tg.gold),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '商品图片预览',
-                    style: TextStyle(
-                      fontFamily: TgFonts.serif,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: context.tg.t1,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    caption ?? '账号行情 · 在售商品图',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TgType.tag.copyWith(color: context.tg.t3),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            TgModalCloseButton(
-              onTap: () => Navigator.of(context, rootNavigator: true).pop(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: context.tg.inset,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: context.tg.border, width: 1),
-              ),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.contain,
-                width: double.infinity,
-                height: double.infinity,
-                cacheWidth: 1600,
-                filterQuality: FilterQuality.medium,
-                gaplessPlayback: true,
-                errorBuilder: (_, _, _) => Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TgIcon('user', size: 64, color: context.tg.t3),
-                      const SizedBox(height: 8),
-                      Text(
-                        '图片加载失败',
-                        style: TextStyle(fontSize: 11.5, color: context.tg.t3),
-                      ),
-                    ],
-                  ),
-                ),
-                loadingBuilder: (_, child, progress) => progress == null
-                    ? child
-                    : Center(
-                        child: SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: context.tg.gold2,
-                            backgroundColor: context.tg.goldTint(.15),
-                          ),
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
+/// 计算调用方小图在全局坐标系中的矩形（供画廊 Hero 动画定位）。
+Rect? _widgetRect(BuildContext context) {
+  final box = context.findRenderObject();
+  if (box is! RenderBox || !box.attached) return null;
+  return box.localToGlobal(Offset.zero) & box.size;
 }
 
 /// 「详情」小按钮（`.pm-detail-btn`）。
