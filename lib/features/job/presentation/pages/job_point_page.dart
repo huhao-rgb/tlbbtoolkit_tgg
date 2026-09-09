@@ -6,6 +6,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/job_point.dart';
 import '../../domain/job_sect.dart';
@@ -76,9 +77,9 @@ class _JobPointPageState extends State<JobPointPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -117,8 +118,8 @@ class _JobPointPageState extends State<JobPointPage> {
                     ),
                     const SizedBox(height: 18),
                     // 计算卡片（padding 18）
-                    Container(
-                      padding: const EdgeInsets.all(18),
+                    TgCard(
+                      basePadding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: context.tg.card,
                         borderRadius: TgRadius.card,

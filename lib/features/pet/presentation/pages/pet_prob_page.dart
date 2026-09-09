@@ -6,6 +6,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_modal.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
@@ -55,9 +56,9 @@ class _PetProbPageState extends State<PetProbPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -252,8 +253,8 @@ class _ListHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+    return TgCard(
+      basePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
       decoration: BoxDecoration(
         color: tg.inset2,
         border: Border(bottom: BorderSide(color: tg.border, width: 1)),
@@ -310,8 +311,8 @@ class _ProbRow extends StatelessWidget {
     final judgeTag = _Tag(label: skill.judge);
 
     if (compact) {
-      return Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      return TgCard(
+        basePadding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
           border: last
               ? null
@@ -342,8 +343,8 @@ class _ProbRow extends StatelessWidget {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+    return TgCard(
+      basePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
       decoration: BoxDecoration(
         color: Colors.transparent,
         border: last

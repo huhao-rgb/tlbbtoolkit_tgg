@@ -5,6 +5,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../../../shared/widgets/tg_text_field.dart';
@@ -72,9 +73,9 @@ class _PetCalcPageState extends State<PetCalcPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -240,8 +241,8 @@ class _FormCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Container(
-      padding: TgSpacing.cardPadding,
+    return TgCard(
+      basePadding: TgSpacing.cardPadding,
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,
@@ -702,9 +703,9 @@ class _ResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final r = result;
-    return Container(
+    return TgCard(
       width: double.infinity,
-      padding: TgSpacing.cardPadding,
+      basePadding: TgSpacing.cardPadding,
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,

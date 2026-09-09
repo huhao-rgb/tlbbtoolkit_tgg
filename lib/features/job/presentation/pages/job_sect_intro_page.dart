@@ -5,6 +5,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/job_point.dart';
@@ -39,9 +40,9 @@ class _JobSectIntroPageState extends State<JobSectIntroPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -99,8 +100,8 @@ class _JobSectIntroPageState extends State<JobSectIntroPage> {
                     ),
                     const SizedBox(height: 14),
                     // 门派介绍卡
-                    Container(
-                      padding: const EdgeInsets.all(18),
+                    TgCard(
+                      basePadding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: tg.card,
                         borderRadius: TgRadius.card,

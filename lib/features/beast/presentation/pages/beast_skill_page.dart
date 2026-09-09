@@ -5,6 +5,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/beast_skill.dart';
@@ -30,9 +31,9 @@ class _BeastSkillPageState extends State<BeastSkillPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -128,17 +129,19 @@ class _AccCardState extends State<_AccCard> {
               hoverColor: Colors.transparent,
               highlightColor: Colors.transparent,
               splashColor: Colors.transparent,
-              child: Container(
+              child: TgCard(
                 width: double.infinity,
-                // 原型 .acc-head:hover → var(--hovrow)：深 白2.5% / 浅 黑3.5%
-                color: _hover
-                    ? (tg.brightness == Brightness.dark
-                          ? const Color(0x06FFFFFF)
-                          : const Color(0x092A251D))
-                    : Colors.transparent,
-                padding: const EdgeInsets.symmetric(
+                basePadding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 16,
+                ),
+                // 原型 .acc-head:hover → var(--hovrow)：深 白2.5% / 浅 黑3.5%
+                decoration: BoxDecoration(
+                  color: _hover
+                      ? (tg.brightness == Brightness.dark
+                            ? const Color(0x06FFFFFF)
+                            : const Color(0x092A251D))
+                      : Colors.transparent,
                 ),
                 child: Row(
                   children: [
@@ -215,9 +218,9 @@ class _LvTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Padding(
+    return TgCardPadding(
       // .lv-tbl padding：2 / 20 / 16
-      padding: const EdgeInsets.fromLTRB(20, 2, 20, 16),
+      base: const EdgeInsets.fromLTRB(20, 2, 20, 16),
       child: Column(
         children: [
           for (var i = 0; i < skill.rows.length; i++)

@@ -284,9 +284,9 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
         // 页面内边距（compact / 桌面两套）。
         final basePad = compact
             ? const EdgeInsets.fromLTRB(
-                16,
+                TgSpacing.pagePaddingMobileH,
                 20 + Breakpoints.topbarOverlayHeight,
-                16,
+                TgSpacing.pagePaddingMobileH,
                 48,
               )
             : TgSpacing.pagePadding.copyWith(
@@ -391,76 +391,82 @@ class _FilterBar extends StatelessWidget {
     final serverNames = serverPool != null
         ? [for (final s in serverPool) s.serverName]
         : pmServers(data, filter.area);
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-      decoration: BoxDecoration(
-        color: tg.card,
-        borderRadius: TgRadius.card,
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final selects = <Widget>[
-            TgSelect(
-              label: '大区',
-              value: filter.area,
-              hint: '全部大区',
-              width: 150,
-              options: [for (final a in areas) (a, a)],
-              onChanged: onArea,
-            ),
-            TgSelect(
-              label: '服务器',
-              value: filter.server,
-              hint: '全部服务器',
-              width: 160,
-              options: [for (final s in serverNames) (s, s)],
-              onChanged: onServer,
-            ),
-            TgSelect(
-              label: '可携带等级',
-              value: filter.carryBand.label,
-              hint: PetCarryBand.all.label,
-              width: 168,
-              options: [
-                for (final b in PetCarryBand.values) (b.label, b.label),
-              ],
-              onChanged: (v) {
-                final band = PetCarryBand.values.firstWhere(
-                  (b) => b.label == v,
-                  orElse: () => PetCarryBand.all,
+    return LayoutBuilder(
+      builder: (context, w) {
+        // 窄屏（移动端）收窄筛选卡左右内边距，提升横向内容容纳；桌面保持 18。
+        final h = w.maxWidth < 640 ? TgSpacing.cardPaddingMobileH : 18.0;
+        return Container(
+          padding: EdgeInsets.fromLTRB(h, 16, h, 16),
+          decoration: BoxDecoration(
+            color: tg.card,
+            borderRadius: TgRadius.card,
+            border: Border.all(color: tg.border, width: 1),
+          ),
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final selects = <Widget>[
+                TgSelect(
+                  label: '大区',
+                  value: filter.area,
+                  hint: '全部大区',
+                  width: 150,
+                  options: [for (final a in areas) (a, a)],
+                  onChanged: onArea,
+                ),
+                TgSelect(
+                  label: '服务器',
+                  value: filter.server,
+                  hint: '全部服务器',
+                  width: 160,
+                  options: [for (final s in serverNames) (s, s)],
+                  onChanged: onServer,
+                ),
+                TgSelect(
+                  label: '可携带等级',
+                  value: filter.carryBand.label,
+                  hint: PetCarryBand.all.label,
+                  width: 168,
+                  options: [
+                    for (final b in PetCarryBand.values) (b.label, b.label),
+                  ],
+                  onChanged: (v) {
+                    final band = PetCarryBand.values.firstWhere(
+                      (b) => b.label == v,
+                      orElse: () => PetCarryBand.all,
+                    );
+                    onBand(band);
+                  },
+                ),
+              ];
+              const gap = 12.0;
+              final compact = c.maxWidth < 640;
+              if (compact) {
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.end,
+                  children: [
+                    ...selects,
+                    _FetchButton(fetching: fetching, onTap: onFetch),
+                  ],
                 );
-                onBand(band);
-              },
-            ),
-          ];
-          const gap = 12.0;
-          final compact = c.maxWidth < 640;
-          if (compact) {
-            return Wrap(
-              spacing: gap,
-              runSpacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.end,
-              children: [
-                ...selects,
-                _FetchButton(fetching: fetching, onTap: onFetch),
-              ],
-            );
-          }
-          // 桌面：三下拉之间保留 12px 间距，获取按钮右对齐。
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (var i = 0; i < selects.length; i++) ...[
-                if (i > 0) const SizedBox(width: gap),
-                selects[i],
-              ],
-              const Spacer(),
-              _FetchButton(fetching: fetching, onTap: onFetch),
-            ],
-          );
-        },
-      ),
+              }
+              // 桌面：三下拉之间保留 12px 间距，获取按钮右对齐。
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  for (var i = 0; i < selects.length; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    selects[i],
+                  ],
+                  const Spacer(),
+                  _FetchButton(fetching: fetching, onTap: onFetch),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -885,15 +891,23 @@ class _BlockCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Container(
-      width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: tg.card,
-        borderRadius: TgRadius.card,
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: child,
+    return LayoutBuilder(
+      builder: (context, c) {
+        // 窄屏（移动端）收窄卡片左右内边距，提升横向内容容纳；桌面保持原值。
+        final h = c.maxWidth < 640
+            ? math.min(TgSpacing.cardPaddingMobileH, padding.horizontal)
+            : padding.horizontal;
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(h, padding.top, h, padding.bottom),
+          decoration: BoxDecoration(
+            color: tg.card,
+            borderRadius: TgRadius.card,
+            border: Border.all(color: tg.border, width: 1),
+          ),
+          child: child,
+        );
+      },
     );
   }
 }
@@ -1036,6 +1050,10 @@ class _SegTable extends StatelessWidget {
 
   final List<PmSegProfile> rows;
 
+  /// 窄屏（移动端）表格最小宽度：低于此宽度时横向滚动，
+  /// 避免 6 列在可用宽度内被压缩（与在售明细表同策略）。
+  static const double _minTableWidth = 700;
+
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
@@ -1061,79 +1079,102 @@ class _SegTable extends StatelessWidget {
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: cells),
     );
-    return Column(
-      children: [
-        tr([
-          Expanded(flex: 3, child: th('价位段')),
-          SizedBox(width: 52, child: th('数量')),
-          Expanded(flex: 2, child: th('均价')),
-          Expanded(flex: 2, child: th('均资质')),
-          Expanded(flex: 3, child: th('主流携带级')),
-          Expanded(flex: 5, child: th('高频特征')),
-        ]),
-        for (final r in rows)
-          tr([
-            Expanded(
-              flex: 3,
-              child: cell(
-                Text(r.label, style: TextStyle(fontSize: 12, color: tg.t2)),
-              ),
-            ),
-            SizedBox(
-              width: 52,
-              child: cell(
-                Text(
-                  '${r.count}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: tg.gold2,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: cell(
-                Text(
-                  r.list.isEmpty ? '—' : _p(r.avg),
-                  style: TextStyle(fontSize: 12, color: tg.t2),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: cell(
-                Text(
-                  '${r.avgApt ?? '—'}',
-                  style: TextStyle(fontSize: 12, color: tg.t2),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: cell(
-                Text(r.lvTop, style: TextStyle(fontSize: 12, color: tg.t2)),
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: cell(
-                r.features.isEmpty
-                    ? Text('—', style: TextStyle(fontSize: 12, color: tg.t2))
-                    : Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          for (final f in r.features)
-                            _PmTag(text: f, gold: false),
-                        ],
+    return LayoutBuilder(
+      builder: (context, c) {
+        // 窄屏（移动端）下 6 列在可用宽度内会被压缩成细条，
+        // 因此给表格一个最小宽度并允许横向滚动（与在售明细表同策略）。
+        final tableW = math.max(c.maxWidth, _minTableWidth);
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: tableW,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                tr([
+                  Expanded(flex: 3, child: th('价位段')),
+                  SizedBox(width: 52, child: th('数量')),
+                  Expanded(flex: 2, child: th('均价')),
+                  Expanded(flex: 2, child: th('均资质')),
+                  Expanded(flex: 3, child: th('主流携带级')),
+                  Expanded(flex: 5, child: th('高频特征')),
+                ]),
+                for (final r in rows)
+                  tr([
+                    Expanded(
+                      flex: 3,
+                      child: cell(
+                        Text(
+                          r.label,
+                          style: TextStyle(fontSize: 12, color: tg.t2),
+                        ),
                       ),
-              ),
+                    ),
+                    SizedBox(
+                      width: 52,
+                      child: cell(
+                        Text(
+                          '${r.count}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: tg.gold2,
+                            fontWeight: FontWeight.w600,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: cell(
+                        Text(
+                          r.list.isEmpty ? '—' : _p(r.avg),
+                          style: TextStyle(fontSize: 12, color: tg.t2),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: cell(
+                        Text(
+                          '${r.avgApt ?? '—'}',
+                          style: TextStyle(fontSize: 12, color: tg.t2),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: cell(
+                        Text(
+                          r.lvTop,
+                          style: TextStyle(fontSize: 12, color: tg.t2),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 5,
+                      child: cell(
+                        r.features.isEmpty
+                            ? Text(
+                                '—',
+                                style: TextStyle(fontSize: 12, color: tg.t2),
+                              )
+                            : Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: [
+                                  for (final f in r.features)
+                                    _PmTag(text: f, gold: false),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ]),
+              ],
             ),
-          ]),
-      ],
+          ),
+        );
+      },
     );
   }
 }
@@ -2259,24 +2300,48 @@ class _DetailInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _PdCell(label: '资质', value: t.apt?.toString() ?? '未标注', gold: true),
-            _PdCell(label: '可携带等级', value: t.carryText),
-            _PdCell(
-              label: '灵性 / 悟性',
-              value:
-                  '${t.ling != '0' ? t.ling : '—'} / ${t.wu != '0' ? t.wu : '—'}',
-            ),
-            _PdCell(label: '上架时间', value: '—'),
-            _PdCell(label: '浏览量', value: _thousands(t.views)),
-            _PdCell(
-              label: '大区 · 服务器',
-              value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, c) {
+            // 属性格弹性排布：按可用宽度自适应每行卡片数（移动端保证 ≥2 个/行，
+            // 高 DPR 机型逻辑宽度偏窄也能放下两张；桌面随宽度增至 4~6 个/行），
+            // 卡片铺满整行避免水平留白。
+            const gap = 10.0;
+            const cellMin = 150.0;
+            final cols = ((c.maxWidth + gap) / (cellMin + gap))
+                .floor()
+                .clamp(2, 6);
+            final cellW = (c.maxWidth - gap * (cols - 1)) / cols;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                _PdCell(
+                  label: '资质',
+                  value: t.apt?.toString() ?? '未标注',
+                  gold: true,
+                  width: cellW,
+                ),
+                _PdCell(
+                  label: '可携带等级',
+                  value: t.carryText,
+                  width: cellW,
+                ),
+                _PdCell(
+                  label: '灵性 / 悟性',
+                  value:
+                      '${t.ling != '0' ? t.ling : '—'} / ${t.wu != '0' ? t.wu : '—'}',
+                  width: cellW,
+                ),
+                _PdCell(label: '上架时间', value: '—', width: cellW),
+                _PdCell(label: '浏览量', value: _thousands(t.views), width: cellW),
+                _PdCell(
+                  label: '大区 · 服务器',
+                  value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',
+                  width: cellW,
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -2358,17 +2423,23 @@ Future<void> _openSourcePage(BuildContext context, String sn) async {
 
 /// `pd-cell` 信息格。
 class _PdCell extends StatelessWidget {
-  const _PdCell({required this.label, required this.value, this.gold = false});
+  const _PdCell({
+    required this.label,
+    required this.value,
+    this.gold = false,
+    this.width = 168,
+  });
 
   final String label;
   final String value;
   final bool gold;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
     return Container(
-      width: 168,
+      width: width,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: tg.inset,
@@ -2591,9 +2662,9 @@ class PetDetailPage extends StatelessWidget {
         // 与行情列表一致的内边距 / 限宽 1180 居中换算。
         final basePad = compact
             ? const EdgeInsets.fromLTRB(
-                16,
+                TgSpacing.pagePaddingMobileH,
                 20 + Breakpoints.topbarOverlayHeight,
-                16,
+                TgSpacing.pagePaddingMobileH,
                 48,
               )
             : TgSpacing.pagePadding.copyWith(

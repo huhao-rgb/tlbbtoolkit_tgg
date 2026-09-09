@@ -5,6 +5,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_modal.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/beast_spirit.dart';
@@ -44,9 +45,9 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -230,8 +231,8 @@ class _SpiritCardState extends State<_SpiritCard> {
             highlightColor: Colors.transparent,
             splashColor: Colors.transparent,
             onTap: widget.onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            child: TgCardPadding(
+              base: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               child: Column(
                 children: [
                   // sp-avatar：64 圆字徽

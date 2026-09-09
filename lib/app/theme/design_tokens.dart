@@ -467,6 +467,14 @@ abstract final class TgSpacing {
       EdgeInsets.fromLTRB(28, 28, 34, 90);
   static const double pageMaxWidth = 1180;
 
+  /// 移动端内容区水平内边距：窄屏下收敛到 12（桌面 28/34），
+  /// 避免左右边距过大挤压水平方向的内容区域。
+  static const double pagePaddingMobileH = 12;
+
+  /// 移动端第一层卡片水平内边距：窄屏下收敛到 12（桌面 18/22），
+  /// 提升水平方向的内容容纳。
+  static const double cardPaddingMobileH = 12;
+
   /// 卡片内距（表单卡 / 结果卡 24，紧凑卡 22）
   static const EdgeInsets cardPadding = EdgeInsets.all(24);
   static const EdgeInsets cardPaddingTight = EdgeInsets.all(22);

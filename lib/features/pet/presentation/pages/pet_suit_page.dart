@@ -5,6 +5,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/pet_suit.dart';
@@ -62,9 +63,9 @@ class _PetSuitPageState extends State<PetSuitPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -272,8 +273,8 @@ class _SuitCardState extends State<_SuitCard> {
             highlightColor: Colors.transparent,
             splashColor: Colors.transparent,
             onTap: widget.onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(TgSpacing.lg),
+            child: TgCardPadding(
+              base: const EdgeInsets.all(TgSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -934,9 +935,9 @@ class _CalcCard extends StatelessWidget {
     final result = suitMatsCalc(
       SuitMatCalcInput(lv: lv, currentStar: star, withExchange: withExchange),
     );
-    return Container(
+    return TgCard(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      basePadding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,

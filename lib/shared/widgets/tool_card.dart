@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/design_tokens.dart';
 import '../tools/tool_catalog.dart';
+import 'tg_card.dart';
 import 'tg_icon.dart';
 
 /// 工具卡片（按原型 `.tool-card` 还原）：
@@ -49,8 +50,8 @@ class _ToolCardState extends State<ToolCard> {
             highlightColor: Colors.transparent,
             splashColor: Colors.transparent,
             onTap: () => context.go(widget.tool.location),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
+            child: TgCardPadding(
+              base: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 17,
               ),

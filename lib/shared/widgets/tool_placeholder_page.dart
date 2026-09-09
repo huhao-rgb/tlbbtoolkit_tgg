@@ -5,6 +5,7 @@ import '../../app/theme/design_tokens.dart';
 import '../../core/responsive/breakpoints.dart';
 import '../tools/tool_catalog.dart';
 import 'page_head.dart';
+import 'tg_card.dart';
 import 'tg_icon.dart';
 
 /// 工具页骨架占位（在逐个工具落地前统一渲染）。
@@ -24,9 +25,9 @@ class ToolPlaceholderPage extends StatelessWidget {
         return SingleChildScrollView(
           padding: compact
               ? const EdgeInsets.fromLTRB(
-                  16,
+                  TgSpacing.pagePaddingMobileH,
                   20 + Breakpoints.topbarOverlayHeight,
-                  16,
+                  TgSpacing.pagePaddingMobileH,
                   40,
                 )
               : TgSpacing.pagePadding.copyWith(
@@ -69,9 +70,9 @@ class _PlaceholderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Container(
+    return TgCard(
       width: double.infinity,
-      padding: TgSpacing.cardPadding,
+      basePadding: TgSpacing.cardPadding,
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,

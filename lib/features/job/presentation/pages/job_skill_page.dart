@@ -5,6 +5,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/job_sect.dart';
 import '../../domain/job_skill.dart';
@@ -50,9 +51,9 @@ class _JobSkillPageState extends State<JobSkillPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -330,8 +331,8 @@ class _ListHead extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final label = TextStyle(fontSize: 11.5, letterSpacing: 1.5, color: tg.t3);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+    return TgCard(
+      basePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
       decoration: BoxDecoration(
         color: tg.inset2,
         border: Border(bottom: BorderSide(color: tg.border, width: 1)),
@@ -412,9 +413,9 @@ class _SkillRow extends StatelessWidget {
     final tg = context.tg;
     final tone = _toneOfSkillType(context, skill.type);
     if (compact) {
-      return Container(
+      return TgCard(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        basePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: tg.border, width: 1)),
         ),
@@ -474,9 +475,9 @@ class _SkillRow extends StatelessWidget {
         ),
       );
     }
-    return Container(
+    return TgCard(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+      basePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
       decoration: BoxDecoration(
         color: tg.card,
         border: Border(bottom: BorderSide(color: tg.border, width: 1)),

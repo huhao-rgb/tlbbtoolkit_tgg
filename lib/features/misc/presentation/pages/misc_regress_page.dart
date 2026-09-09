@@ -9,6 +9,7 @@ import '../../../../core/di/providers.dart';
 import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
+import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_modal.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
@@ -174,9 +175,9 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
           child: SingleChildScrollView(
             padding: compact
                 ? const EdgeInsets.fromLTRB(
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
-                    16,
+                    TgSpacing.pagePaddingMobileH,
                     48,
                   )
                 : TgSpacing.pagePadding.copyWith(
@@ -223,8 +224,8 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
   // ---- 「我的账号」卡 ----
   Widget _buildAccountsCard() {
     final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.all(18),
+    return TgCard(
+      basePadding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,
@@ -898,8 +899,8 @@ class _IdlePanelState extends State<_IdlePanel> {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final a = widget.account;
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return TgCard(
+      basePadding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,
@@ -994,8 +995,8 @@ class _RunPanelState extends State<_RunPanel> {
     final total = kRegDurMs;
     final elapsed = widget.nowMs - a.curMs!;
     final pct = (elapsed / total * 100).clamp(0, 100);
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return TgCard(
+      basePadding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,
@@ -1234,8 +1235,8 @@ class _DonePanel extends StatelessWidget {
     final tg = context.tg;
     final a = account;
     final end = regEndOf(a.curMs!);
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return TgCard(
+      basePadding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: tg.card,
         borderRadius: TgRadius.card,

@@ -47,9 +47,9 @@ class AccountDetailPage extends StatelessWidget {
         ];
         final basePad = compact
             ? const EdgeInsets.fromLTRB(
-                16,
+                TgSpacing.pagePaddingMobileH,
                 20 + Breakpoints.topbarOverlayHeight,
-                16,
+                TgSpacing.pagePaddingMobileH,
                 48,
               )
             : TgSpacing.pagePadding.copyWith(
@@ -377,28 +377,59 @@ class _DetailInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _PdCell(label: '职业', value: t.job.isEmpty ? '—' : t.job),
-            _PdCell(label: '性别', value: t.sex.isEmpty ? '—' : t.sex, gold: true),
-            _PdCell(label: '角色等级', value: t.lv > 0 ? '${t.lv} 级' : '—'),
-            _PdCell(
-              label: '主属性·攻',
-              value: t.attr > 0 ? '${amFmt(t.attr)}${t.atk.isNotEmpty ? ' · ${t.atkShort}' : ''}' : '—',
-            ),
-            _PdCell(
-              label: '副属性',
-              value: t.attr2 != null && t.attr2! > 0 ? amFmt(t.attr2!) : '—',
-            ),
-            _PdCell(label: '浏览量', value: amThousands(t.views)),
-            _PdCell(
-              label: '大区 · 服务器',
-              value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',
-            ),
-            _PdCell(label: '编号', value: t.sn),
-          ],
+        LayoutBuilder(
+          builder: (context, c) {
+            // 属性格弹性排布：按可用宽度自适应每行卡片数（移动端保证 ≥2 个/行，
+            // 高 DPR 机型逻辑宽度偏窄也能放下两张；桌面随宽度增至 4~6 个/行），
+            // 卡片铺满整行避免水平留白。
+            const gap = 10.0;
+            const cellMin = 150.0;
+            final cols = ((c.maxWidth + gap) / (cellMin + gap))
+                .floor()
+                .clamp(2, 6);
+            final cellW = (c.maxWidth - gap * (cols - 1)) / cols;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                _PdCell(
+                  label: '职业',
+                  value: t.job.isEmpty ? '—' : t.job,
+                  width: cellW,
+                ),
+                _PdCell(
+                  label: '性别',
+                  value: t.sex.isEmpty ? '—' : t.sex,
+                  gold: true,
+                  width: cellW,
+                ),
+                _PdCell(
+                  label: '角色等级',
+                  value: t.lv > 0 ? '${t.lv} 级' : '—',
+                  width: cellW,
+                ),
+                _PdCell(
+                  label: '主属性·攻',
+                  value: t.attr > 0
+                      ? '${amFmt(t.attr)}${t.atk.isNotEmpty ? ' · ${t.atkShort}' : ''}'
+                      : '—',
+                  width: cellW,
+                ),
+                _PdCell(
+                  label: '副属性',
+                  value: t.attr2 != null && t.attr2! > 0 ? amFmt(t.attr2!) : '—',
+                  width: cellW,
+                ),
+                _PdCell(label: '浏览量', value: amThousands(t.views), width: cellW),
+                _PdCell(
+                  label: '大区 · 服务器',
+                  value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',
+                  width: cellW,
+                ),
+                _PdCell(label: '编号', value: t.sn, width: cellW),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -475,17 +506,23 @@ Future<void> _openSourcePage(BuildContext context, String sn) async {
 
 /// `pd-cell` 信息格。
 class _PdCell extends StatelessWidget {
-  const _PdCell({required this.label, required this.value, this.gold = false});
+  const _PdCell({
+    required this.label,
+    required this.value,
+    this.gold = false,
+    this.width = 168,
+  });
 
   final String label;
   final String value;
   final bool gold;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
     return Container(
-      width: 168,
+      width: width,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: tg.inset,
@@ -688,15 +725,23 @@ class _BlockCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Container(
-      width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: tg.card,
-        borderRadius: TgRadius.card,
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: child,
+    return LayoutBuilder(
+      builder: (context, c) {
+        // 窄屏（移动端）收窄卡片左右内边距，提升横向内容容纳；桌面保持原值。
+        final h = c.maxWidth < 640
+            ? math.min(TgSpacing.cardPaddingMobileH, padding.horizontal)
+            : padding.horizontal;
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(h, padding.top, h, padding.bottom),
+          decoration: BoxDecoration(
+            color: tg.card,
+            borderRadius: TgRadius.card,
+            border: Border.all(color: tg.border, width: 1),
+          ),
+          child: child,
+        );
+      },
     );
   }
 }

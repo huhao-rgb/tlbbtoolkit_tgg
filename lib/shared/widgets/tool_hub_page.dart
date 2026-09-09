@@ -62,9 +62,9 @@ class ToolHubPage extends StatelessWidget {
 
   EdgeInsets _pagePadding(bool compact) => compact
       ? const EdgeInsets.fromLTRB(
-          16,
+          TgSpacing.pagePaddingMobileH,
           20 + Breakpoints.topbarOverlayHeight,
-          16,
+          TgSpacing.pagePaddingMobileH,
           40,
         )
       : TgSpacing.pagePadding.copyWith(
