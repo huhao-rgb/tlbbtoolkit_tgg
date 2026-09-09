@@ -1607,6 +1607,7 @@ class _DetailTable extends StatelessWidget {
         final header = tr(
           cells: [
             SizedBox(width: thumbW, child: th('图')),
+            SizedBox(width: titleW, child: th('标题')),
             SizedBox(width: priceW, child: th('价格')),
             SizedBox(width: carryW, child: th('携带')),
             if (!compact) ...[
@@ -1614,7 +1615,6 @@ class _DetailTable extends StatelessWidget {
               SizedBox(width: areaW, child: th('区服')),
             ],
             Expanded(child: th('特征')),
-            SizedBox(width: titleW, child: th('标题')),
             SizedBox(width: opW, child: th('操作')),
           ],
         );
@@ -1630,22 +1630,30 @@ class _DetailTable extends StatelessWidget {
         );
         final overflow = rows.length * rowExtent > maxTableH;
         final bodyH = math.min(rows.length * rowExtent, maxTableH);
-        Widget rowItem(int i) => tr(
-          last: i == rows.length - 1,
-          cells: _rowCells(
-            context,
-            rows[i],
-            compact: compact,
-            cell: cell,
-            thumbW: thumbW,
-            priceW: priceW,
-            carryW: carryW,
-            lingW: lingW,
-            areaW: areaW,
-            titleW: titleW,
-            opW: opW,
-          ),
-        );
+        // 整行可点击：点击行内任意位置直接进入该条详情。行内自带的交互
+        // （缩略图预览大图、「详情」按钮）在命中区优先，互不冲突。
+        Widget rowItem(int i) {
+          final t = rows[i];
+          return _TappableRow(
+            onTap: () => onDetail(t),
+            child: tr(
+              last: i == rows.length - 1,
+              cells: _rowCells(
+                context,
+                t,
+                compact: compact,
+                cell: cell,
+                thumbW: thumbW,
+                priceW: priceW,
+                carryW: carryW,
+                lingW: lingW,
+                areaW: areaW,
+                titleW: titleW,
+                opW: opW,
+              ),
+            ),
+          );
+        }
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
@@ -1704,6 +1712,17 @@ class _DetailTable extends StatelessWidget {
         child: cell(_Thumb(pet: t)),
       ),
       SizedBox(
+        width: titleW,
+        child: cell(
+          Text(
+            t.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: tg.t1),
+          ),
+        ),
+      ),
+      SizedBox(
         width: priceW,
         child: cell(
           Text(
@@ -1747,21 +1766,47 @@ class _DetailTable extends StatelessWidget {
       ],
       Expanded(child: cell(_FeatureCell(pet: t))),
       SizedBox(
-        width: titleW,
-        child: cell(
-          Text(
-            t.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: tg.t1),
-          ),
-        ),
-      ),
-      SizedBox(
         width: opW,
         child: cell(Center(child: _DetailBtn(onTap: () => onDetail(t)))),
       ),
     ];
+  }
+}
+
+/// 明细行可点击外壳：整行点击进入详情；hover 显示点击光标 + 金色高亮底。
+///
+/// 行内子控件（缩略图预览、「详情」按钮）自身注册的点击在命中区优先，
+/// 外层整行点击只负责其余空白区域的跳转。
+class _TappableRow extends StatefulWidget {
+  const _TappableRow({required this.onTap, required this.child});
+
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  State<_TappableRow> createState() => _TappableRowState();
+}
+
+class _TappableRowState extends State<_TappableRow> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          color: _hover ? tg.goldTint(.05) : Colors.transparent,
+          child: widget.child,
+        ),
+      ),
+    );
   }
 }
 

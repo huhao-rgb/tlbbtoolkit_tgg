@@ -354,8 +354,8 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     expect(find.text('搜索标题关键字：品种 / 性格 / 资质 / 顶变 …'), findsOneWidget);
 
-    // 表头列齐全
-    for (final h in ['图', '价格', '携带', '灵/悟', '区服', '特征', '标题', '操作']) {
+    // 表头列齐全（标题紧随图片列）
+    for (final h in ['图', '标题', '价格', '携带', '灵/悟', '区服', '特征', '操作']) {
       expect(find.text(h), findsOneWidget, reason: '表头 $h');
     }
 
