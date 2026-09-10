@@ -9,6 +9,7 @@ import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../domain/job_sect.dart';
 import '../../domain/job_skill.dart';
+import '../../domain/job_skill_icons.dart';
 import '../widgets/job_sect_widgets.dart';
 
 /// 职业技能库（对应原型 `v-class-skill`）。
@@ -17,15 +18,20 @@ import '../widgets/job_sect_widgets.dart';
 /// 「全部」时按七本心法分组（`xf-head`），选单本心法则只列出该组技能；
 /// 每门技能显示 名称 / 类型 tag / 冷却 / 描述（`.skill-rows`）。
 class JobSkillPage extends StatefulWidget {
-  const JobSkillPage({super.key});
+  const JobSkillPage({super.key, this.initialSect});
+
+  /// 初始门派 key（如 `shaolin`；来自门派介绍页「深入这个门派」跳转）。
+  /// 为空时保持默认逍遥。
+  final String? initialSect;
 
   @override
   State<JobSkillPage> createState() => _JobSkillPageState();
 }
 
 class _JobSkillPageState extends State<JobSkillPage> {
-  /// 当前门派（默认逍遥，对应原型 `skSect='xiaoyao'`）。
-  JobSect _sect = kJobSects.firstWhere((s) => s.key == 'xiaoyao');
+  /// 当前门派（默认逍遥，对应原型 `skSect='xiaoyao'`；
+  /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
+  late JobSect _sect;
 
   /// 当前心法序号；-1 = 全部（对应原型 `skMind`，`'all'`）。
   int _mind = -1;
@@ -33,6 +39,15 @@ class _JobSkillPageState extends State<JobSkillPage> {
   List<JobMind> get _minds => kJobMinds[_sect.key] ?? const [];
 
   List<JobSkill> get _skills => kJobSkills[_sect.key] ?? const [];
+
+  @override
+  void initState() {
+    super.initState();
+    final key = widget.initialSect;
+    _sect = (key != null && kJobSects.any((s) => s.key == key))
+        ? kJobSects.firstWhere((s) => s.key == key)
+        : kJobSects.firstWhere((s) => s.key == 'xiaoyao');
+  }
 
   void _selectSect(JobSect s) => setState(() {
     _sect = s;
@@ -401,6 +416,31 @@ class _MindHead extends StatelessWidget {
   }
 }
 
+/// 技能图标（`.sk-ic`：30×30 圆角，居中对齐）。
+class _SkillIcon extends StatelessWidget {
+  const _SkillIcon({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.asset(
+        path,
+        width: 30,
+        height: 30,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stack) => Container(
+          width: 30,
+          height: 30,
+          color: context.tg.inset,
+        ),
+      ),
+    );
+  }
+}
+
 /// 单行技能（`.lrow`：名称 / 类型 tag / 冷却 / 描述）。
 class _SkillRow extends StatelessWidget {
   const _SkillRow({required this.skill, required this.compact});
@@ -424,6 +464,11 @@ class _SkillRow extends StatelessWidget {
           children: [
             Row(
               children: [
+                // 技能图标（对齐原型 `.sk-ic`）
+                if (kJobSkillIcons[skill.name] != null) ...[
+                  _SkillIcon(path: kJobSkillIcons[skill.name]!),
+                  const SizedBox(width: 8),
+                ],
                 // 技能名
                 Expanded(
                   child: Text(
@@ -486,15 +531,26 @@ class _SkillRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 250,
-            child: Text(
-              skill.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w500,
-                color: tg.t1,
-              ),
+            child: Row(
+              children: [
+                // 技能图标（对齐原型 `.sk-ic`）
+                if (kJobSkillIcons[skill.name] != null) ...[
+                  _SkillIcon(path: kJobSkillIcons[skill.name]!),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(
+                    skill.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                      color: tg.t1,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           SizedBox(

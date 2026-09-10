@@ -68,10 +68,16 @@ mixin $JobHubRoute on GoRouteData {
 }
 
 mixin $JobWudaoRoute on GoRouteData {
-  static JobWudaoRoute _fromState(GoRouterState state) => const JobWudaoRoute();
+  static JobWudaoRoute _fromState(GoRouterState state) =>
+      JobWudaoRoute(sect: state.uri.queryParameters['sect']);
+
+  JobWudaoRoute get _self => this as JobWudaoRoute;
 
   @override
-  String get location => GoRouteData.$location('/job/wudao');
+  String get location => GoRouteData.$location(
+    '/job/wudao',
+    queryParams: {if (_self.sect != null) 'sect': _self.sect},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -88,10 +94,16 @@ mixin $JobWudaoRoute on GoRouteData {
 }
 
 mixin $JobSkillRoute on GoRouteData {
-  static JobSkillRoute _fromState(GoRouterState state) => const JobSkillRoute();
+  static JobSkillRoute _fromState(GoRouterState state) =>
+      JobSkillRoute(sect: state.uri.queryParameters['sect']);
+
+  JobSkillRoute get _self => this as JobSkillRoute;
 
   @override
-  String get location => GoRouteData.$location('/job/skill');
+  String get location => GoRouteData.$location(
+    '/job/skill',
+    queryParams: {if (_self.sect != null) 'sect': _self.sect},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -108,10 +120,16 @@ mixin $JobSkillRoute on GoRouteData {
 }
 
 mixin $JobPointRoute on GoRouteData {
-  static JobPointRoute _fromState(GoRouterState state) => const JobPointRoute();
+  static JobPointRoute _fromState(GoRouterState state) =>
+      JobPointRoute(sect: state.uri.queryParameters['sect']);
+
+  JobPointRoute get _self => this as JobPointRoute;
 
   @override
-  String get location => GoRouteData.$location('/job/point');
+  String get location => GoRouteData.$location(
+    '/job/point',
+    queryParams: {if (_self.sect != null) 'sect': _self.sect},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -129,10 +147,15 @@ mixin $JobPointRoute on GoRouteData {
 
 mixin $JobArtifactRoute on GoRouteData {
   static JobArtifactRoute _fromState(GoRouterState state) =>
-      const JobArtifactRoute();
+      JobArtifactRoute(sect: state.uri.queryParameters['sect']);
+
+  JobArtifactRoute get _self => this as JobArtifactRoute;
 
   @override
-  String get location => GoRouteData.$location('/job/artifact');
+  String get location => GoRouteData.$location(
+    '/job/artifact',
+    queryParams: {if (_self.sect != null) 'sect': _self.sect},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

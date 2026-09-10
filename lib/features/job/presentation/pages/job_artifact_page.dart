@@ -19,18 +19,32 @@ import '../widgets/job_sect_widgets.dart';
 /// 档位分段(42/62/82/102)」头部、神器简介、基础属性、神兵特性
 /// 与获取途径；点档位切换该门派该档神器详情。
 class JobArtifactPage extends StatefulWidget {
-  const JobArtifactPage({super.key});
+  const JobArtifactPage({super.key, this.initialSect});
+
+  /// 初始门派 key（如 `shaolin`；来自门派介绍页「深入这个门派」跳转）。
+  /// 为空时保持默认少林。
+  final String? initialSect;
 
   @override
   State<JobArtifactPage> createState() => _JobArtifactPageState();
 }
 
 class _JobArtifactPageState extends State<JobArtifactPage> {
-  /// 当前门派（默认少林，对应原型 `afSt.sect='shaolin'`）。
-  JobSect _sect = kJobSects.firstWhere((s) => s.key == 'shaolin');
+  /// 当前门派（默认少林，对应原型 `afSt.sect='shaolin'`；
+  /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
+  late JobSect _sect;
 
   /// 当前档位（0~3 → 42/62/82/102）。
   int _tier = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final key = widget.initialSect;
+    _sect = (key != null && kJobSects.any((s) => s.key == key))
+        ? kJobSects.firstWhere((s) => s.key == key)
+        : kJobSects.firstWhere((s) => s.key == 'shaolin');
+  }
 
   JobArtifact get _artifact => kJobArtifacts[_sect.key]!;
 

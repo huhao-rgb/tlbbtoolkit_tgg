@@ -41,9 +41,8 @@ void main() {
       '2200',
     );
 
-    // 步进器默认值：当前 0 / 0 · 目标 8 / 5
-    expect(find.text('8'), findsOneWidget);
-    expect(find.text('5'), findsOneWidget);
+    // 步进器默认值：当前 0 / 0 · 目标 10 / 10
+    expect(find.text('10'), findsNWidgets(2));
 
     // 初始未计算：结果卡隐藏（无「预估成品资质」）
     expect(find.text('预估成品资质'), findsNothing);
@@ -61,11 +60,12 @@ void main() {
 
     // 结果卡出现
     expect(find.text('预估成品资质'), findsOneWidget);
-    // 默认 2200 / 0-0 → 8-5 → 3016，C 一般，+37%
-    expect(find.text('3,016'), findsOneWidget);
-    expect(find.text('C'), findsOneWidget);
-    expect(find.textContaining('一般'), findsWidgets);
-    expect(find.textContaining('+37%'), findsWidgets);
+    // 默认 2200 / 0-0 → 10-10 → 4015，B 良好，+83%
+    // （预估成品资质 与 满悟满灵估算 均为 4,015）
+    expect(find.text('4,015'), findsNWidgets(2));
+    expect(find.text('B'), findsOneWidget);
+    expect(find.textContaining('良好'), findsWidgets);
+    expect(find.textContaining('+83%'), findsWidgets);
     expect(find.text('2,200'), findsOneWidget); // 推算裸资质
     expect(find.textContaining('目标悟性 / 灵性'), findsOneWidget);
     expect(find.textContaining('建议更换胚子再培养'), findsOneWidget);
@@ -76,28 +76,37 @@ void main() {
   testWidgets('修改输入后计算结果同步更新', (tester) async {
     await pumpPage(tester);
 
-    // 超灵开关 + 目标悟性/灵性都到 10
+    // 超灵开关 + 目标悟性/灵性默认已是 10，先各减到 9 验证结果联动，再恢复 10
     await tester.tap(find.text('超灵品种'));
     await tester.pumpAndSettle();
 
-    // 步进器 ＋ 顺序：当前悟性 / 当前灵性 / 目标悟性 / 目标灵性
-    // 目标悟性 8 → 10（点两次）
-    await tester.tap(find.text('＋').at(2));
+    // 步进器 － 顺序：当前悟性 / 当前灵性 / 目标悟性 / 目标灵性
+    // 目标悟性 10 → 9（点一次）
+    await tester.tap(find.text('−').at(2));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('＋').at(2));
+    // 目标灵性 10 → 9（点一次）
+    await tester.tap(find.text('−').at(3));
     await tester.pumpAndSettle();
-    // 目标灵性 5 → 10（点 5 次）
-    for (var i = 0; i < 5; i++) {
-      await tester.tap(find.text('＋').at(3));
-      await tester.pumpAndSettle();
-    }
 
     await tester.ensureVisible(find.text('开始计算'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('开始计算'));
     await tester.pumpAndSettle();
 
-    // 2200 超灵 0-0 → 10-10 = round(2200*1.393*1.34)=4106.97→4107
+    // 2200 超灵 0-0 → 9-9 = round(2200*1.30*1.26)=3603.6→3604
+    expect(find.text('3,604'), findsOneWidget);
+
+    // 目标悟性/灵性 9 → 10（各点一次 ＋），结果同步更新
+    await tester.tap(find.text('＋').at(2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('＋').at(3));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('开始计算'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('开始计算'));
+    await tester.pumpAndSettle();
+
+    // 2200 超灵 0-0 → 10-10 = round(2200*1.393*1.34)=4106.564→4107
     // （预估成品资质 与 满悟满灵估算 均为 4,107）
     expect(find.text('4,107'), findsNWidgets(2));
     expect(find.textContaining('超灵品种（灵10 +34%）'), findsOneWidget);

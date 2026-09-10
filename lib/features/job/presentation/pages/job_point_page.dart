@@ -19,18 +19,32 @@ import '../widgets/job_sect_widgets.dart';
 /// （− 进度条 ＋，进度=已点/总潜能）+ 一键推荐 / 清空 +
 /// 面板预览（气血/气/内外攻/命中/闪避，千分位）。
 class JobPointPage extends StatefulWidget {
-  const JobPointPage({super.key});
+  const JobPointPage({super.key, this.initialSect});
+
+  /// 初始门派 key（如 `shaolin`；来自门派介绍页「深入这个门派」跳转）。
+  /// 为空时保持默认逍遥。
+  final String? initialSect;
 
   @override
   State<JobPointPage> createState() => _JobPointPageState();
 }
 
 class _JobPointPageState extends State<JobPointPage> {
-  /// 当前门派（默认逍遥，对应原型 `ptSect='xiaoyao'`）。
-  JobSect _sect = kJobSects.firstWhere((s) => s.key == 'xiaoyao');
+  /// 当前门派（默认逍遥，对应原型 `ptSect='xiaoyao'`；
+  /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
+  late JobSect _sect;
 
   /// 等级（默认 119）。
   int _lv = kPointLvMax;
+
+  @override
+  void initState() {
+    super.initState();
+    final key = widget.initialSect;
+    _sect = (key != null && kJobSects.any((s) => s.key == key))
+        ? kJobSects.firstWhere((s) => s.key == key)
+        : kJobSects.firstWhere((s) => s.key == 'xiaoyao');
+  }
 
   /// 五维已分配潜能。
   final Map<String, int> _pts = {for (final a in kJobAttrs) a.key: 0};

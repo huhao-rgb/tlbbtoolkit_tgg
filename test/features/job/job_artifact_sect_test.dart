@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:tlbbtoolkit/app/app.dart';
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
+import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/features/job/presentation/pages/job_artifact_page.dart';
 import 'package:tlbbtoolkit/features/job/presentation/pages/job_sect_intro_page.dart';
 
@@ -37,7 +41,7 @@ void main() {
       await _pumpArtifact(tester);
 
       expect(find.text('职业神器'), findsWidgets);
-      expect(find.textContaining('十大门派专属神兵'), findsOneWidget);
+      expect(find.textContaining('十二大门派专属神兵'), findsOneWidget);
 
       // 门派 pill + 门派名（默认少林）
       expect(find.text('少林'), findsNWidgets(2));
@@ -90,7 +94,7 @@ void main() {
       expect(find.text('42 级神器'), findsOneWidget);
     });
 
-    testWidgets('切换门派到曼陀山庄：资料占位展示且不崩溃', (tester) async {
+    testWidgets('切换门派到曼陀山庄：官网完整神器且不崩溃', (tester) async {
       await _pumpArtifact(tester);
 
       await tester.ensureVisible(find.text('曼陀山庄'));
@@ -98,34 +102,44 @@ void main() {
       await tester.tap(find.text('曼陀山庄'));
       await tester.pumpAndSettle();
 
-      // 曼陀山庄 = 曼陀罗紫 pill + 门派名，定位为占位资料（基础属性为空不应抛错）
       expect(find.text('曼陀山庄'), findsNWidgets(2)); // pill + 当前门派名
-      expect(find.text('内功 · 综合'), findsOneWidget);
-      expect(find.textContaining('资料整理中'), findsWidgets);
+      expect(find.text('内功 · 琴音'), findsOneWidget);
+      expect(find.text('玉弦琴'), findsOneWidget); // 42 级官网神器
+      expect(find.textContaining('曼陀山庄入门之琴'), findsOneWidget);
 
-      // 切换档位到 102 也不崩溃（占位四档）
+      // 切换档位到 102：绿绮琴
       await tester.tap(find.text('102'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('资料整理中'), findsWidgets);
+      expect(find.text('绿绮琴'), findsOneWidget);
+      expect(find.textContaining('镇庄之宝'), findsOneWidget);
     });
   });
 
   group('门派介绍页', () {
-    testWidgets('默认少林简介 / 特色 / 属性倾向 / 适合人群', (tester) async {
+    testWidgets('默认少林简介 / 主要属性 / 背景 / 特色 / 生活技能 / 属性倾向', (tester) async {
       await _pumpSect(tester);
 
       expect(find.text('门派介绍'), findsWidgets);
       expect(find.text('少林'), findsNWidgets(2));
       expect(find.text('外功 · 坦克'), findsOneWidget);
 
-      // 简介
-      expect(find.textContaining('千年古刹'), findsOneWidget);
-      // 门派特色
+      // 简介（官网文案）
+      expect(find.textContaining('少林弟子武功底蕴深厚'), findsWidgets);
+      // 主要属性（属性攻 / 主修 / 攻系）
+      expect(find.text('主要属性'), findsOneWidget);
+      expect(find.textContaining('玄攻 · 主属性攻'), findsOneWidget);
+      // 背景渊源
+      expect(find.text('背景渊源'), findsOneWidget);
+      expect(find.textContaining('中原第一名刹'), findsOneWidget);
+      // 门派特色（官网版）
       expect(find.text('门派特色'), findsOneWidget);
       expect(find.text('定位'), findsOneWidget);
-      expect(find.text('外功坦辅'), findsOneWidget);
+      expect(find.text('近战攻击，单玄属性'), findsOneWidget);
       expect(find.text('武器'), findsOneWidget);
-      // 属性倾向权重
+      // 门派生活技能
+      expect(find.text('门派生活技能'), findsOneWidget);
+      expect(find.text('开光'), findsWidgets);
+      // 属性倾向权重（少林 li .45 ti .35）
       expect(find.text('属性倾向 · 潜能加点参考'), findsOneWidget);
       expect(find.text('45%'), findsOneWidget);
       expect(find.text('35%'), findsOneWidget);
@@ -149,11 +163,77 @@ void main() {
 
       expect(find.text('天山'), findsNWidgets(2));
       expect(find.text('外功 · 刺客'), findsOneWidget);
-      expect(find.textContaining('缥缈峰终年积雪'), findsOneWidget);
-      expect(find.text('外功刺客'), findsOneWidget);
+      expect(find.textContaining('天山弟子的武功以诡异著称'), findsWidgets);
+      expect(find.textContaining('灵鹫宫远在天山'), findsOneWidget); // 背景渊源
       // 天山权重：li .45 shen .4 ti .15
       expect(find.text('45%'), findsOneWidget);
       expect(find.text('40%'), findsOneWidget);
+    });
+
+    testWidgets('切换门派到恶人谷：官网完整介绍不崩溃', (tester) async {
+      await _pumpSect(tester);
+
+      await tester.ensureVisible(find.text('恶人谷'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('恶人谷'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('恶人谷'), findsNWidgets(2));
+      expect(find.text('内功 · 刺客'), findsOneWidget);
+      expect(find.textContaining('毁誉扰扰皆黄土'), findsWidgets);
+      // 无生活技能的门派不显示该区块（不崩溃）
+      expect(find.text('门派生活技能'), findsNothing);
+    });
+  });
+
+  group('门派介绍 → 深入这个门派（跨页定位门派）', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    Future<void> pumpApp(WidgetTester tester) async {
+      tester.view.physicalSize =
+          const Size(1440, 1400) * tester.view.devicePixelRatio;
+      addTearDown(tester.view.resetPhysicalSize);
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          child: const TlbbApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('选天龙 → 点「深入·技能库」→ 技能库默认定位天龙', (tester) async {
+      await pumpApp(tester);
+
+      // 进入门派介绍页（职业 hub → 门派介绍）
+      await tester.tap(find.text('职业').last); // 底部 tab
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('门派介绍').first);
+      await tester.pumpAndSettle();
+      expect(find.text('门派介绍'), findsWidgets);
+
+      // 切换到天龙
+      await tester.ensureVisible(find.text('天龙'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('天龙'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('天龙弟子内、外兼修'), findsWidgets);
+
+      // 点「深入这个门派 → 技能库」
+      await tester.ensureVisible(find.text('技能库'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('技能库'));
+      await tester.pumpAndSettle();
+
+      // 技能库应默认定位天龙（而非逍遥）
+      expect(find.text('职业技能库'), findsWidgets);
+      expect(find.text('天龙'), findsNWidgets(2)); // pill + 当前门派名
+      expect(find.text('一阳指指法'), findsWidgets);
+      expect(find.text('正阳手'), findsWidgets);
+      expect(find.text('百花经'), findsNothing);
     });
   });
 }

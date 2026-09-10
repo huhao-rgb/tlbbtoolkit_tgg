@@ -34,39 +34,59 @@ class JobHubRoute extends GoRouteData with $JobHubRoute {
 }
 
 /// 职业武道。
+///
+/// 可选 query 参数 `sect`：初始门派 key（门派介绍页「深入这个门派」跳转时携带）。
 class JobWudaoRoute extends GoRouteData with $JobWudaoRoute {
-  const JobWudaoRoute();
+  const JobWudaoRoute({this.sect});
+
+  /// 初始门派 key（如 `shaolin`；query 参数 `sect`）。
+  final String? sect;
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const JobWudaoPage();
+      JobWudaoPage(initialSect: sect);
 }
 
 /// 职业技能库。
+///
+/// 可选 query 参数 `sect`：初始门派 key（门派介绍页「深入这个门派」跳转时携带）。
 class JobSkillRoute extends GoRouteData with $JobSkillRoute {
-  const JobSkillRoute();
+  const JobSkillRoute({this.sect});
+
+  /// 初始门派 key（如 `shaolin`；query 参数 `sect`）。
+  final String? sect;
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const JobSkillPage();
+      JobSkillPage(initialSect: sect);
 }
 
 /// 职业加点计算器（热门）。
+///
+/// 可选 query 参数 `sect`：初始门派 key（门派介绍页「深入这个门派」跳转时携带）。
 class JobPointRoute extends GoRouteData with $JobPointRoute {
-  const JobPointRoute();
+  const JobPointRoute({this.sect});
+
+  /// 初始门派 key（如 `shaolin`；query 参数 `sect`）。
+  final String? sect;
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const JobPointPage();
+      JobPointPage(initialSect: sect);
 }
 
 /// 职业神器。
+///
+/// 可选 query 参数 `sect`：初始门派 key（门派介绍页「深入这个门派」跳转时携带）。
 class JobArtifactRoute extends GoRouteData with $JobArtifactRoute {
-  const JobArtifactRoute();
+  const JobArtifactRoute({this.sect});
+
+  /// 初始门派 key（如 `shaolin`；query 参数 `sect`）。
+  final String? sect;
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const JobArtifactPage();
+      JobArtifactPage(initialSect: sect);
 }
 
 /// 门派介绍。

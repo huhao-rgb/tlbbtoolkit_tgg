@@ -8,6 +8,7 @@ import 'package:tlbbtoolkit/features/job/presentation/pages/job_skill_page.dart'
 Future<void> pumpPage(
   WidgetTester tester, {
   Size size = const Size(1200, 1000),
+  String? initialSect,
 }) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
@@ -15,7 +16,9 @@ Future<void> pumpPage(
     MaterialApp(
       theme: TgTheme.dark,
       darkTheme: TgTheme.dark,
-      home: const Scaffold(body: JobSkillPage()),
+      home: Scaffold(
+        body: JobSkillPage(initialSect: initialSect),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -33,22 +36,22 @@ void main() {
     expect(find.text('逍遥'), findsNWidgets(2));
     expect(find.text('内功 · 控制'), findsOneWidget);
 
-    // 心法 chips：全部 + 7 本心法
+    // 心法 chips：全部 + 7 本心法（官网数据）
     expect(find.text('全部'), findsOneWidget);
     for (final name in [
+      '百花经',
+      '遁甲天书',
+      '太平要术',
+      '短歌行',
+      '丹青引',
+      '惊涛掌法',
       '北冥神功',
-      '小无相功',
-      '凌波微步',
-      '八荒六合功',
-      '逍遥御风',
-      '传音搜魂',
-      '五行奇门',
     ]) {
       expect(find.text(name), findsWidgets);
     }
 
     // xf-note（全部）
-    expect(find.textContaining('七本心法 · 共 12 门绝技'), findsOneWidget);
+    expect(find.textContaining('七本心法 · 共 24 门绝技'), findsOneWidget);
 
     // 表头
     expect(find.text('技能'), findsWidgets);
@@ -57,49 +60,55 @@ void main() {
     expect(find.text('描述'), findsWidgets);
 
     // 逍遥第一本心法技能行
-    expect(find.text('北冥神功'), findsNWidgets(3)); // chip + 分组头 + 技能行
-    expect(find.text('主动'), findsWidgets);
-    expect(find.text('30s'), findsWidgets);
-    expect(find.textContaining('吸取目标内力并造成内功伤害'), findsOneWidget);
+    expect(find.text('百花经'), findsNWidgets(2)); // chip + 分组头
+    expect(find.text('落英剑'), findsWidgets);
+    // 技能图标（`.sk-ic`：30×30 图片已渲染）
+    expect(find.byType(Image), findsWidgets);
+    expect(find.text('攻击'), findsWidgets);
+    expect(find.text('—'), findsWidgets);
+    expect(find.textContaining('逍遥弟子的入门功夫'), findsOneWidget);
   });
 
   testWidgets('点心法 chip 单独查看该心法技能', (tester) async {
     await pumpPage(tester);
 
-    // 点击「北冥神功」心法 chip（第一个出现）
-    await tester.tap(find.text('北冥神功').first);
+    // 点击「百花经」心法 chip（第一个出现）
+    await tester.tap(find.text('百花经').first);
     await tester.pumpAndSettle();
 
     // note 切换为心法说明，不再有分组头「…门」
-    expect(find.textContaining('「北冥神功」 · 吸纳内力，化为己用'), findsOneWidget);
+    expect(find.textContaining('「百花经」 · 据说传自盛唐'), findsOneWidget);
     expect(find.textContaining('门绝技'), findsNothing);
-    // 只剩 1 条技能行（北冥神功 主动）
-    expect(find.text('北冥神功'), findsNWidgets(2)); // chip + 技能行
-    expect(find.text('溪山行旅'), findsNothing);
+    // 只剩第一本心法技能（落英剑 / 桃花阵 / 墨守成规）
+    expect(find.text('落英剑'), findsOneWidget);
+    expect(find.text('桃花阵'), findsOneWidget);
+    expect(find.text('墨守成规'), findsOneWidget);
+    expect(find.text('弹指神功'), findsNothing);
 
     // 切回全部
     await tester.tap(find.text('全部'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('七本心法 · 共 12 门绝技'), findsOneWidget);
+    expect(find.textContaining('七本心法 · 共 24 门绝技'), findsOneWidget);
   });
 
-  testWidgets('切换门派：天山后门派名 / 心法 / 技能更新', (tester) async {
+  testWidgets('切换门派：天龙后门派名 / 心法 / 技能更新', (tester) async {
     await pumpPage(tester);
 
-    await tester.ensureVisible(find.text('天山'));
+    await tester.ensureVisible(find.text('天龙'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('天山'));
+    await tester.tap(find.text('天龙'));
     await tester.pumpAndSettle();
 
-    expect(find.text('天山'), findsNWidgets(2)); // pill + 当前门派名
-    expect(find.text('外功 · 刺客'), findsOneWidget);
-    expect(find.textContaining('七本心法 · 共 12 门绝技'), findsOneWidget);
-    // 天山心法首本：天山折梅手
-    expect(find.text('天山折梅手'), findsWidgets);
-    expect(find.text('北冥神功'), findsNothing);
+    expect(find.text('天龙'), findsNWidgets(2)); // pill + 当前门派名
+    expect(find.text('内外 · 兼修'), findsOneWidget);
+    expect(find.textContaining('七本心法 · 共 24 门绝技'), findsOneWidget);
+    // 天龙心法首本：一阳指指法
+    expect(find.text('一阳指指法'), findsWidgets);
+    expect(find.text('正阳手'), findsWidgets);
+    expect(find.text('百花经'), findsNothing);
   });
 
-  testWidgets('切换门派：曼陀山庄显示网络初稿技能且不崩溃', (tester) async {
+  testWidgets('切换门派：曼陀山庄官网完整技能且不崩溃', (tester) async {
     await pumpPage(tester);
 
     await tester.ensureVisible(find.text('曼陀山庄'));
@@ -108,11 +117,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('曼陀山庄'), findsNWidgets(2)); // pill + 当前门派名
-    expect(find.text('内功 · 综合'), findsOneWidget);
-    expect(find.textContaining('七本心法 · 共 11 门绝技'), findsOneWidget);
-    // 心法占位 chips（待校）与初稿技能
-    expect(find.text('心法·壹'), findsWidgets);
-    expect(find.text('广陵散'), findsWidgets);
-    expect(find.text('飞花乱红'), findsWidgets);
+    expect(find.text('内功 · 琴音'), findsOneWidget);
+    expect(find.textContaining('七本心法 · 共 13 门绝技'), findsOneWidget);
+    // 官网心法 chips（玄音曲 / 流芳诀 …）与技能
+    expect(find.text('玄音曲'), findsWidgets);
+    expect(find.text('余音袅袅'), findsWidgets);
+    expect(find.text('列子御风'), findsWidgets);
+    expect(find.text('心无旁骛'), findsWidgets);
+  });
+
+  testWidgets('initialSect 跨页定位：传入天龙 → 默认即天龙门派', (tester) async {
+    await pumpPage(tester, initialSect: 'tianlong');
+
+    // 默认选中天龙（非逍遥），显示天龙心法首本
+    expect(find.text('天龙'), findsNWidgets(2)); // pill + 当前门派名
+    expect(find.text('内外 · 兼修'), findsOneWidget);
+    expect(find.text('一阳指指法'), findsWidgets);
+    expect(find.text('正阳手'), findsWidgets);
+    expect(find.text('百花经'), findsNothing);
+  });
+
+  testWidgets('initialSect 非法值回退默认逍遥', (tester) async {
+    await pumpPage(tester, initialSect: 'not-a-sect');
+
+    expect(find.text('逍遥'), findsNWidgets(2));
+    expect(find.text('内功 · 控制'), findsOneWidget);
   });
 }

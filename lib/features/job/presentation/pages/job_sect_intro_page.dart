@@ -113,7 +113,7 @@ class _JobSectIntroPageState extends State<JobSectIntroPage> {
                     const SizedBox(height: 16),
                     const JobSectionTitle('深入这个门派'),
                     const SizedBox(height: 10),
-                    _ExploreGrid(compact: compact),
+                    _ExploreGrid(compact: compact, sectKey: _sect.key),
                     const SizedBox(height: 14),
                     const JobNote(text: '门派背景为原创演绎，属性倾向为参考建议；实际表现请以游戏内为准。'),
                     const SizedBox(height: TgSpacing.s34),
@@ -144,6 +144,36 @@ class _SectDetail extends StatelessWidget {
       children: [
         // siIntro：门派简介（金 soul-fx，无上间距）
         JobSoulFx(title: '门派简介', text: info.intro, top: 0),
+        // 主要属性（siAttrs：属性攻 / 主修 / 攻系 标签）
+        if (info.atk.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          const JobSectionTitle('主要属性'),
+          const SizedBox(height: 10),
+          _AttrTags(info: info, sectColor: Color(sect.colorValue)),
+        ],
+        // 背景渊源（siBg）
+        if (info.bg.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          const JobSectionTitle('背景渊源'),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            decoration: BoxDecoration(
+              color: context.tg.inset,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: context.tg.border, width: 1),
+            ),
+            child: Text(
+              info.bg,
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.75,
+                color: context.tg.t2,
+              ),
+            ),
+          ),
+        ],
         // 门派特色
         const SizedBox(height: 18),
         const JobSectionTitle('门派特色'),
@@ -159,6 +189,26 @@ class _SectDetail extends StatelessWidget {
               ),
           ],
         ),
+        // 门派生活技能（siLifeSec；无可隐藏）
+        if (info.life.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          const JobSectionTitle('门派生活技能'),
+          const SizedBox(height: 10),
+          JobMatRow(
+            compact: compact,
+            items: [
+              for (final l in info.life)
+                JobMatItem(
+                  label: l.name,
+                  value: l.desc +
+                      (l.at != null && l.at!.isNotEmpty
+                          ? '\n学习地点：${l.at}'
+                          : ''),
+                  badge: '技',
+                ),
+            ],
+          ),
+        ],
         // 属性倾向 · 潜能加点参考
         const SizedBox(height: 18),
         const JobSectionTitle('属性倾向 · 潜能加点参考'),
@@ -171,6 +221,42 @@ class _SectDetail extends StatelessWidget {
           top: 16,
           accent: JobSoulAccent.green,
         ),
+      ],
+    );
+  }
+}
+
+/// 主要属性标签行（`siAttrs`：属性攻 / 主修 / 攻系）。
+class _AttrTags extends StatelessWidget {
+  const _AttrTags({required this.info, required this.sectColor});
+
+  final JobSectInfo info;
+  final Color sectColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    // 属性攻标签用门派色描边
+    Widget tag(String text, {Color? color}) {
+      final c = color ?? tg.t2;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: c.withValues(alpha: .08),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: c.withValues(alpha: .38), width: 1),
+        ),
+        child: Text(text, style: TextStyle(fontSize: 12, color: c)),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final a in info.atk) tag(a, color: sectColor),
+        tag('主修 ${info.main}'),
+        tag('攻系 ${info.atype}'),
       ],
     );
   }
@@ -266,9 +352,15 @@ class _WeightRow extends StatelessWidget {
 
 /// 深入这个门派：四个入口卡（技能库 / 神器 / 武道 / 加点计算器）。
 class _ExploreGrid extends StatelessWidget {
-  const _ExploreGrid({required this.compact});
+  const _ExploreGrid({required this.compact, required this.sectKey});
 
   final bool compact;
+
+  /// 当前门派 key（跳转时作为 `?sect=` 参数携带，目标页定位到该门派）。
+  final String sectKey;
+
+  /// 目标页 location + `?sect=` 当前门派。
+  String _loc(String base) => '$base?sect=$sectKey';
 
   @override
   Widget build(BuildContext context) {
@@ -277,25 +369,25 @@ class _ExploreGrid extends StatelessWidget {
         name: '技能库',
         desc: '类型 · 冷却 · 描述',
         icon: 'book',
-        location: ToolCatalog.jobSkill.location,
+        location: _loc(ToolCatalog.jobSkill.location),
       ),
       _ExploreData(
         name: '神器',
         desc: '42-102 级四档',
         icon: 'sword',
-        location: ToolCatalog.jobArtifact.location,
+        location: _loc(ToolCatalog.jobArtifact.location),
       ),
       _ExploreData(
         name: '武道',
         desc: '四重 · 双路线技能树',
         icon: 'flame',
-        location: ToolCatalog.jobWudao.location,
+        location: _loc(ToolCatalog.jobWudao.location),
       ),
       _ExploreData(
         name: '加点计算器',
         desc: '潜能方案 · 面板预览',
         icon: 'slider',
-        location: ToolCatalog.jobPoint.location,
+        location: _loc(ToolCatalog.jobPoint.location),
       ),
     ];
     return LayoutBuilder(

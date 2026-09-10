@@ -36,17 +36,18 @@ const int kPointLvMax = 119;
 
 /// 门派加点权重（对应原型 `WEIGHTS`：各维度占比 0~1）。
 const Map<String, Map<String, double>> kJobWeights = {
-  'shaolin': {'li': .45, 'ti': .35, 'ding': .1, 'shen': .1},
-  'mingjiao': {'li': .5, 'shen': .3, 'ti': .2},
-  'gaibang': {'li': .4, 'shen': .3, 'ti': .3},
-  'tianshan': {'li': .45, 'shen': .4, 'ti': .15},
-  'xiaoyao': {'ling': .5, 'shen': .35, 'ti': .15},
-  'emei': {'ling': .45, 'ti': .3, 'ding': .25},
-  'wudang': {'ling': .5, 'ding': .3, 'shen': .2},
-  'xingxiu': {'ling': .45, 'ding': .3, 'ti': .25},
-  'murong': {'li': .3, 'ling': .3, 'ti': .2, 'ding': .2},
-  // 曼陀山庄：内功 + 高会心，常见身法流（会心/闪避），辅以灵气堆内功。
-  'mantuo': {'shen': .5, 'ling': .3, 'ti': .2},
+  'shaolin': {'li': 0.45, 'ti': 0.35, 'ding': 0.1, 'shen': 0.1},
+  'mingjiao': {'li': 0.5, 'shen': 0.3, 'ti': 0.2},
+  'gaibang': {'li': 0.4, 'shen': 0.3, 'ti': 0.3},
+  'tianshan': {'li': 0.45, 'shen': 0.4, 'ti': 0.15},
+  'xiaoyao': {'ling': 0.5, 'shen': 0.35, 'ti': 0.15},
+  'emei': {'ling': 0.45, 'ti': 0.3, 'ding': 0.25},
+  'wudang': {'ling': 0.5, 'ding': 0.3, 'shen': 0.2},
+  'xingxiu': {'ling': 0.45, 'ding': 0.3, 'ti': 0.25},
+  'murong': {'li': 0.3, 'ling': 0.3, 'ti': 0.2, 'ding': 0.2},
+  'mantuo': {'ling': 0.45, 'shen': 0.25, 'ti': 0.2, 'ding': 0.1},
+  'tianlong': {'ling': 0.35, 'shen': 0.3, 'li': 0.15, 'ti': 0.2},
+  'erengu': {'ling': 0.45, 'shen': 0.3, 'ti': 0.15, 'ding': 0.1},
 };
 
 /// 总潜能：等级 10 起每级 5 点，最高按 119 计。
@@ -136,3 +137,4 @@ String formatThousand(int value) {
   final out = buf.toString();
   return value < 0 ? '-$out' : out;
 }
+
