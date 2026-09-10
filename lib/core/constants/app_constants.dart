@@ -11,7 +11,7 @@ abstract final class AppConstants {
   const AppConstants._();
 
   /// 应用展示名称。
-  static const String appName = 'TLBB Toolkit';
+  static const String appName = '天工阁';
 
   /// 接口根地址，通过 `--dart-define=API_BASE_URL=...` 注入。
   static const String apiBaseUrl = String.fromEnvironment(

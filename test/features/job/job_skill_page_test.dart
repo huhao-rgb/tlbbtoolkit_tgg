@@ -143,4 +143,27 @@ void main() {
     expect(find.text('逍遥'), findsNWidgets(2));
     expect(find.text('内功 · 控制'), findsOneWidget);
   });
+
+  testWidgets('窄屏下心法分组头超长介绍：点击展开 / 再点收起', (tester) async {
+    await pumpPage(tester, size: const Size(460, 1800));
+
+    // 切到天龙：心法名 + 官网描述超长，分组头溢出 → 出现「展开」提示
+    await tester.ensureVisible(find.text('天龙'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('天龙'));
+    await tester.pumpAndSettle();
+    expect(find.text(' 展开'), findsWidgets);
+    expect(find.text(' 收起'), findsNothing);
+
+    // 点第一个「展开」→ 变「收起」
+    await tester.tap(find.text(' 展开').first);
+    await tester.pumpAndSettle();
+    expect(find.text(' 收起'), findsWidgets);
+
+    // 再点「收起」→ 回到折叠态
+    await tester.tap(find.text(' 收起').first);
+    await tester.pumpAndSettle();
+    expect(find.text(' 展开'), findsWidgets);
+    expect(find.text(' 收起'), findsNothing);
+  });
 }

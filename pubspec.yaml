@@ -45,6 +45,8 @@ dependencies:
   flutter_svg: ^2.3.0
   # 桌面 frameless 窗口：自定义标题栏（Windows / macOS / Linux）
   window_manager: ^0.5.2
+  # 文件选择（桌面端导入 / 导出 JSON）
+  file_selector: ^1.0.3
   crypto: ^3.0.7
   url_launcher: ^6.3.2
 

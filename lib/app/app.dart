@@ -21,7 +21,7 @@ class TlbbApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
-      title: 'TLBB Toolkit',
+      title: '天工阁',
       debugShowCheckedModeBanner: false,
       theme: TgTheme.light,
       darkTheme: TgTheme.dark,

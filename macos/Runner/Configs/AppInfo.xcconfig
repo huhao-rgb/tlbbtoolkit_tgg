@@ -5,7 +5,11 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = tlbbtoolkit
+PRODUCT_NAME = 天工阁
+
+// ASCII-safe reference to the product name for cross-target build settings
+// (e.g. RunnerTests' TEST_HOST), since project.pbxproj must stay ASCII.
+APP_PRODUCT_NAME = 天工阁
 
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = me.huhao.tools.tlbbtoolkit

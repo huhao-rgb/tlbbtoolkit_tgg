@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -119,6 +122,90 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
     setState(() => _selId = id);
     _persist();
   }
+
+  // ---- 导入 / 导出（原型 `regExport` / `regImportFile`）----
+
+  static const _jsonType = XTypeGroup(
+    label: 'JSON',
+    extensions: ['json'],
+    mimeTypes: ['application/json'],
+  );
+
+  void _toast(String msg, {bool warn = false}) {
+    if (!mounted) return;
+    final tg = context.tg;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: warn ? tg.red : null,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+  }
+
+  /// 导出：选保存位置 → 写 JSON 文件（原型 `regExport`）。
+  Future<void> _exportJson() async {
+    if (_accts.isEmpty) {
+      _toast('暂无可导出的账号，请先添加账号', warn: true);
+      return;
+    }
+    final now = DateTime.now();
+    final fn = '天工阁回归账户-${now.year}${_p2(now.month)}${_p2(now.day)}.json';
+    final location = await getSaveLocation(
+      acceptedTypeGroups: const [_jsonType],
+      suggestedName: fn,
+    );
+    if (location == null) return; // 用户取消
+    final bytes = Uint8List.fromList(utf8.encode(_repo.buildExportJson(_accts)));
+    try {
+      await XFile.fromData(bytes, mimeType: 'application/json')
+          .saveTo(location.path);
+      final name = location.path.split(RegExp(r'[/\\]')).last;
+      _toast('已导出 ${_accts.length} 个账户 → $name');
+    } catch (_) {
+      _toast('导出失败：无法写入所选位置', warn: true);
+    }
+  }
+
+  /// 导入：选 JSON → 解析 → 按「姓名+门派」判重合并（原型 `regImportFile`）。
+  Future<void> _importJson() async {
+    final files = await openFiles(
+      acceptedTypeGroups: const [_jsonType],
+    );
+    if (files.isEmpty) return; // 用户取消
+    final file = files.first;
+    String source;
+    try {
+      source = await file.readAsString();
+    } catch (_) {
+      _toast('导入失败：文件读取错误', warn: true);
+      return;
+    }
+    List<Map<String, dynamic>> raw;
+    try {
+      raw = _repo.parseImportJson(source);
+    } catch (_) {
+      _toast('导入失败：文件格式不正确，请使用本工具导出的 JSON 文件', warn: true);
+      return;
+    }
+    final r = _repo.mergeImported(raw, current: _accts);
+    if (r.added > 0) {
+      setState(() => _accts = r.merged);
+    }
+    await _persist();
+    _toast(
+      r.added > 0
+          ? '导入成功：新增 ${r.added} 条'
+              '${r.skipped > 0 ? ' · 跳过重复/无效 ${r.skipped} 条' : ''}'
+          : '没有可导入的新账户（全部重复或无效）',
+      warn: r.added == 0,
+    );
+  }
+
+  static String _p2(int v) => v.toString().padLeft(2, '0');
 
   void _start(RegAccount a, DateTime start) {
     final st = start.millisecondsSinceEpoch;
@@ -264,6 +351,19 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
                 ),
               ),
               const Spacer(),
+              // 导入 / 导出（原型 `regImportBtn` / `regExport`）
+              _LineIconButton(
+                icon: 'download',
+                label: '导入',
+                onTap: _importJson,
+              ),
+              const SizedBox(width: 8),
+              _LineIconButton(
+                icon: 'upload',
+                label: '导出',
+                onTap: _exportJson,
+              ),
+              const SizedBox(width: 8),
               _AddButton(
                 onTap: () => _addOrEdit(),
                 compact: false,
@@ -420,6 +520,77 @@ class _RegRuleNote extends StatelessWidget {
   }
 }
 
+/// 线型图标按钮（导入 / 导出等次要操作）。
+class _LineIconButton extends StatefulWidget {
+  const _LineIconButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final String icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_LineIconButton> createState() => _LineIconButtonState();
+}
+
+class _LineIconButtonState extends State<_LineIconButton> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(9),
+          hoverColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          child: Ink(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: _hover ? tg.tintOf(tg.t2, .07) : Colors.transparent,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(
+                color: _hover ? tg.borderHi : tg.border,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TgIcon(
+                  widget.icon,
+                  size: 12.5,
+                  color: _hover ? tg.t1 : tg.t2,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: _hover ? tg.t1 : tg.t2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// 「+ 添加账号」主按钮。
 class _AddButton extends StatefulWidget {
   const _AddButton({required this.onTap, this.compact = false});
@@ -456,9 +627,14 @@ class _AddButtonState extends State<_AddButton> {
               gradient: widget.compact || _hover ? tg.gradGold : null,
               color: widget.compact || _hover ? null : tg.goldTint(.12),
               borderRadius: BorderRadius.circular(9),
-              border: widget.compact || _hover
-                  ? null
-                  : Border.all(color: tg.goldTint(.4), width: 1),
+              // 始终保留 1px 边框：hover 仅加深颜色，
+              // 避免移除边框导致布局宽度收窄而视觉闪烁。
+              border: Border.all(
+                color: widget.compact || _hover
+                    ? tg.goldTint(.65)
+                    : tg.goldTint(.4),
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

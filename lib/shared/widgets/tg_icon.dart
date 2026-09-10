@@ -25,6 +25,7 @@ class TgIcon extends StatelessWidget {
     'chev-l': Assets.icons.chevL,
     'chev': Assets.icons.chev,
     'clock': Assets.icons.clock,
+    'download': Assets.icons.download,
     'flame': Assets.icons.flame,
     'gem': Assets.icons.gem,
     'home': Assets.icons.home,
@@ -42,6 +43,7 @@ class TgIcon extends StatelessWidget {
     'sun': Assets.icons.sun,
     'sword': Assets.icons.sword,
     'trash': Assets.icons.trash,
+    'upload': Assets.icons.upload,
     'user': Assets.icons.user,
     'x': Assets.icons.x,
   };

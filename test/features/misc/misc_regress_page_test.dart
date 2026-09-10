@@ -35,9 +35,11 @@ void main() {
     expect(find.textContaining('多账号回归周期记录'), findsOneWidget);
     // 规则
     expect(find.textContaining('规则：账号连续'), findsOneWidget);
-    // 我的账号卡 + 计数 0 + 添加账号按钮
+    // 我的账号卡 + 计数 0 + 导入/导出/添加按钮
     expect(find.text('我的账号'), findsOneWidget);
     expect(find.text('0'), findsOneWidget);
+    expect(find.text('导入'), findsOneWidget);
+    expect(find.text('导出'), findsOneWidget);
     expect(find.text('添加账号'), findsOneWidget);
     expect(find.textContaining('暂无账号'), findsOneWidget);
     // 底部未选中提示

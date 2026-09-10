@@ -144,13 +144,8 @@ class _JobSkillPageState extends State<JobSkillPage> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    // xf-note：心法计数 / 说明
-                    Text(
-                      _mind == -1
-                          ? '${_minds.length == 7 ? '七本心法' : '${_minds.length} 本心法'} · 共 ${_skills.length} 门绝技 —— 点击心法名可单独查看'
-                          : '「${_minds[_mind].name}」 · ${_minds[_mind].desc}',
-                      style: TextStyle(fontSize: 12, color: tg.t3),
-                    ),
+                    // xf-note：心法计数 / 说明（超长可点击展开）
+                    _MindNote(mind: _mind == -1 ? null : _minds[_mind], total: _skills.length),
                     const SizedBox(height: 14),
                     // 技能列表卡片
                     _SkillList(
@@ -364,8 +359,49 @@ class _ListHead extends StatelessWidget {
   }
 }
 
+/// 顶部心法说明（`xf-note`）：全部时显示计数；
+/// 选中单本心法时显示「心法名 · 描述」，超长可点击展开/收起。
+class _MindNote extends StatefulWidget {
+  const _MindNote({required this.mind, required this.total});
+
+  /// 当前选中的心法；null = 全部。
+  final JobMind? mind;
+
+  /// 该门派技能总数。
+  final int total;
+
+  @override
+  State<_MindNote> createState() => _MindNoteState();
+}
+
+class _MindNoteState extends State<_MindNote> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final mind = widget.mind;
+    if (mind == null) {
+      return Text(
+        '七本心法 · 共 ${widget.total} 门绝技 —— 点击心法名可单独查看',
+        style: TextStyle(fontSize: 12, color: tg.t3, height: 1.5),
+      );
+    }
+    final style = TextStyle(fontSize: 12, color: tg.t3, height: 1.55);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: _ExpandableText(
+        text: '「${mind.name}」 · ${mind.desc}',
+        expanded: _expanded,
+        onToggle: () => setState(() => _expanded = !_expanded),
+        style: style,
+      ),
+    );
+  }
+}
+
 /// 心法分组头（`.xf-head`）。
-class _MindHead extends StatelessWidget {
+class _MindHead extends StatefulWidget {
   const _MindHead({
     required this.mind,
     required this.count,
@@ -377,14 +413,21 @@ class _MindHead extends StatelessWidget {
   final bool compact;
 
   @override
+  State<_MindHead> createState() => _MindHeadState();
+}
+
+class _MindHeadState extends State<_MindHead> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final tg = context.tg;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
-        compact ? 16 : 20,
+        widget.compact ? 16 : 20,
         11,
-        compact ? 16 : 20,
+        widget.compact ? 16 : 20,
         10,
       ),
       decoration: BoxDecoration(
@@ -396,7 +439,7 @@ class _MindHead extends StatelessWidget {
         textBaseline: TextBaseline.alphabetic,
         children: [
           Text(
-            mind.name,
+            widget.mind.name,
             style: TextStyle(
               fontFamily: TgFonts.serif,
               fontSize: 14,
@@ -406,12 +449,102 @@ class _MindHead extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            '${mind.desc} · $count 门',
-            style: TextStyle(fontSize: 11.5, letterSpacing: .5, color: tg.t3),
+          // 心法介绍（`xf-head` 描述）：Expanded 约束避免超长官网文案溢出；
+          // 超 2 行时点击展开 / 再点收起。
+          Expanded(
+            child: _ExpandableText(
+              text: '${widget.mind.desc} · ${widget.count} 门',
+              expanded: _expanded,
+              onToggle: () => setState(() => _expanded = !_expanded),
+              style: TextStyle(
+                fontSize: 11.5,
+                letterSpacing: .5,
+                color: tg.t3,
+                height: 1.45,
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 可展开/收起的文本：
+/// - 未溢出（collapsedMaxLines 内显示得下）→ 普通文本，不可点；
+/// - 溢出 → 默认折叠省略号，点击展开全文 / 再点收起，并带「展开 / 收起」提示。
+class _ExpandableText extends StatefulWidget {
+  const _ExpandableText({
+    required this.text,
+    required this.expanded,
+    required this.onToggle,
+    required this.style,
+  });
+
+  final String text;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final TextStyle style;
+
+  @override
+  State<_ExpandableText> createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<_ExpandableText> {
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final collapsed = !widget.expanded;
+    final plainStyle = widget.style;
+
+    // 按实际可用宽度测量折叠态是否溢出，决定是否需要展开交互
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW = constraints.maxWidth;
+        final tp = TextPainter(
+          text: TextSpan(text: widget.text, style: plainStyle),
+          textDirection: TextDirection.ltr,
+          maxLines: 2,
+          ellipsis: '…',
+        )..layout(maxWidth: maxW);
+        final overflows = tp.didExceedMaxLines;
+
+        final hint = collapsed ? ' 展开' : ' 收起';
+        final hintStyle = TextStyle(
+          fontSize: 11,
+          color: tg.gold,
+          fontWeight: FontWeight.w500,
+        );
+
+        if (!overflows) {
+          // 未溢出：普通多行文本（保留换行能力）
+          return Text(widget.text, style: plainStyle);
+        }
+
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onToggle,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.text,
+                  maxLines: collapsed ? 2 : null,
+                  overflow: collapsed ? TextOverflow.ellipsis : null,
+                  style: plainStyle,
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(hint, style: hintStyle),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
