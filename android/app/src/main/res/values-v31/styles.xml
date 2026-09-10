@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+（API 31+）系统启动屏（进程冷启动时由系统渲染，仅首 Activity
+         生效）：只留深色背景，不显示任何图标——过渡到全幅启动图时无元素跳变。
+         注：系统启动屏无法原生显示整幅图（实测 windowSplashScreenAnimatedIcon
+         会把任意尺寸图缩进 240dp 图标区、windowSplashScreenBackground 不接受
+         图片 drawable），整幅图由 SplashActivity 渲染。 -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_empty</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+    </style>
+    <!-- 全屏启动图页（SplashActivity，API 31+ 的首 Activity）：
+         系统启动屏阶段只留深色背景，随后窗口原生渲染整幅图；
+         状态栏/导航栏透明，实现沉浸式 -->
+    <style name="SplashTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_empty</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+    </style>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 启动屏底色：取自 splash.png 四边深黑棕主色，避免启动白闪 -->
+    <color name="splash_background">#0A0805</color>
+    <!-- 自适应图标背景色：取原图标四角海军蓝（25,30,42） -->
+    <color name="ic_launcher_background">#191E2A</color>
+</resources>
