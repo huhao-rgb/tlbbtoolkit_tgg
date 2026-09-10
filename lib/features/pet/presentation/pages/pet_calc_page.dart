@@ -34,8 +34,8 @@ class _PetCalcPageState extends State<PetCalcPage> {
   // 当前悟性 / 当前灵性 / 目标悟性 / 目标灵性（0~10）。
   int _curWu = 0;
   int _curLing = 0;
-  int _wu = 8;
-  int _ling = 5;
+  int _wu = 10;
+  int _ling = 10;
 
   /// 结果；null 表示尚未计算（结果卡隐藏）。
   PetCalcResult? _result;
@@ -270,14 +270,14 @@ class _FormCard extends StatelessWidget {
           _StepperPair(
             left: _StepperField(
               label: '当前悟性',
-              hint: '（反推裸资质）',
+              hint: '',
               value: curWu,
               onMinus: onCurWuMinus,
               onPlus: onCurWuPlus,
             ),
             right: _StepperField(
               label: '当前灵性',
-              hint: '（反推裸资质）',
+              hint: '',
               value: curLing,
               onMinus: onCurLingMinus,
               onPlus: onCurLingPlus,
