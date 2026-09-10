@@ -196,9 +196,9 @@ abstract final class ToolCatalog {
     group: ToolGroup.beast,
     title: '兽魂查询',
     crumb: '兽灵 / 兽魂查询',
-    pageSubtitle: '按品质筛选兽魂，速查主副词条与综合评分',
-    cardDesc: '主副词条 · 品质筛选 · 评分速查',
-    keywords: ['兽魂', '词条', '评分', '品质', '火攻', '冰攻'],
+    pageSubtitle: '按类型筛选十五大兽魂，速查出战技能与融魂技能',
+    cardDesc: '十五大兽魂 · 出战 / 融魂技能速查',
+    keywords: ['兽魂', '神兽魂', '荒兽魂', '灵兽魂', '出战技能', '融魂技能', '火攻', '冰攻'],
     location: '/beast/soul',
     icon: 'flame',
   );
