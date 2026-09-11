@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/platform/app_window.dart';
 import '../shared/widgets/window_title_bar.dart';
@@ -23,6 +24,14 @@ class TlbbApp extends ConsumerWidget {
     return MaterialApp.router(
       title: '天工阁',
       debugShowCheckedModeBanner: false,
+      // 中文本地化：让 Material 组件（日期/时间选择器等）显示中文
+      locale: const Locale('zh', 'CN'),
+      supportedLocales: const [Locale('zh', 'CN'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: TgTheme.light,
       darkTheme: TgTheme.dark,
       themeMode: themeMode,
