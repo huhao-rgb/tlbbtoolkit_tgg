@@ -47,6 +47,8 @@ dependencies:
   window_manager: ^0.5.2
   # 文件选择（桌面端导入 / 导出 JSON）
   file_selector: ^1.0.3
+  # 移动端导出：系统分享面板（file_selector 在 Android/iOS 不支持保存位置）
+  share_plus: ^10.1.4
   crypto: ^3.0.7
   url_launcher: ^6.3.2
 

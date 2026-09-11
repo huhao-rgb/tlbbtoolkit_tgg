@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/di/providers.dart';
@@ -146,7 +147,9 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
       );
   }
 
-  /// 导出：选保存位置 → 写 JSON 文件（原型 `regExport`）。
+  /// 导出：桌面端选保存位置写 JSON；移动端调起系统分享面板
+  /// （file_selector 在 Android/iOS 不支持 `getSaveLocation`，会抛
+  /// `UnimplementedError`，因此移动端走分享，让用户保存到文件/其他 App）。
   Future<void> _exportJson() async {
     if (_accts.isEmpty) {
       _toast('暂无可导出的账号，请先添加账号', warn: true);
@@ -154,13 +157,39 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
     }
     final now = DateTime.now();
     final fn = '天工阁回归账户-${now.year}${_p2(now.month)}${_p2(now.day)}.json';
-    final location = await getSaveLocation(
-      acceptedTypeGroups: const [_jsonType],
-      suggestedName: fn,
+    final bytes = Uint8List.fromList(
+      utf8.encode(_repo.buildExportJson(_accts)),
     );
-    if (location == null) return; // 用户取消
-    final bytes = Uint8List.fromList(utf8.encode(_repo.buildExportJson(_accts)));
+    final isMobile =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    if (isMobile) {
+      // 移动端：系统分享面板（可选择「存储到文件 / 发送给好友」等）
+      try {
+        await Share.shareXFiles(
+          [
+            XFile.fromData(
+              bytes,
+              mimeType: 'application/json',
+              name: fn,
+            ),
+          ],
+          subject: fn,
+        );
+        _toast('已导出 ${_accts.length} 个账户（请在分享面板中选择保存方式）');
+      } catch (_) {
+        _toast('导出失败：无法调起分享面板', warn: true);
+      }
+      return;
+    }
+    // 桌面端：保存位置对话框
     try {
+      final location = await getSaveLocation(
+        acceptedTypeGroups: const [_jsonType],
+        suggestedName: fn,
+      );
+      if (location == null) return; // 用户取消
       await XFile.fromData(bytes, mimeType: 'application/json')
           .saveTo(location.path);
       final name = location.path.split(RegExp(r'[/\\]')).last;
@@ -292,7 +321,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
                     _RegRuleNote(),
                     const SizedBox(height: 16),
                     // 我的账号卡
-                    _buildAccountsCard(),
+                    _buildAccountsCard(compact: compact),
                     const SizedBox(height: 16),
                     // 选中账号面板
                     _buildPanel(),
@@ -309,8 +338,80 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
   }
 
   // ---- 「我的账号」卡 ----
-  Widget _buildAccountsCard() {
+  Widget _buildAccountsCard({required bool compact}) {
     final tg = context.tg;
+    // 标题 + 计数徽章
+    final titleBadge = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '我的账号',
+          style: TextStyle(
+            fontFamily: TgFonts.serif,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: tg.t1,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1.5),
+          decoration: BoxDecoration(
+            color: tg.goldTint(.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: tg.goldTint(.35), width: 1),
+          ),
+          child: Text(
+            '${_accts.length}',
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: tg.gold2,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+      ],
+    );
+    // 导入 / 导出 / 添加账号 按钮组（原型 `regImportBtn` / `regExport`）
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _LineIconButton(
+          icon: 'download',
+          label: '导入',
+          onTap: _importJson,
+        ),
+        const SizedBox(width: 8),
+        _LineIconButton(
+          icon: 'upload',
+          label: '导出',
+          onTap: _exportJson,
+        ),
+        const SizedBox(width: 8),
+        _AddButton(
+          onTap: () => _addOrEdit(),
+          compact: compact,
+        ),
+      ],
+    );
+    // 窄屏：标题一行、按钮一组换到下一行，避免挤压溢出
+    final header = compact
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              titleBadge,
+              const SizedBox(height: 12),
+              Align(alignment: Alignment.centerRight, child: actions),
+            ],
+          )
+        : Row(
+            children: [
+              titleBadge,
+              const Spacer(),
+              actions,
+            ],
+          );
     return TgCard(
       basePadding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -321,55 +422,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                '我的账号',
-                style: TextStyle(
-                  fontFamily: TgFonts.serif,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: tg.t1,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1.5),
-                decoration: BoxDecoration(
-                  color: tg.goldTint(.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: tg.goldTint(.35), width: 1),
-                ),
-                child: Text(
-                  '${_accts.length}',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: tg.gold2,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-              const Spacer(),
-              // 导入 / 导出（原型 `regImportBtn` / `regExport`）
-              _LineIconButton(
-                icon: 'download',
-                label: '导入',
-                onTap: _importJson,
-              ),
-              const SizedBox(width: 8),
-              _LineIconButton(
-                icon: 'upload',
-                label: '导出',
-                onTap: _exportJson,
-              ),
-              const SizedBox(width: 8),
-              _AddButton(
-                onTap: () => _addOrEdit(),
-                compact: false,
-              ),
-            ],
-          ),
+          header,
           const SizedBox(height: 14),
           // 账号网格（原型 auto-fill minmax(238px,1fr)，gap 12）
           LayoutBuilder(
