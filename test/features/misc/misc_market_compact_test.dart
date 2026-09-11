@@ -49,4 +49,24 @@ void main() {
     // 隐藏列：移动端无「区服」表头
     expect(find.text('区服'), findsNothing);
   });
+
+  testWidgets('紧凑（移动）宽度：筛选下拉两列等宽，一行两个', (tester) async {
+    await pumpPage(tester);
+
+    Rect box(String label) => tester.getRect(
+      find.byKey(ValueKey('tg-select-$label')),
+    );
+    final area = box('大区');
+    final server = box('服务器');
+    final band = box('可携带等级');
+
+    // 三个筛选框宽度完全一致
+    expect(area.width, server.width);
+    expect(area.width, band.width);
+    // 前两个同一行（顶部对齐），第三个换行到下一行
+    expect((area.top - server.top).abs(), lessThan(1));
+    expect(band.top, greaterThan(server.top));
+    // 均未超出可视区右缘
+    expect(server.right, lessThanOrEqualTo(400));
+  });
 }

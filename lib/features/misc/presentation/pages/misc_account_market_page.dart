@@ -290,6 +290,9 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
 
 enum _FetchState { loading, ok, warn }
 
+/// 桌面端筛选下拉统一宽度（窄屏走两列等宽自适应）。
+const double _kSelectWidth = 160;
+
 /// 金额 fmt + 前缀 ￥（价格列/统计）。
 String _p(num n) => amP(n);
 
@@ -370,12 +373,16 @@ class _FilterBar extends StatelessWidget {
           ),
           child: LayoutBuilder(
             builder: (context, c) {
+              // 窄屏：筛选框两列等宽（一行两个）；桌面：统一固定宽。
+              const gap = 12.0;
+              final compact = c.maxWidth < 640;
+              final colW = compact ? (c.maxWidth - gap) / 2 : _kSelectWidth;
               final selects = <Widget>[
                 TgSelect(
                   label: '大区',
                   value: filter.area,
                   hint: '全部大区',
-                  width: 150,
+                  width: colW,
                   options: [for (final a in areas) (a, a)],
                   onChanged: onArea,
                 ),
@@ -383,7 +390,7 @@ class _FilterBar extends StatelessWidget {
                   label: '服务器',
                   value: filter.server,
                   hint: '全部服务器',
-                  width: 160,
+                  width: colW,
                   options: [for (final s in serverNames) (s, s)],
                   onChanged: onServer,
                 ),
@@ -393,7 +400,7 @@ class _FilterBar extends StatelessWidget {
                       ? ''
                       : filter.band.label,
                   hint: AccountLevelBand.all.label,
-                  width: 150,
+                  width: colW,
                   options: [
                     for (final b in AccountLevelBand.values)
                       (b.label, b.label),
@@ -407,15 +414,13 @@ class _FilterBar extends StatelessWidget {
                   },
                 ),
               ];
-              const gap = 12.0;
-              final compact = c.maxWidth < 640;
               if (compact) {
-                return Wrap(
-                  spacing: gap,
-                  runSpacing: 12,
-                  crossAxisAlignment: WrapCrossAlignment.end,
+                // 移动端：筛选框一行两个（两列等宽），获取按钮独占一行。
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ...selects,
+                    Wrap(spacing: gap, runSpacing: 12, children: selects),
+                    const SizedBox(height: 14),
                     _FetchButton(fetching: fetching, onTap: onFetch),
                   ],
                 );

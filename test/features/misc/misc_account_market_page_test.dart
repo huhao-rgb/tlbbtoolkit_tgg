@@ -318,4 +318,23 @@ void main() {
     expect(find.text('图'), findsOneWidget);
     expect(find.text('操作'), findsOneWidget);
   });
+
+  testWidgets('紧凑（移动）宽度：筛选下拉两列等宽，一行两个', (tester) async {
+    await pumpPage(tester, size: const Size(390, 16000));
+
+    Rect box(String label) => tester.getRect(
+      find.byKey(ValueKey('tg-select-$label')),
+    );
+    final area = box('大区');
+    final server = box('服务器');
+    final band = box('角色等级');
+
+    // 三个筛选框宽度完全一致
+    expect(area.width, server.width);
+    expect(area.width, band.width);
+    // 前两个同一行（顶部对齐），第三个换行到下一行
+    expect((area.top - server.top).abs(), lessThan(1));
+    expect(band.top, greaterThan(server.top));
+    expect(server.right, lessThanOrEqualTo(390));
+  });
 }
