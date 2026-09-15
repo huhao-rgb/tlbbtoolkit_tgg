@@ -65,3 +65,57 @@ android {
 flutter {
     source = "../.."
 }
+
+// ---------------------------------------------------------------------------
+// 打包产物命名：<项目名>_v<versionName>+<versionCode>[_<abi>][_<buildMode>].apk
+// 例：version = 1.0.2+3 的 release 全量包 → tlbbtoolkit_tgg_v1.0.2+3.apk
+//
+// 注意：Flutter Gradle 插件会把 AGP 产物复制到 build/app/outputs/flutter-apk/
+// 并**强制**重命名为 app<-abi>?<-flavor>?-<build-mode>.apk（flutter_tools 依赖该
+// 名称定位产物，见 FlutterPlugin.kt 的 assembleTask.doLast），所以这里不改它的
+// 命名，而是在 assemble 结束后再把产物复制一份为交付名称，flutter run / build /
+// install 等工具链行为完全不受影响。
+// ---------------------------------------------------------------------------
+val artifactBaseName = "tlbbtoolkit_tgg"
+val flutterApkDir = layout.buildDirectory.dir("outputs/flutter-apk")
+val artifactVersionTag = "v${flutter.versionName}+${flutter.versionCode}"
+
+val renameApkArtifacts = tasks.register("renameApkArtifacts") {
+    group = "build"
+    description = "按 <项目名>_v<版本号> 规则复制 APK 交付产物"
+    doLast {
+        val apkDir = flutterApkDir.get().asFile
+        if (!apkDir.isDirectory) return@doLast
+
+        // ABI 标识自身含 “-”（armeabi-v7a / arm64-v8a），不能用 split("-") 解析。
+        val knownAbis = listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
+
+        apkDir.listFiles { file ->
+            file.isFile && file.name.startsWith("app") && file.name.endsWith(".apk")
+        }?.forEach { apk ->
+            // app-<abi>?-<build-mode>.apk
+            var rest = apk.name.removeSuffix(".apk").removePrefix("app-")
+            val abi = knownAbis.firstOrNull { rest.startsWith(it) }
+            if (abi != null) {
+                rest = rest.removePrefix(abi).removePrefix("-")
+            }
+            val buildMode = rest
+
+            val targetName = buildString {
+                append(artifactBaseName).append('_').append(artifactVersionTag)
+                if (abi != null) append('_').append(abi)
+                if (buildMode.isNotEmpty() && buildMode != "release") {
+                    append('_').append(buildMode)
+                }
+                append(".apk")
+            }
+
+            val target = apk.copyTo(apkDir.resolve(targetName), overwrite = true)
+            logger.lifecycle("交付产物：${target.absolutePath}")
+        }
+    }
+}
+
+// finalizedBy 保证在 Flutter 插件自身复制产物之后运行。
+tasks.matching { it.name.matches(Regex("assemble(Release|Debug|Profile)")) }
+    .configureEach { finalizedBy(renameApkArtifacts) }
