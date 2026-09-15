@@ -12,11 +12,6 @@ import 'shell_navigation_state.dart';
 import 'widgets/app_info_bar.dart';
 import 'widgets/desktop_sidebar.dart';
 
-/// 底部 tabbar 毛玻璃底色（对应原型 `--blur2`）：
-/// 浅色 rgba(251,250,247,.94)；深色未在 :root 定义，沿用顶栏深色系但更实。
-const _tabbarBlurDark = Color.fromRGBO(12, 16, 22, .94);
-const _tabbarBlurLight = Color.fromRGBO(251, 250, 247, .94);
-
 /// shell 导航框架（响应式），按原型双端还原：
 ///
 /// ```
@@ -33,13 +28,11 @@ const _tabbarBlurLight = Color.fromRGBO(251, 250, 247, .94);
 /// ```
 ///
 /// - 信息条：显示当前路由名；二级页面显示返回按钮；右侧主题切换与设置入口；
-/// - mobile：底部 5 段 tab（首页 / 宝宝 / 兽灵 / 职业 / 实用 → 各分类 hub）；
+/// - mobile：底部 5 段 tab（首页 / 宝宝 / 兽灵 / 职业 / 实用 → 各分类 hub），
+///   与顶栏同为悬浮毛玻璃（共用 [TgGlass]），页面内容可滑入其下方被模糊；
 /// - desktop：左侧 236 宽原型侧栏（品牌 + 分组工具导航），无底部 tab。
 class AppShellNavigation extends ConsumerWidget {
-  const AppShellNavigation({
-    super.key,
-    required this.navigationShell,
-  });
+  const AppShellNavigation({super.key, required this.navigationShell});
 
   /// go_router 注入的状态化导航壳，负责各 tab 分支的 Navigator 与切换。
   final StatefulNavigationShell navigationShell;
@@ -92,21 +85,26 @@ class AppShellNavigation extends ConsumerWidget {
               body: Stack(
                 children: [
                   // 内容区保留顶部安全区（不被状态栏遮挡），内容在下可滚动，
-                  // 毛玻璃顶栏悬浮覆盖其上。
+                  // 毛玻璃顶栏 / 底栏均悬浮覆盖其上。
                   Positioned.fill(
-                    child: SafeArea(
-                      bottom: false,
-                      child: navigationShell,
-                    ),
+                    child: SafeArea(bottom: false, child: navigationShell),
                   ),
                   // 顶栏从屏幕顶部（含状态栏区域）铺开，实现沉浸式状态栏；
                   // 栏内内容由 AppInfoBar 按安全区内缩，见其 build。
                   Positioned(top: 0, left: 0, right: 0, child: infoBar),
+                  // 底栏同样悬浮（不再撑开 Scaffold 底栏插槽）：滚动内容可滑入
+                  // 其下方被模糊，形成与顶栏一致的毛玻璃；页面底部按
+                  // [Breakpoints.tabbarOverlayHeight] 预留空间，滚到底不被遮挡。
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _MobileTabBar(
+                      currentIndex: navigationShell.currentIndex,
+                      onSelected: _onTabSelected,
+                    ),
+                  ),
                 ],
-              ),
-              bottomNavigationBar: _MobileTabBar(
-                currentIndex: navigationShell.currentIndex,
-                onSelected: _onTabSelected,
               ),
             );
           case DeviceLayout.desktop:
@@ -139,8 +137,8 @@ class AppShellNavigation extends ConsumerWidget {
 
 /// 移动端底部 tabbar（5 段：首页 / 宝宝 / 兽灵 / 职业 / 实用）。
 ///
-/// 按原型 `.tabbar` 还原：
-/// - 毛玻璃底（`blur 18px` + `--blur2`）+ 顶边 1px 边框；
+/// 悬浮毛玻璃底栏（与顶栏同一套参数 [TgGlass] + 顶边 1px 边框）：
+/// - 毛玻璃底（`blur 16px` + [TgGlass] 半透明底色）+ 顶边 1px 边框；
 /// - 每段：图标 21 + 文字 10.5（字距 1），gap 3，垂直居中；
 /// - 选中项：图标 / 文字变 `gold2`，顶部一条 26×2.5px 金色渐变短线；
 /// - 底部预留 safe-area。
@@ -163,9 +161,12 @@ class _MobileTabBar extends StatelessWidget {
       ),
       child: ClipRect(
         child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          filter: ui.ImageFilter.blur(
+            sigmaX: TgGlass.sigma,
+            sigmaY: TgGlass.sigma,
+          ),
           child: Container(
-            color: isDark ? _tabbarBlurDark : _tabbarBlurLight,
+            color: isDark ? TgGlass.dark : TgGlass.light,
             padding: EdgeInsets.only(bottom: bottom),
             child: SizedBox(
               height: TgSpacing.tabbarHeight,

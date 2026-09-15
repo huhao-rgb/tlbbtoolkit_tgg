@@ -28,7 +28,7 @@ class ToolPlaceholderPage extends StatelessWidget {
                   TgSpacing.pagePaddingMobileH,
                   20 + Breakpoints.topbarOverlayHeight,
                   TgSpacing.pagePaddingMobileH,
-                  40,
+                  40 + Breakpoints.tabbarOverlayHeight, // 预留悬浮底栏
                 )
               : TgSpacing.pagePadding.copyWith(
                   top:

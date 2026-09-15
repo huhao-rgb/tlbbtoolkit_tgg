@@ -204,10 +204,10 @@ class TgColors extends ThemeExtension<TgColors> {
   Color tagBorderOf(Color base) => tintOf(base, .40);
 
   LinearGradient get gradGold => const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [TgTokens.gradGoldStart, TgTokens.gradGoldEnd],
-      );
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [TgTokens.gradGoldStart, TgTokens.gradGoldEnd],
+  );
 
   /// 页面辉光（bg 之上两个 radial glow）
   List<Color> get glows => brightness == Brightness.dark
@@ -332,92 +332,156 @@ abstract final class TgType {
 
   /// 42 / 700 结果大数字（res-num，移动端 36）
   static TextStyle numResult(Color c) => TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 42, height: 1.1,
-      fontWeight: FontWeight.w700, color: c, fontFeatures: _tnum);
+    fontFamily: TgFonts.sans,
+    fontSize: 42,
+    height: 1.1,
+    fontWeight: FontWeight.w700,
+    color: c,
+    fontFeatures: _tnum,
+  );
 
   /// 38 / 500 hero 大标题（serif · 字距4 · 移动端30）
   static const TextStyle hero = TextStyle(
-      fontFamily: TgFonts.serif, fontSize: 38, height: 1.25,
-      fontWeight: FontWeight.w500, letterSpacing: 4);
+    fontFamily: TgFonts.serif,
+    fontSize: 38,
+    height: 1.25,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 4,
+  );
 
   /// 30 / 500 hero 移动端
   static const TextStyle heroMobile = TextStyle(
-      fontFamily: TgFonts.serif, fontSize: 30, height: 1.25,
-      fontWeight: FontWeight.w500, letterSpacing: 3);
+    fontFamily: TgFonts.serif,
+    fontSize: 30,
+    height: 1.25,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 3,
+  );
 
   /// 26 / 500 等级徽章字 / 大数字（serif）
   static const TextStyle display26 = TextStyle(
-      fontFamily: TgFonts.serif, fontSize: 26, fontWeight: FontWeight.w500);
+    fontFamily: TgFonts.serif,
+    fontSize: 26,
+    fontWeight: FontWeight.w500,
+  );
 
   /// 24 / 500 页面标题（serif · 字距1）
   static const TextStyle pageH1 = TextStyle(
-      fontFamily: TgFonts.serif, fontSize: 24, height: 1.25,
-      fontWeight: FontWeight.w500, letterSpacing: 1);
+    fontFamily: TgFonts.serif,
+    fontSize: 24,
+    height: 1.25,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 1,
+  );
 
   /// 21 / 600 统计数字（tabular-nums）
   static TextStyle stat21(Color c) => TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 21, fontWeight: FontWeight.w600,
-      color: c, fontFeatures: _tnum);
+    fontFamily: TgFonts.sans,
+    fontSize: 21,
+    fontWeight: FontWeight.w600,
+    color: c,
+    fontFeatures: _tnum,
+  );
 
   /// 19 / 500 品牌名 / 兽魂评分（serif · 字距2）
   static const TextStyle score19 = TextStyle(
-      fontFamily: TgFonts.serif, fontSize: 19,
-      fontWeight: FontWeight.w500, letterSpacing: 2);
+    fontFamily: TgFonts.serif,
+    fontSize: 19,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 2,
+  );
 
   /// 17 / 500 顶栏标题（移动端 15）
   static const TextStyle topTitle = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 17,
-      fontWeight: FontWeight.w500, letterSpacing: 1);
+    fontFamily: TgFonts.sans,
+    fontSize: 17,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 1,
+  );
 
   /// 16 / 500 单元格数值
   static const TextStyle cell16 = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 16, fontWeight: FontWeight.w500);
+    fontFamily: TgFonts.sans,
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+  );
 
   /// 15 / 500 步进器数字 / 操作按钮
   static const TextStyle control15 = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 15, fontWeight: FontWeight.w500);
+    fontFamily: TgFonts.sans,
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+  );
 
   /// 14.5 / 500 卡片标题
   static const TextStyle cardTitle = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 14.5, fontWeight: FontWeight.w500);
+    fontFamily: TgFonts.sans,
+    fontSize: 14.5,
+    fontWeight: FontWeight.w500,
+  );
 
   /// 14 / 400 正文 / 输入框
-  static const TextStyle body14 =
-      TextStyle(fontFamily: TgFonts.sans, fontSize: 14, height: 1.65);
+  static const TextStyle body14 = TextStyle(
+    fontFamily: TgFonts.sans,
+    fontSize: 14,
+    height: 1.65,
+  );
 
   /// 13.5 / 500 按钮 / 导航项
   static const TextStyle button = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 13.5, fontWeight: FontWeight.w500);
+    fontFamily: TgFonts.sans,
+    fontSize: 13.5,
+    fontWeight: FontWeight.w500,
+  );
 
   /// 13 / 400 列表行 / 结果行
   static const TextStyle row13 = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 13, fontWeight: FontWeight.w500);
+    fontFamily: TgFonts.sans,
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+  );
 
   /// 12.5 / 400 表单 label / 小按钮
   static const TextStyle label = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 12.5, letterSpacing: .5);
+    fontFamily: TgFonts.sans,
+    fontSize: 12.5,
+    letterSpacing: .5,
+  );
 
   /// 12 / 400 面包屑 / 结果小注
-  static const TextStyle caption =
-      TextStyle(fontFamily: TgFonts.sans, fontSize: 12);
+  static const TextStyle caption = TextStyle(
+    fontFamily: TgFonts.sans,
+    fontSize: 12,
+  );
 
   /// 11.5 / 400 注释 / 表头（字距1.5）
   static const TextStyle note = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 11.5, height: 1.7,
-      letterSpacing: 1.5);
+    fontFamily: TgFonts.sans,
+    fontSize: 11.5,
+    height: 1.7,
+    letterSpacing: 1.5,
+  );
 
   /// 11 / 400 tag / 页脚
-  static const TextStyle tag =
-      TextStyle(fontFamily: TgFonts.sans, fontSize: 11);
+  static const TextStyle tag = TextStyle(
+    fontFamily: TgFonts.sans,
+    fontSize: 11,
+  );
 
   /// 10.5 / 400 品牌副标 / 底栏文字
   static const TextStyle micro = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 10.5, letterSpacing: 1);
+    fontFamily: TgFonts.sans,
+    fontSize: 10.5,
+    letterSpacing: 1,
+  );
 
   /// 10 / 600 hot 角标（字距1）
   static const TextStyle hot = TextStyle(
-      fontFamily: TgFonts.sans, fontSize: 10,
-      fontWeight: FontWeight.w600, letterSpacing: 1);
+    fontFamily: TgFonts.sans,
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 1,
+  );
 }
 
 /// ---------------------------------------------------------------------------
@@ -463,8 +527,7 @@ abstract final class TgSpacing {
   static const double s34 = 34; // 内容区水平 / hero 纵向
 
   /// 内容区：28 / 34 / 底部 90（PC），maxWidth 1180
-  static const EdgeInsets pagePadding =
-      EdgeInsets.fromLTRB(28, 28, 34, 90);
+  static const EdgeInsets pagePadding = EdgeInsets.fromLTRB(28, 28, 34, 90);
   static const double pageMaxWidth = 1180;
 
   /// 移动端内容区水平内边距：窄屏下收敛到 12（桌面 28/34），
@@ -483,18 +546,26 @@ abstract final class TgSpacing {
   static const EdgeInsets formRowGap = EdgeInsets.only(bottom: 20);
 
   /// 列表行：13 / 20
-  static const EdgeInsets listRowPadding =
-      EdgeInsets.symmetric(horizontal: 20, vertical: 13);
+  static const EdgeInsets listRowPadding = EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 13,
+  );
 
   /// 顶栏：13 / 34
-  static const EdgeInsets topbarPadding =
-      EdgeInsets.symmetric(horizontal: 34, vertical: 13);
+  static const EdgeInsets topbarPadding = EdgeInsets.symmetric(
+    horizontal: 34,
+    vertical: 13,
+  );
 
   /// hero：34 / 36（移动端 26 / 22）
-  static const EdgeInsets heroPadding =
-      EdgeInsets.symmetric(horizontal: 36, vertical: 34);
-  static const EdgeInsets heroPaddingMobile =
-      EdgeInsets.symmetric(horizontal: 22, vertical: 26);
+  static const EdgeInsets heroPadding = EdgeInsets.symmetric(
+    horizontal: 36,
+    vertical: 34,
+  );
+  static const EdgeInsets heroPaddingMobile = EdgeInsets.symmetric(
+    horizontal: 22,
+    vertical: 26,
+  );
 
   /// 工具卡栅格：min 300，间距 14
   static const double gridMinTile = 300;
@@ -525,4 +596,20 @@ abstract final class TgShadows {
   static const List<BoxShadow> focusRing = [
     BoxShadow(blurRadius: 0, spreadRadius: 3, color: Color(0x1FE2B872)),
   ];
+}
+
+/// ---------------------------------------------------------------------------
+/// 毛玻璃（悬浮顶栏 / 底部 tabbar 共用一套参数，保证两端观感一致）
+/// ---------------------------------------------------------------------------
+abstract final class TgGlass {
+  const TgGlass._();
+
+  /// 高斯模糊半径（顶栏与底栏一致）。
+  static const double sigma = 16;
+
+  /// 深色底：rgba(12,16,22,.82)。
+  static const Color dark = Color.fromRGBO(12, 16, 22, .82);
+
+  /// 浅色底：rgba(251,250,247,.82)。
+  static const Color light = Color.fromRGBO(251, 250, 247, .82);
 }

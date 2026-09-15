@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,7 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tlbbtoolkit/app/app.dart';
 import 'package:tlbbtoolkit/app/shell_navigation/widgets/desktop_sidebar.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/features/home/presentation/pages/home_page.dart';
 
 /// 信息条组件的 key（与 app_info_bar 中的 `AppInfoBar` 对应）。
 const _infoBarKey = Key('shell-info-bar');
@@ -14,30 +19,24 @@ const _chipsKey = Key('home-filter-chips');
 const _settingsBackKey = Key('settings-back-button');
 
 /// 在信息条内查找指定标题。
-Finder infoBarTitle(String title) => find.descendant(
-      of: find.byKey(_infoBarKey),
-      matching: find.text(title),
-    );
+Finder infoBarTitle(String title) =>
+    find.descendant(of: find.byKey(_infoBarKey), matching: find.text(title));
 
 /// 移动端底部自绘 tabbar 中的 tab。
 const _tabBarKey = Key('mobile-tab-bar');
 
-Finder bottomTab(String label) => find.descendant(
-      of: find.byKey(_tabBarKey),
-      matching: find.text(label),
-    );
+Finder bottomTab(String label) =>
+    find.descendant(of: find.byKey(_tabBarKey), matching: find.text(label));
 
 /// 桌面侧栏中的导航项。
 Finder sidebarItem(String label) => find.descendant(
-      of: find.byType(DesktopSidebar),
-      matching: find.text(label),
-    );
+  of: find.byType(DesktopSidebar),
+  matching: find.text(label),
+);
 
 /// 首页分类筛选 chips 中的项。
-Finder homeChip(String label) => find.descendant(
-      of: find.byKey(_chipsKey),
-      matching: find.text(label),
-    );
+Finder homeChip(String label) =>
+    find.descendant(of: find.byKey(_chipsKey), matching: find.text(label));
 
 /// 滚动到目标并令其居于视口中央（默认 ensureVisible 会贴顶，
 /// 在悬浮毛玻璃顶栏下会被玻璃遮挡）。
@@ -104,6 +103,53 @@ void main() {
     expect(find.text('宝宝套装图鉴'), findsOneWidget);
     // hub 是一级页面：无返回按钮。
     expect(find.byKey(_backButtonKey), findsNothing);
+  });
+
+  testWidgets('移动端底栏：悬浮毛玻璃（与顶栏同一参数），贴屏幕底部', (tester) async {
+    // 手机尺寸（390×844）泵入：页面走紧凑内边距分支。
+    tester.view.physicalSize =
+        const Size(390, 844) * tester.view.devicePixelRatio;
+    addTearDown(tester.view.resetPhysicalSize);
+    await pumpApp(tester);
+
+    final tabbar = find.byKey(_tabBarKey);
+    final screenH =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    // 悬浮在屏幕底部（不再占 Scaffold 底栏插槽，内容可滑入其下方）。
+    expect(tester.getRect(tabbar).bottom, screenH);
+
+    // 顶栏 / 底栏各带一个 BackdropFilter，且 blur 参数完全一致。
+    final tabFilter = tester.widget<BackdropFilter>(
+      find.descendant(of: tabbar, matching: find.byType(BackdropFilter)),
+    );
+    final barFilter = tester.widget<BackdropFilter>(
+      find.descendant(
+        of: find.byKey(_infoBarKey),
+        matching: find.byType(BackdropFilter),
+      ),
+    );
+    expect(
+      tabFilter.filter,
+      ui.ImageFilter.blur(sigmaX: TgGlass.sigma, sigmaY: TgGlass.sigma),
+    );
+    expect(barFilter.filter, tabFilter.filter);
+
+    // 页面底部已为悬浮底栏预留空间（滚动到底不被遮挡）。
+    final scroll = tester.widget<SingleChildScrollView>(
+      find.descendant(
+        of: find.byType(HomePage),
+        matching: find.byType(SingleChildScrollView),
+      ),
+    );
+    expect(
+      scroll.padding,
+      const EdgeInsets.fromLTRB(
+        TgSpacing.pagePaddingMobileH,
+        20 + Breakpoints.topbarOverlayHeight,
+        TgSpacing.pagePaddingMobileH,
+        48 + Breakpoints.tabbarOverlayHeight,
+      ),
+    );
   });
 
   testWidgets('hub 内进入工具二级页，返回回到该 hub', (tester) async {

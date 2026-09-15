@@ -287,7 +287,7 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
                 TgSpacing.pagePaddingMobileH,
                 20 + Breakpoints.topbarOverlayHeight,
                 TgSpacing.pagePaddingMobileH,
-                48,
+                48 + Breakpoints.tabbarOverlayHeight, // 预留悬浮底栏
               )
             : TgSpacing.pagePadding.copyWith(
                 top:
@@ -2670,7 +2670,7 @@ class PetDetailPage extends StatelessWidget {
                 TgSpacing.pagePaddingMobileH,
                 20 + Breakpoints.topbarOverlayHeight,
                 TgSpacing.pagePaddingMobileH,
-                48,
+                48 + Breakpoints.tabbarOverlayHeight, // 预留悬浮底栏
               )
             : TgSpacing.pagePadding.copyWith(
                 top:

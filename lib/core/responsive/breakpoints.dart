@@ -33,6 +33,11 @@ abstract final class Breakpoints {
   /// 悬浮顶栏（毛玻璃）高度：页面滚动内容顶部需预留该高度，
   /// 使其在初始时不被悬浮栏遮挡，滚动时能滑入玻璃下方被模糊。
   static const double topbarOverlayHeight = 60;
+
+  /// 悬浮底栏（毛玻璃 tabbar）高度（= TgSpacing.tabbarHeight，另加 safe-area）：
+  /// 移动端页面滚动内容底部需预留该高度，使其滚动到底时不被悬浮栏遮挡，
+  /// 滚动中内容能滑入玻璃下方被模糊。
+  static const double tabbarOverlayHeight = 58;
 }
 
 /// 桌面内容区限宽容器：宽度超过 [Breakpoints.desktopContentMaxWidth] 时居中。

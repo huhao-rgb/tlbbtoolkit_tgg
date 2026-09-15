@@ -8,10 +8,7 @@ import '../../../features/settings/presentation/providers/settings_providers.dar
 import '../../../features/settings/settings_routes.dart';
 import '../../theme/design_tokens.dart';
 
-/// 顶栏半透明底色（对应原型 `--blur`，浅色 rgba(251,250,247,.82)；
-/// 深色为原型占位缺值，按同构取 rgba(12,16,22,.82)）。
-const _blurDark = Color.fromRGBO(12, 16, 22, .82);
-const _blurLight = Color.fromRGBO(251, 250, 247, .82);
+/// 顶栏毛玻璃参数与底部 tabbar 共用 [TgGlass]（对应原型 `--blur`）。
 
 /// 公共信息条（对应原型 `.topbar`）。
 ///
@@ -55,13 +52,14 @@ class AppInfoBar extends ConsumerWidget {
     // 毛玻璃：悬浮于内容区之上，滚动到栏下的内容会经 blur 后透出。
     return ClipRect(
       child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        filter: ui.ImageFilter.blur(
+          sigmaX: TgGlass.sigma,
+          sigmaY: TgGlass.sigma,
+        ),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: isDark ? _blurDark : _blurLight,
-            border: Border(
-              bottom: BorderSide(color: tg.border, width: 1),
-            ),
+            color: isDark ? TgGlass.dark : TgGlass.light,
+            border: Border(bottom: BorderSide(color: tg.border, width: 1)),
           ),
           // 背景（DecoratedBox）铺满整个栏（含状态栏区域），
           // 内容在此基础上再叠加安全区内缩。
@@ -132,11 +130,7 @@ class _VersionChip extends StatelessWidget {
       ),
       child: Text(
         '数据版本 v1.6.0',
-        style: TextStyle(
-          fontSize: 11.5,
-          letterSpacing: .5,
-          color: tg.gold,
-        ),
+        style: TextStyle(fontSize: 11.5, letterSpacing: .5, color: tg.gold),
       ),
     );
   }

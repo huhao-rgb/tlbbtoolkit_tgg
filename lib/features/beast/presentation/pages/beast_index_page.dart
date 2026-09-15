@@ -48,7 +48,7 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
                     TgSpacing.pagePaddingMobileH,
                     20 + Breakpoints.topbarOverlayHeight,
                     TgSpacing.pagePaddingMobileH,
-                    48,
+                    48 + Breakpoints.tabbarOverlayHeight, // 预留悬浮底栏
                   )
                 : TgSpacing.pagePadding.copyWith(
                     top:
