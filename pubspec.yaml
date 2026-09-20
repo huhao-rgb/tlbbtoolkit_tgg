@@ -54,6 +54,8 @@ dependencies:
   share_plus: ^10.1.4
   crypto: ^3.0.7
   url_launcher: ^6.3.2
+  # 本地音频播放（信息栏「怀旧音律」播放器）
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:

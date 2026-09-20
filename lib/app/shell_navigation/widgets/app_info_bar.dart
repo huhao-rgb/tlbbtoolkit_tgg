@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../features/music/presentation/widgets/music_player_button.dart';
 import '../../../features/settings/presentation/providers/settings_providers.dart';
 import '../../../features/settings/settings_routes.dart';
 import '../../theme/design_tokens.dart';
@@ -100,6 +101,9 @@ class AppInfoBar extends ConsumerWidget {
                       const _VersionChip(),
                       const SizedBox(width: 10),
                     ],
+                    // 怀旧音律：点击弹出播放列表与控制面板。
+                    const MusicPlayerButton(),
+                    const SizedBox(width: 10),
                     _ThemeToggleButton(),
                     const SizedBox(width: 10),
                     _SettingsButton(),

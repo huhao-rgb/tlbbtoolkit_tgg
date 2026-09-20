@@ -32,6 +32,7 @@ class TgIcon extends StatelessWidget {
     'info': Assets.icons.info,
     'mark': Assets.icons.mark,
     'moon': Assets.icons.moon,
+    'note': Assets.icons.note,
     'paw': Assets.icons.paw,
     'pct': Assets.icons.pct,
     'pen': Assets.icons.pen,

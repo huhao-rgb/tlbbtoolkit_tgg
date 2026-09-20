@@ -11,6 +11,84 @@
 
 import 'package:flutter/widgets.dart';
 
+class $AssetsBeastSoulGen {
+  const $AssetsBeastSoulGen();
+
+  /// File path: assets/beast_soul/soul_0_cs.webp
+  AssetGenImage get soul0Cs =>
+      const AssetGenImage('assets/beast_soul/soul_0_cs.webp');
+
+  /// File path: assets/beast_soul/soul_0_rh.webp
+  AssetGenImage get soul0Rh =>
+      const AssetGenImage('assets/beast_soul/soul_0_rh.webp');
+
+  /// File path: assets/beast_soul/soul_1_cs.webp
+  AssetGenImage get soul1Cs =>
+      const AssetGenImage('assets/beast_soul/soul_1_cs.webp');
+
+  /// File path: assets/beast_soul/soul_1_rh.webp
+  AssetGenImage get soul1Rh =>
+      const AssetGenImage('assets/beast_soul/soul_1_rh.webp');
+
+  /// File path: assets/beast_soul/soul_2_cs.webp
+  AssetGenImage get soul2Cs =>
+      const AssetGenImage('assets/beast_soul/soul_2_cs.webp');
+
+  /// File path: assets/beast_soul/soul_2_rh.webp
+  AssetGenImage get soul2Rh =>
+      const AssetGenImage('assets/beast_soul/soul_2_rh.webp');
+
+  /// File path: assets/beast_soul/soul_3_cs.webp
+  AssetGenImage get soul3Cs =>
+      const AssetGenImage('assets/beast_soul/soul_3_cs.webp');
+
+  /// File path: assets/beast_soul/soul_3_rh.webp
+  AssetGenImage get soul3Rh =>
+      const AssetGenImage('assets/beast_soul/soul_3_rh.webp');
+
+  /// File path: assets/beast_soul/soul_4_cs.webp
+  AssetGenImage get soul4Cs =>
+      const AssetGenImage('assets/beast_soul/soul_4_cs.webp');
+
+  /// File path: assets/beast_soul/soul_4_rh.webp
+  AssetGenImage get soul4Rh =>
+      const AssetGenImage('assets/beast_soul/soul_4_rh.webp');
+
+  /// File path: assets/beast_soul/soul_5_cs.webp
+  AssetGenImage get soul5Cs =>
+      const AssetGenImage('assets/beast_soul/soul_5_cs.webp');
+
+  /// File path: assets/beast_soul/soul_5_rh.webp
+  AssetGenImage get soul5Rh =>
+      const AssetGenImage('assets/beast_soul/soul_5_rh.webp');
+
+  /// File path: assets/beast_soul/soul_7_cs.webp
+  AssetGenImage get soul7Cs =>
+      const AssetGenImage('assets/beast_soul/soul_7_cs.webp');
+
+  /// File path: assets/beast_soul/soul_7_rh.webp
+  AssetGenImage get soul7Rh =>
+      const AssetGenImage('assets/beast_soul/soul_7_rh.webp');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [
+    soul0Cs,
+    soul0Rh,
+    soul1Cs,
+    soul1Rh,
+    soul2Cs,
+    soul2Rh,
+    soul3Cs,
+    soul3Rh,
+    soul4Cs,
+    soul4Rh,
+    soul5Cs,
+    soul5Rh,
+    soul7Cs,
+    soul7Rh,
+  ];
+}
+
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
@@ -49,6 +127,9 @@ class $AssetsIconsGen {
 
   /// File path: assets/icons/moon.svg
   String get moon => 'assets/icons/moon.svg';
+
+  /// File path: assets/icons/note.svg
+  String get note => 'assets/icons/note.svg';
 
   /// File path: assets/icons/paw.svg
   String get paw => 'assets/icons/paw.svg';
@@ -136,6 +217,7 @@ class $AssetsIconsGen {
     info,
     mark,
     moon,
+    note,
     paw,
     pct,
     pen,
@@ -1576,6 +1658,16 @@ class $AssetsSkillIconsGen {
   ];
 }
 
+class $AssetsSplashGen {
+  const $AssetsSplashGen();
+
+  /// File path: assets/splash/splash.png
+  AssetGenImage get splash => const AssetGenImage('assets/splash/splash.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [splash];
+}
+
 class $AssetsWudaoIconsGen {
   const $AssetsWudaoIconsGen();
 
@@ -2885,9 +2977,11 @@ class $AssetsWudaoIconsGen {
 }
 
 abstract final class Assets {
+  static const $AssetsBeastSoulGen beastSoul = $AssetsBeastSoulGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsLogoGen logo = $AssetsLogoGen();
   static const $AssetsSkillIconsGen skillIcons = $AssetsSkillIconsGen();
+  static const $AssetsSplashGen splash = $AssetsSplashGen();
   static const $AssetsWudaoIconsGen wudaoIcons = $AssetsWudaoIconsGen();
 }
 
