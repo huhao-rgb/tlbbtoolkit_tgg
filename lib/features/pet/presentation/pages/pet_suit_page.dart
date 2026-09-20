@@ -909,17 +909,51 @@ class _CalcCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: TgSpacing.s18),
-          // 兑换 1★ 整套
-          if (result.exchangeSet > 0) ...[
-            _SectionTitle(title: '兑换 $lv 级套装 1★ · 5 件'),
-            const SizedBox(height: TgSpacing.s10),
-            _MatItem(
-              name: kSuitMatName,
-              count: result.exchangeSet,
-              note: '每件 ${result.exchangePerPiece} 个',
-            ),
-            const SizedBox(height: TgSpacing.s18),
-          ],
+          // 兑换 / 合计 两个模块并排（左兑换、右合计；窄屏上下堆叠）
+          LayoutBuilder(
+            builder: (context, c) {
+              final exchange = result.exchangeSet > 0
+                  ? _CalcModule(
+                      title: '兑换 $lv 级套装 1★ · 5 件',
+                      child: _MatItem(
+                        name: kSuitMatName,
+                        count: result.exchangeSet,
+                        note: '每件 ${result.exchangePerPiece} 个',
+                      ),
+                    )
+                  : null;
+              final total = _CalcModule(
+                title: '合计消耗',
+                titleColor: tg.gold2,
+                child: _MatItem(
+                  name: kSuitMatName,
+                  count: result.total,
+                  note: '兑换 + 升星 · 5 件',
+                ),
+              );
+              if (exchange == null || c.maxWidth < 430) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (exchange != null) ...[
+                      exchange,
+                      const SizedBox(height: TgSpacing.s14),
+                    ],
+                    total,
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: exchange),
+                  const SizedBox(width: TgSpacing.s14),
+                  Expanded(child: total),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: TgSpacing.s18),
           // 升星（1★ 起到目标星级，逐星）
           if (result.starRows.isNotEmpty) ...[
             _SectionTitle(title: '升星 1★ → $star★ · $lv 级 · 5 件'),
@@ -935,34 +969,7 @@ class _CalcCard extends StatelessWidget {
             ),
             const SizedBox(height: TgSpacing.md),
           ],
-          // 合计
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(TgSpacing.md),
-            decoration: BoxDecoration(
-              color: tg.goldTint(.05),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: tg.goldTint(.4), width: 1),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '合计消耗',
-                  style: TgType.caption.copyWith(
-                    color: tg.gold2,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const SizedBox(height: TgSpacing.s10),
-                _MatItem(
-                  name: kSuitMatName,
-                  count: result.total,
-                  note: '兑换 + 升星 · 5 件',
-                ),
-              ],
-            ),
-          ),
+          // 合计（已与兑换模块并排在上方）
           const SizedBox(height: TgSpacing.s14),
           Text(
             '※ $lv 级档参考：兑换 1★ 每件 ${result.exchangePerPiece} 个，'
@@ -981,6 +988,36 @@ class _CalcCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 计算器内的模块：标题在上、内容在下（无卡片边框 / 无选中态）。
+class _CalcModule extends StatelessWidget {
+  const _CalcModule({required this.title, required this.child, this.titleColor});
+
+  final String title;
+  final Widget child;
+  final Color? titleColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: TgType.caption.copyWith(
+            color: titleColor ?? tg.t3,
+            fontWeight: FontWeight.w500,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: TgSpacing.s10),
+        child,
+      ],
     );
   }
 }
@@ -1013,6 +1050,7 @@ class _MatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
       decoration: BoxDecoration(
         color: tg.inset,
@@ -1020,7 +1058,6 @@ class _MatItem extends StatelessWidget {
         border: Border.all(color: tg.border, width: 1),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 28,
