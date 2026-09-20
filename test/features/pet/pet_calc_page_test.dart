@@ -3,9 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/pet_calc_page.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 
 /// 以完整主题（含 TgColors extension）泵入宝宝资质计算页。
-Future<void> pumpPage(WidgetTester tester, {Size size = const Size(1180, 900)}) async {
+Future<void> pumpPage(
+  WidgetTester tester, {
+  Size size = const Size(1180, 900),
+}) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
@@ -114,12 +118,15 @@ void main() {
     expect(find.textContaining('悟性+39.3% / 灵性+34%'), findsWidgets);
   });
 
-  testWidgets('移动端窄屏：单列堆叠，不溢出', (tester) async {
+  testWidgets('移动端窄屏：单列堆叠，计算结果用弹窗展示', (tester) async {
     await pumpPage(tester, size: const Size(390, 844));
 
     // 无水平溢出（布局异常会抛 Overflow）
     expect(tester.takeException(), isNull);
     expect(find.text('宝宝资质计算'), findsOneWidget);
+
+    // 初始未计算：无结果弹窗
+    expect(find.text('计算结果'), findsNothing);
 
     // 步进器仍可用
     final calcBtn = find.text('开始计算');
@@ -127,6 +134,63 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(calcBtn);
     await tester.pumpAndSettle();
+
+    // 结果弹窗即时出现（无需下滑）
+    expect(find.text('计算结果'), findsOneWidget);
+    final dialog = find.byType(Dialog);
+    expect(dialog, findsOneWidget);
+    expect(
+      find.descendant(of: dialog, matching: find.text('预估成品资质')),
+      findsOneWidget,
+    );
+    expect(
+      // 预估成品资质 与 满悟满灵估算 均为 4,015
+      find.descendant(of: dialog, matching: find.text('4,015')),
+      findsNWidgets(2),
+    );
+    expect(
+      find.descendant(of: dialog, matching: find.textContaining('建议更换胚子再培养')),
+      findsOneWidget,
+    );
+    // 内联结果卡同时保留（关闭弹窗后仍可回看）
+    expect(find.text('预估成品资质'), findsNWidgets(2));
+
+    // 关闭弹窗 → 弹窗消失，内联结果卡仍在
+    await tester.tap(find.byType(TgModalCloseButton));
+    await tester.pumpAndSettle();
+    expect(find.text('计算结果'), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
     expect(find.text('预估成品资质'), findsOneWidget);
+  });
+
+  testWidgets('移动端再次计算：弹窗内容随输入更新', (tester) async {
+    await pumpPage(tester, size: const Size(390, 844));
+
+    // 关闭初始弹窗
+    await tester.ensureVisible(find.text('开始计算'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('开始计算'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TgModalCloseButton));
+    await tester.pumpAndSettle();
+
+    // 目标悟性 / 灵性 10 → 9，重新计算
+    await tester.tap(find.text('−').at(2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('−').at(3));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('开始计算'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('开始计算'));
+    await tester.pumpAndSettle();
+
+    final dialog = find.byType(Dialog);
+    expect(dialog, findsOneWidget);
+    // 2200 普通品种 0-0 → 9-9：悟性后 2860（≥2200 档，灵9 +26%）
+    // = round(2200*1.30*1.26) = 3603.6 → 3604
+    expect(
+      find.descendant(of: dialog, matching: find.text('3,604')),
+      findsOneWidget,
+    );
   });
 }

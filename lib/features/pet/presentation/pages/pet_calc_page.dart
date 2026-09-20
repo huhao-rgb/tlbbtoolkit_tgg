@@ -7,6 +7,7 @@ import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
+import '../../../../shared/widgets/tg_modal.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
 import '../../../../shared/widgets/tg_switch.dart';
 import '../../../../shared/widgets/tg_text_field.dart';
@@ -17,6 +18,7 @@ import '../../domain/pet_calc.dart';
 /// 布局：页头 + split（左：表单卡，右：结果卡 380px，sticky）。
 /// - 表单卡：超灵品种开关 + 当前资质输入 + 当前/目标悟灵步进器 + 开始计算按钮；
 /// - 结果卡：初始隐藏，点击「开始计算」后展示预估成品资质、评级、裸资与培养建议；
+/// - 窄屏（单列堆叠，结果卡在表单下方）额外用弹窗即时呈现结果，免去下滑；
 /// - 计算逻辑见 `pet_calc.dart`（官方「珍兽养成」口径：灵性加成按悟性后资质分三档）。
 ///
 /// 页面不含 Scaffold/AppBar（信息条与返回按钮由 shell 框架提供）。
@@ -47,20 +49,30 @@ class _PetCalcPageState extends State<PetCalcPage> {
     super.dispose();
   }
 
-  void _onCalc() {
+  /// 计算并更新结果。[useDialog] 为真（窄屏单列布局）时，结果同时以弹窗呈现 ——
+  /// 内联结果卡位于表单下方，窄屏需下滑才可见；弹窗让结果立刻可见。
+  void _onCalc({required bool useDialog}) {
     final base = int.tryParse(_baseController.text.trim()) ?? 0;
-    setState(() {
-      _result = computePetCalc(
-        PetCalcInput(
-          base: base,
-          currentWu: _curWu,
-          currentLing: _curLing,
-          targetWu: _wu,
-          targetLing: _ling,
-          isSuperLing: _isChaoling,
-        ),
+    final result = computePetCalc(
+      PetCalcInput(
+        base: base,
+        currentWu: _curWu,
+        currentLing: _curLing,
+        targetWu: _wu,
+        targetLing: _ling,
+        isSuperLing: _isChaoling,
+      ),
+    );
+    setState(() => _result = result);
+    if (useDialog) {
+      // 窄屏弹窗前先收起软键盘，避免弹窗被键盘挤压。
+      FocusScope.of(context).unfocus();
+      showTgModal(
+        context: context,
+        maxWidth: 400,
+        child: _ResultDialog(result: result),
       );
-    });
+    }
   }
 
   @override
@@ -133,7 +145,7 @@ class _PetCalcPageState extends State<PetCalcPage> {
                                   setState(() => _ling = _bump(_ling, -1)),
                               onLingPlus: () =>
                                   setState(() => _ling = _bump(_ling, 1)),
-                              onCalc: _onCalc,
+                              onCalc: () => _onCalc(useDialog: !wide),
                             ),
                           ),
                           const SizedBox(width: TgSpacing.s18),
@@ -176,7 +188,7 @@ class _PetCalcPageState extends State<PetCalcPage> {
                                 setState(() => _ling = _bump(_ling, -1)),
                             onLingPlus: () =>
                                 setState(() => _ling = _bump(_ling, 1)),
-                            onCalc: _onCalc,
+                            onCalc: () => _onCalc(useDialog: !wide),
                           ),
                           if (_result != null) ...[
                             const SizedBox(height: TgSpacing.s18),
@@ -579,6 +591,8 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
 }
 
 /// 结果卡（`.result-card`）：预估成品资质 + 评级 + 明细行 + 公式注。
+///
+/// 内容与窄屏结果弹窗 [_ResultDialog] 共用 [_ResultBody]，两者仅外壳不同。
 class _ResultCard extends StatelessWidget {
   const _ResultCard({required this.result, required this.compact});
 
@@ -588,7 +602,6 @@ class _ResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final r = result;
     return TgCard(
       width: double.infinity,
       basePadding: TgSpacing.cardPadding,
@@ -597,82 +610,130 @@ class _ResultCard extends StatelessWidget {
         borderRadius: TgRadius.card,
         border: Border.all(color: tg.border, width: 1),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // res-label
-          Text(
-            '预估成品资质',
-            style: TgType.note.copyWith(
-              fontSize: 12,
-              color: tg.t3,
-              letterSpacing: 2,
+      child: _ResultBody(result: result, compact: compact),
+    );
+  }
+}
+
+/// 窄屏计算结果弹窗：标题「计算结果」+ 关闭按钮 + 结果内容。
+///
+/// 窄屏下内联结果卡在表单下方，需下滑才可见；点「开始计算」后由本弹窗即时呈现。
+class _ResultDialog extends StatelessWidget {
+  const _ResultDialog({required this.result});
+
+  final PetCalcResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // modal-head：标题 + 关闭
+        Row(
+          children: [
+            Expanded(
+              child: Text('计算结果', style: TgType.score19.copyWith(color: tg.t1)),
             ),
+            const SizedBox(width: TgSpacing.s10),
+            TgModalCloseButton(onTap: () => Navigator.pop(context)),
+          ],
+        ),
+        const SizedBox(height: TgSpacing.s14),
+        // 弹窗正文列比页面窄，大数字固定用紧凑字号。
+        _ResultBody(result: result, compact: true),
+      ],
+    );
+  }
+}
+
+/// 结果内容：预估成品资质 + 评级徽章 + 明细行 + 公式注（结果卡与结果弹窗共用）。
+class _ResultBody extends StatelessWidget {
+  const _ResultBody({required this.result, required this.compact});
+
+  final PetCalcResult result;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final r = result;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // res-label
+        Text(
+          '预估成品资质',
+          style: TgType.note.copyWith(
+            fontSize: 12,
+            color: tg.t3,
+            letterSpacing: 2,
           ),
-          // res-main：大数字 + 评级徽章
-          const SizedBox(height: TgSpacing.s14),
-          Row(
+        ),
+        // res-main：大数字 + 评级徽章
+        const SizedBox(height: TgSpacing.s14),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                r.resultLocale,
+                style: TgType.numResult(tg.gold2)
+                    .copyWith(fontSize: compact ? 36 : 42, letterSpacing: 1),
+              ),
+            ),
+            const SizedBox(width: TgSpacing.s18),
+            _GradeBox(grade: r.grade, blue: r.blueGrade),
+          ],
+        ),
+        const SizedBox(height: TgSpacing.xs),
+        // res-sub：评级文案 · 相对当前资质
+        Text.rich(
+          TextSpan(
+            style: TgType.caption.copyWith(color: tg.t3),
             children: [
-              Expanded(
-                child: Text(
-                  r.resultLocale,
-                  style: TgType.numResult(tg.gold2)
-                      .copyWith(fontSize: compact ? 36 : 42, letterSpacing: 1),
+              TextSpan(text: r.gradeText),
+              const TextSpan(text: ' · 相对当前资质 '),
+              TextSpan(
+                text: r.pctText,
+                style: TgType.caption.copyWith(
+                  color: tg.gold2,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: TgSpacing.s18),
-              _GradeBox(grade: r.grade, blue: r.blueGrade),
             ],
           ),
-          const SizedBox(height: TgSpacing.xs),
-          // res-sub：评级文案 · 相对当前资质
-          Text.rich(
-            TextSpan(
-              style: TgType.caption.copyWith(color: tg.t3),
-              children: [
-                TextSpan(text: r.gradeText),
-                const TextSpan(text: ' · 相对当前资质 '),
-                TextSpan(
-                  text: r.pctText,
-                  style: TgType.caption.copyWith(
-                    color: tg.gold2,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
+        ),
+        // res-rows：明细
+        const SizedBox(height: TgSpacing.s18),
+        Container(
+          padding: const EdgeInsets.only(top: 6),
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: tg.border, width: 1)),
           ),
-          // res-rows：明细
-          const SizedBox(height: TgSpacing.s18),
-          Container(
-            padding: const EdgeInsets.only(top: 6),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: tg.border, width: 1)),
-            ),
-            child: Column(
-              children: [
-                _ResultRow(label: '推算裸资质', value: r.nakedLocale),
-                _ResultRow(label: '当前悟性 / 灵性', value: r.currentWlText),
-                _ResultRow(
-                  label: '目标悟性 / 灵性',
-                  value: r.targetWlText,
-                  highlight: true,
-                ),
-                _ResultRow(label: '超灵加成', value: r.clText, highlight: true),
-                _ResultRow(
-                  label: '满悟满灵估算',
-                  value: r.maxEstLocale,
-                  highlight: true,
-                ),
-                _ResultRow(label: '建议培养方向', value: r.tip, last: true),
-              ],
-            ),
+          child: Column(
+            children: [
+              _ResultRow(label: '推算裸资质', value: r.nakedLocale),
+              _ResultRow(label: '当前悟性 / 灵性', value: r.currentWlText),
+              _ResultRow(
+                label: '目标悟性 / 灵性',
+                value: r.targetWlText,
+                highlight: true,
+              ),
+              _ResultRow(label: '超灵加成', value: r.clText, highlight: true),
+              _ResultRow(
+                label: '满悟满灵估算',
+                value: r.maxEstLocale,
+                highlight: true,
+              ),
+              _ResultRow(label: '建议培养方向', value: r.tip, last: true),
+            ],
           ),
-          // note：公式说明
-          const SizedBox(height: TgSpacing.md),
-          _FormulaNote(),
-        ],
-      ),
+        ),
+        // note：公式说明
+        const SizedBox(height: TgSpacing.md),
+        _FormulaNote(),
+      ],
     );
   }
 }
