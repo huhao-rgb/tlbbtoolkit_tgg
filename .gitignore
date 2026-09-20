@@ -50,3 +50,6 @@ app.*.map.json
 # Release signing keystore & credentials (never commit these)
 /android/app/upload-keystore.jks
 /android/key.properties
+
+# AI agent 本地配置（arkcli / harness 注入产物，含本机绝对路径，因人而异）
+.codex/

@@ -1,9 +1,32 @@
 {
   "dart.flutterSdkPath": ".fvm/flutter_sdk",
+
+  // —— 搜索/上下文优化：不把构建产物与生成代码喂给 AI ——
   "search.exclude": {
-    ".fvm": true
+    ".fvm": true,
+    "build": true,
+    "**/build": true,
+    ".dart_tool": true,
+    "**/.dart_tool": true,
+    "**/*.g.dart": true,
+    "**/*.freezed.dart": true,
+    "lib/gen": true
   },
+
+  // .fvm/flutter_sdk 是指向整个 Flutter SDK 的符号链接，
+  // 不跟随可避免搜索/索引 SDK 内部的数万个文件。
+  "search.followSymlinks": false,
+
   "files.watcherExclude": {
-    ".fvm": true
-  }
+    ".fvm": true,
+    "**/build/**": true,
+    "**/.dart_tool/**": true
+  },
+
+  // 减轻 Dart 分析器负担，同时让 AI 工具链不分析生成物。
+  "dart.analysisExcludedFolders": [
+    "build",
+    ".dart_tool",
+    ".fvm"
+  ]
 }
