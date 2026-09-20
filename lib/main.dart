@@ -4,10 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app/app.dart';
-import 'core/di/providers.dart';
-import 'core/platform/app_window.dart';
-import 'shared/widgets/splash_screen.dart';
+import 'package:tlbbtoolkit/app/app.dart';
+import 'package:tlbbtoolkit/core/di/providers.dart';
+import 'package:tlbbtoolkit/core/platform/app_window.dart';
+import 'package:tlbbtoolkit/shared/widgets/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

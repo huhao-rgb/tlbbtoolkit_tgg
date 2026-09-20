@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 描边小按钮（`.btn btn-sm btn-line`）：32 高 · r9 · 12.5。
 ///

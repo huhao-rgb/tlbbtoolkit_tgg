@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 分段按钮组（对应原型 `.lv-seg`）：inset 底 + 3px 内距 + 若干按钮。
 ///

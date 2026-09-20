@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/design_tokens.dart';
-import 'tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 
 /// 弹窗遮罩色（对应原型 `.modal-ov` 深色遮罩）。
 const _modalBarrier = Color(0xA807090D);

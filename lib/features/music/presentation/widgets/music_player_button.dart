@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/responsive/breakpoints.dart';
-import '../../../../shared/widgets/tg_icon.dart';
-import '../providers/music_player_providers.dart';
-import 'music_eq_bars.dart';
-import 'music_panel_sheet.dart';
-import 'music_popover_panel.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/features/music/presentation/providers/music_player_providers.dart';
+import 'package:tlbbtoolkit/features/music/presentation/widgets/music_eq_bars.dart';
+import 'package:tlbbtoolkit/features/music/presentation/widgets/music_panel_sheet.dart';
+import 'package:tlbbtoolkit/features/music/presentation/widgets/music_popover_panel.dart';
 
 /// hover 底色（与侧栏导航项一致：深色白 4% / 浅色墨 5%）。
 const _hoverDark = Color(0x0AFFFFFF);

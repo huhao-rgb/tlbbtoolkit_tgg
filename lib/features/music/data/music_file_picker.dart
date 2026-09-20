@@ -1,7 +1,7 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../domain/entities/music_track.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
 
 part 'music_file_picker.g.dart';
 

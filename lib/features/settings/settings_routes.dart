@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'presentation/pages/settings_page.dart';
+import 'package:tlbbtoolkit/features/settings/presentation/pages/settings_page.dart';
 
 part 'settings_routes.g.dart';
 

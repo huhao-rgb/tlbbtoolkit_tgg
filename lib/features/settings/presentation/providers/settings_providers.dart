@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../data/repositories/settings_repository_impl.dart';
-import '../../domain/entities/app_settings.dart';
+import 'package:tlbbtoolkit/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:tlbbtoolkit/features/settings/domain/entities/app_settings.dart';
 
 part 'settings_providers.g.dart';
 

@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/di/providers.dart';
-import '../../../../core/storage/local_storage.dart';
-import '../../domain/entities/app_settings.dart';
-import '../../domain/repositories/settings_repository.dart';
+import 'package:tlbbtoolkit/core/di/providers.dart';
+import 'package:tlbbtoolkit/core/storage/local_storage.dart';
+import 'package:tlbbtoolkit/features/settings/domain/entities/app_settings.dart';
+import 'package:tlbbtoolkit/features/settings/domain/repositories/settings_repository.dart';
 
 part 'settings_repository_impl.g.dart';
 

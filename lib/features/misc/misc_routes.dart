@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../shared/tools/tool_catalog.dart';
-import '../../shared/widgets/tool_hub_page.dart';
-import 'domain/account_market.dart';
-import 'domain/pet_market.dart';
-import 'presentation/pages/misc_account_detail_page.dart';
-import 'presentation/pages/misc_account_market_page.dart';
-import 'presentation/pages/misc_market_page.dart';
-import 'presentation/pages/misc_regress_page.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tool_hub_page.dart';
+import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
+import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_account_detail_page.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_account_market_page.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_market_page.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_regress_page.dart';
 
 part 'misc_routes.g.dart';
 

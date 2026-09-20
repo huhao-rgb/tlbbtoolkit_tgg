@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/theme/design_tokens.dart';
-import '../../core/responsive/breakpoints.dart';
-import '../tools/tool_catalog.dart';
-import 'page_head.dart';
-import 'tg_card.dart';
-import 'tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 
 /// 工具页骨架占位（在逐个工具落地前统一渲染）。
 ///

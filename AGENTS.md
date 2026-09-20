@@ -46,6 +46,15 @@ presentation ──► domain ◄── data
 - `presentation/`：页面与业务组件，经 Riverpod 消费 `data`，**不直接触碰网络/存储**。
 - 跨 feature 复用提升到 `shared/`，基础设施放 `core/`。
 
+### 导入
+
+- `lib/` 内**一律用 `package:tlbbtoolkit/...` 绝对导入**，禁止 `../../` 相对路径
+  （已由 lint `always_use_package_imports` 强制）。
+- 例外：`part` / `part of` 指令按 Dart 语法必须相对路径；`lib/gen/`、
+  `*.g.dart`、`*.freezed.dart` 是生成文件，不手改。
+- 好处：深层路径一眼可读、文件移动不失效；import 里能直接看出跨 feature 引用，
+  便于守住「feature 之间禁止互相 import」。
+
 ### Riverpod 3.4
 
 - **所有 provider 一律用 `@riverpod` 注解 + 代码生成，禁止手写 provider 定义。**

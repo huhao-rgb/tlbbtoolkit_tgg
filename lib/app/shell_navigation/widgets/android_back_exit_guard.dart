@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../app/theme/design_tokens.dart';
-import '../../../core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 
 /// Android 系统返回键守卫。
 ///

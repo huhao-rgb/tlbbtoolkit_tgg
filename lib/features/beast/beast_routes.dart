@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../shared/tools/tool_catalog.dart';
-import '../../shared/widgets/tool_hub_page.dart';
-import 'presentation/pages/beast_index_page.dart';
-import 'presentation/pages/beast_skill_page.dart';
-import 'presentation/pages/beast_soul_page.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tool_hub_page.dart';
+import 'package:tlbbtoolkit/features/beast/presentation/pages/beast_index_page.dart';
+import 'package:tlbbtoolkit/features/beast/presentation/pages/beast_skill_page.dart';
+import 'package:tlbbtoolkit/features/beast/presentation/pages/beast_soul_page.dart';
 
 part 'beast_routes.g.dart';
 

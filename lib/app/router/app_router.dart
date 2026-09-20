@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/beast/beast_routes.dart' as beast;
-import '../../features/home/home_routes.dart' as home;
-import '../../features/job/job_routes.dart' as job;
-import '../../features/misc/misc_routes.dart' as misc;
-import '../../features/pet/pet_routes.dart' as pet;
-import '../../features/settings/settings_routes.dart' as settings;
-import '../shell_navigation/shell_navigation.dart';
+import 'package:tlbbtoolkit/features/beast/beast_routes.dart' as beast;
+import 'package:tlbbtoolkit/features/home/home_routes.dart' as home;
+import 'package:tlbbtoolkit/features/job/job_routes.dart' as job;
+import 'package:tlbbtoolkit/features/misc/misc_routes.dart' as misc;
+import 'package:tlbbtoolkit/features/pet/pet_routes.dart' as pet;
+import 'package:tlbbtoolkit/features/settings/settings_routes.dart' as settings;
+import 'package:tlbbtoolkit/app/shell_navigation/shell_navigation.dart';
 
 /// 全局路由表。
 ///

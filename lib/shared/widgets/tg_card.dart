@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
-import '../../app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 响应式卡片内边距：窄屏（移动端，<640）自动把左右内边距收窄到
 /// [TgSpacing.cardPaddingMobileH]，提升水平方向的内容容纳；桌面保持 [base] 原值。

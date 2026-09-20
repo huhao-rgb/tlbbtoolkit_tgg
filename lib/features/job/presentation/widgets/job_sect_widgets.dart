@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../domain/job_sect.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
 
 /// 门派筛选 pill（`.sect`：圆形字徽 + 门派名）。
 ///

@@ -2,7 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../domain/music_engine.dart';
+import 'package:tlbbtoolkit/features/music/domain/music_engine.dart';
 
 part 'audioplayers_music_engine.g.dart';
 

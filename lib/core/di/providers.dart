@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../network/api_client.dart';
-import '../storage/local_storage.dart';
+import 'package:tlbbtoolkit/core/network/api_client.dart';
+import 'package:tlbbtoolkit/core/storage/local_storage.dart';
 
 part 'providers.g.dart';
 

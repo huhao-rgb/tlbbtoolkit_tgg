@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/responsive/breakpoints.dart';
-import '../../../../shared/tools/tool_catalog.dart';
-import '../../../../shared/widgets/tg_page_entrance.dart';
-import '../../../../shared/widgets/tg_text_field.dart';
-import '../../../../shared/widgets/tool_card.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
+import 'package:tlbbtoolkit/shared/widgets/tool_card.dart';
 
 /// 首页（工具箱 tab 根页面）：天工阁 Hero + 搜索 + 分类筛选 + 工具网格。
 ///

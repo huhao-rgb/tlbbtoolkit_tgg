@@ -8,7 +8,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
-import 'pet_market.dart';
+import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
 
 /// 千分位整数（如 1,234）。
 String pmThousands(int n) {

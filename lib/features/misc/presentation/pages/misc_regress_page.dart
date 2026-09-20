@@ -8,18 +8,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/di/providers.dart';
-import '../../../../core/responsive/breakpoints.dart';
-import '../../../../shared/tools/tool_catalog.dart';
-import '../../../../shared/widgets/page_head.dart';
-import '../../../../shared/widgets/tg_card.dart';
-import '../../../../shared/widgets/tg_icon.dart';
-import '../../../../shared/widgets/tg_modal.dart';
-import '../../../../shared/widgets/tg_page_entrance.dart';
-import '../../../../shared/widgets/tg_text_field.dart';
-import '../../data/reg_repository.dart';
-import '../../domain/reg_account.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/di/providers.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
+import 'package:tlbbtoolkit/features/misc/data/reg_repository.dart';
+import 'package:tlbbtoolkit/features/misc/domain/reg_account.dart';
 
 /// 卡回归计算器（对应原型 `v-regression`）。
 ///

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/design_tokens.dart';
-import 'tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 
 /// 通用自绘输入框（聚焦态：金描边 .55 + focusRing 光环）。
 ///

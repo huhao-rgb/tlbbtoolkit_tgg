@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../shared/tools/tool_catalog.dart';
-import '../../shared/widgets/tool_hub_page.dart';
-import 'presentation/pages/job_artifact_page.dart';
-import 'presentation/pages/job_point_page.dart';
-import 'presentation/pages/job_sect_intro_page.dart';
-import 'presentation/pages/job_skill_page.dart';
-import 'presentation/pages/job_wudao_page.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tool_hub_page.dart';
+import 'package:tlbbtoolkit/features/job/presentation/pages/job_artifact_page.dart';
+import 'package:tlbbtoolkit/features/job/presentation/pages/job_point_page.dart';
+import 'package:tlbbtoolkit/features/job/presentation/pages/job_sect_intro_page.dart';
+import 'package:tlbbtoolkit/features/job/presentation/pages/job_skill_page.dart';
+import 'package:tlbbtoolkit/features/job/presentation/pages/job_wudao_page.dart';
 
 part 'job_routes.g.dart';
 

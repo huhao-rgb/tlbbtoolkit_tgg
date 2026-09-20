@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../app/shell_navigation/shell_navigation_state.dart';
-import '../../app/theme/design_tokens.dart';
-import '../../core/platform/app_window.dart';
-import '../../gen/assets.gen.dart';
+import 'package:tlbbtoolkit/app/shell_navigation/shell_navigation_state.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/platform/app_window.dart';
+import 'package:tlbbtoolkit/gen/assets.gen.dart';
 
 /// 自定义窗口标题栏高度（原型 `.titlebar` height:40px）。
 const double windowTitleBarHeight = 40;

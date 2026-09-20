@@ -31,7 +31,13 @@ linter:
   # producing the lint.
   rules:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes`
+    # rule.
+
+    # lib/ 内一律用 package:tlbbtoolkit/... 绝对导入，禁止 ../../ 相对路径
+    # （深层路径不可读、文件移动即断；跨 feature 引用也变得可见）。
+    # 注：`part` / `part of` 指令按 Dart 语法必须是相对路径，不受此规则约束。
+    always_use_package_imports: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

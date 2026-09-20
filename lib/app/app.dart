@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import '../core/platform/app_window.dart';
-import '../shared/widgets/window_title_bar.dart';
-import '../features/settings/presentation/providers/settings_providers.dart';
-import 'router/app_router.dart';
-import 'theme/app_theme.dart';
+import 'package:tlbbtoolkit/core/platform/app_window.dart';
+import 'package:tlbbtoolkit/shared/widgets/window_title_bar.dart';
+import 'package:tlbbtoolkit/features/settings/presentation/providers/settings_providers.dart';
+import 'package:tlbbtoolkit/app/router/app_router.dart';
+import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 
 /// 应用根组件（组合根）。
 ///

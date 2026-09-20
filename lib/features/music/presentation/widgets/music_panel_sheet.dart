@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import 'music_popover_panel.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/features/music/presentation/widgets/music_popover_panel.dart';
 
 /// sheet 弹层遮罩（与 `tg_modal` 的深色遮罩同值，保持全站弹层一致）。
 const _sheetBarrier = Color(0xA807090D);

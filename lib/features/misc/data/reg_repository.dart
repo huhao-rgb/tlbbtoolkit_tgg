@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import '../../../core/storage/local_storage.dart';
-import '../domain/reg_account.dart';
+import 'package:tlbbtoolkit/core/storage/local_storage.dart';
+import 'package:tlbbtoolkit/features/misc/domain/reg_account.dart';
 
 /// 卡回归数据仓储：读写本地 JSON（原型 `localStorage[REG_KEY]`）。
 ///

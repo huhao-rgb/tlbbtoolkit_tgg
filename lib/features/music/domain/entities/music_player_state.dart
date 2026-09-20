@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'music_track.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
 
 part 'music_player_state.freezed.dart';
 part 'music_player_state.g.dart';

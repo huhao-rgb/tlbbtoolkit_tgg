@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../constants/app_constants.dart';
-import 'api_exception.dart';
+import 'package:tlbbtoolkit/core/constants/app_constants.dart';
+import 'package:tlbbtoolkit/core/network/api_exception.dart';
 
 /// [Dio] 实例工厂与统一配置。
 ///

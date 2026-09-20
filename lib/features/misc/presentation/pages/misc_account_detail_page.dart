@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/responsive/breakpoints.dart';
-import '../../../../shared/tools/tool_catalog.dart';
-import '../../../../shared/widgets/tg_icon.dart';
-import '../../../../shared/widgets/tg_image_gallery.dart';
-import '../../../../shared/widgets/tg_page_entrance.dart';
-import '../../domain/account_market.dart';
-import '../../domain/account_market_stats.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_image_gallery.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
+import 'package:tlbbtoolkit/features/misc/domain/account_market_stats.dart';
 
 /// 账号详情页（独立嵌套子路由 `/misc/acc-market/detail`）。
 ///

@@ -3,12 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../shared/widgets/tg_icon.dart';
-import '../../domain/entities/music_player_state.dart';
-import '../../domain/entities/music_track.dart';
-import '../providers/music_player_providers.dart';
-import 'music_eq_bars.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
+import 'package:tlbbtoolkit/features/music/presentation/providers/music_player_providers.dart';
+import 'package:tlbbtoolkit/features/music/presentation/widgets/music_eq_bars.dart';
 
 /// 弹层理想宽度（原型 `.bgm-pop{width:min(320px,94vw)}`）。
 const double kMusicPopoverWidth = 320;

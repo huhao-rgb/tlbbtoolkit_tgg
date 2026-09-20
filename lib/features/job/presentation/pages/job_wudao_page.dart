@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/responsive/breakpoints.dart';
-import '../../../../shared/tools/tool_catalog.dart';
-import '../../../../shared/widgets/page_head.dart';
-import '../../../../shared/widgets/tg_card.dart';
-import '../../../../shared/widgets/tg_page_entrance.dart';
-import '../../domain/job_sect.dart';
-import '../../domain/job_wudao.dart';
-import '../widgets/job_sect_widgets.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
+import 'package:tlbbtoolkit/features/job/domain/job_wudao.dart';
+import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.dart';
 
 /// 职业武道（对应原型 `v-class-wudao`）。
 ///

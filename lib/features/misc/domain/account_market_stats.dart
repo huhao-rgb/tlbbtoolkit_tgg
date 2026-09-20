@@ -8,8 +8,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
-import 'account_market.dart';
-import 'pet_market_stats.dart' show pmMedian, pmThousands;
+import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
+import 'package:tlbbtoolkit/features/misc/domain/pet_market_stats.dart' show pmMedian, pmThousands;
 
 /// 金额格式化（原型 `amFmt`）：≥10000 → `x.x 万`（去尾 .0），否则千分位四舍五入整数。
 String amFmt(num n) {

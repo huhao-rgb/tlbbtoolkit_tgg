@@ -1,4 +1,4 @@
-import '../entities/app_settings.dart';
+import 'package:tlbbtoolkit/features/settings/domain/entities/app_settings.dart';
 
 /// 设置仓储抽象。
 abstract interface class SettingsRepository {

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/responsive/breakpoints.dart';
-import '../../../../shared/tools/tool_catalog.dart';
-import '../../../../shared/widgets/page_head.dart';
-import '../../../../shared/widgets/tg_card.dart';
-import '../../../../shared/widgets/tg_modal.dart';
-import '../../../../shared/widgets/tg_page_entrance.dart';
-import '../../domain/beast_spirit.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/features/beast/domain/beast_spirit.dart';
 
 /// 兽灵图鉴（对应原型 `v-beast-index`）。
 ///

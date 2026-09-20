@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../app/theme/design_tokens.dart';
-import 'tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 
 /// 画廊单图数据。
 class TgGalleryImage {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 均衡器跳动条（对应原型 `.bgm-eq`）：
 /// 3 根金色小柱（宽 2.5 · 圆角 1 · 间距 1.5 · 容器 14×12），

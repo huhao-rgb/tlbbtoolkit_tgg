@@ -1,10 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/di/providers.dart';
-import '../../../../core/storage/local_storage.dart';
-import '../../domain/entities/music_player_state.dart';
-import '../../domain/entities/music_track.dart';
-import '../../domain/repositories/music_player_repository.dart';
+import 'package:tlbbtoolkit/core/di/providers.dart';
+import 'package:tlbbtoolkit/core/storage/local_storage.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
+import 'package:tlbbtoolkit/features/music/domain/repositories/music_player_repository.dart';
 
 part 'music_player_repository_impl.g.dart';
 

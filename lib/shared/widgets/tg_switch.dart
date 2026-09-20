@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 自定义开关（对应原型 `.switch`）：46×26 轨道 · 20 圆钮 · 金渐变选中。
 ///

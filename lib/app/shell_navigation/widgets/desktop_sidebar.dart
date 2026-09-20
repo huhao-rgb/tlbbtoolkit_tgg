@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../features/settings/presentation/providers/settings_providers.dart';
-import '../../../gen/assets.gen.dart';
-import '../../../shared/tools/tool_catalog.dart';
-import '../../../shared/widgets/tg_icon.dart';
-import '../../theme/design_tokens.dart';
+import 'package:tlbbtoolkit/features/settings/presentation/providers/settings_providers.dart';
+import 'package:tlbbtoolkit/gen/assets.gen.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 侧栏竖渐变（对应原型 `--sb-a → --sb-b`，深/浅两套）。
 const _sbGradientDark = [Color(0xFF0C1016), Color(0xFF090C11)];

@@ -3,20 +3,20 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/responsive/breakpoints.dart';
-import '../../../../shared/tools/tool_catalog.dart';
-import '../../../../shared/widgets/chainable_scroll_physics.dart';
-import '../../../../shared/widgets/page_head.dart';
-import '../../../../shared/widgets/tg_icon.dart';
-import '../../../../shared/widgets/tg_image_gallery.dart';
-import '../../../../shared/widgets/tg_page_entrance.dart';
-import '../../../../shared/widgets/tg_select.dart';
-import '../../data/account_market_fetcher.dart';
-import '../../data/pet_market_fetcher.dart'
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/chainable_scroll_physics.dart';
+import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_image_gallery.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_select.dart';
+import 'package:tlbbtoolkit/features/misc/data/account_market_fetcher.dart';
+import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart'
     show SxdsRegion, SxdsServer, fetchSxdsRegions;
-import '../../domain/account_market.dart';
-import '../../domain/account_market_stats.dart';
+import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
+import 'package:tlbbtoolkit/features/misc/domain/account_market_stats.dart';
 
 /// 账号行情分析（对应原型 `v-acc-market`）。
 ///

@@ -26,7 +26,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../domain/pet_market.dart';
+import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
 
 /// 站点请求签名密钥（逆向自站方 JS）。
 const String _kSignSecret = 'lzadIuYtSA6CpdE0llu8';

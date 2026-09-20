@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/design_tokens.dart';
-import '../../../../shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 
 /// soul-fx 强调块（`<b>` 标题 + 说明，左侧竖条着色）。
 enum JobSoulAccent { gold, blue, green }

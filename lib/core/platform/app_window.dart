@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'desktop_window.dart'
+import 'package:tlbbtoolkit/core/platform/desktop_window.dart'
     if (dart.library.html) 'desktop_window_stub.dart'
     as impl;
 

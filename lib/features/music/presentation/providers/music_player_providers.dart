@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../data/audio/audioplayers_music_engine.dart';
-import '../../data/music_file_picker.dart';
-import '../../data/repositories/music_player_repository_impl.dart';
-import '../../domain/entities/music_player_state.dart';
-import '../../domain/music_engine.dart';
+import 'package:tlbbtoolkit/features/music/data/audio/audioplayers_music_engine.dart';
+import 'package:tlbbtoolkit/features/music/data/music_file_picker.dart';
+import 'package:tlbbtoolkit/features/music/data/repositories/music_player_repository_impl.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
+import 'package:tlbbtoolkit/features/music/domain/music_engine.dart';
 
 part 'music_player_providers.g.dart';
 

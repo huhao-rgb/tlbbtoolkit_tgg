@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/platform/app_window.dart';
-import '../../core/responsive/breakpoints.dart';
-import '../../shared/widgets/tg_icon.dart';
-import '../../app/theme/design_tokens.dart';
-import 'shell_navigation_state.dart';
-import 'widgets/android_back_exit_guard.dart';
-import 'widgets/app_info_bar.dart';
-import 'widgets/desktop_sidebar.dart';
+import 'package:tlbbtoolkit/core/platform/app_window.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/shell_navigation/shell_navigation_state.dart';
+import 'package:tlbbtoolkit/app/shell_navigation/widgets/android_back_exit_guard.dart';
+import 'package:tlbbtoolkit/app/shell_navigation/widgets/app_info_bar.dart';
+import 'package:tlbbtoolkit/app/shell_navigation/widgets/desktop_sidebar.dart';
 
 /// shell 导航框架（响应式），按原型双端还原：
 ///

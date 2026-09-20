@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 通用下拉筛选（对应原型 `pm-f-item select` 的 Flutter 实现）。
 ///

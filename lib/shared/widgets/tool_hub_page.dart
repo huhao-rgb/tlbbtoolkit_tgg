@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/design_tokens.dart';
-import '../../core/responsive/breakpoints.dart';
-import '../tools/tool_catalog.dart';
-import 'page_head.dart';
-import 'tg_page_entrance.dart';
-import 'tool_card.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tool_card.dart';
 
 /// 分组 hub 页（如「宝宝工具」）：页头 + 该分组工具列表。
 ///

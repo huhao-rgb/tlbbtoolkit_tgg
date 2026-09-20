@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../gen/assets.gen.dart';
+import 'package:tlbbtoolkit/gen/assets.gen.dart';
 
 /// 天工阁线性图标（设计稿 `svg_icons/` → `assets/icons/`，flutter_gen 生成）的渲染封装。
 ///

@@ -1,4 +1,4 @@
-import '../entities/music_player_state.dart';
+import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
 
 /// 播放器持久化仓储抽象。
 ///

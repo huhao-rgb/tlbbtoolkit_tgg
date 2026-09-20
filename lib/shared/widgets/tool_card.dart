@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/theme/design_tokens.dart';
-import '../tools/tool_catalog.dart';
-import 'tg_card.dart';
-import 'tg_icon.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 
 /// 工具卡片（按原型 `.tool-card` 还原）：
 /// - 图标砖：44×44·r12，按分组着色（宝宝=金 / 兽灵·兽魂=紫 / 职业=蓝），

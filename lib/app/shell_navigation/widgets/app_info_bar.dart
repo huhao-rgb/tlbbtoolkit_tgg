@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../features/music/presentation/widgets/music_player_button.dart';
-import '../../../features/settings/presentation/providers/settings_providers.dart';
-import '../../../features/settings/settings_routes.dart';
-import '../../theme/design_tokens.dart';
+import 'package:tlbbtoolkit/features/music/presentation/widgets/music_player_button.dart';
+import 'package:tlbbtoolkit/features/settings/presentation/providers/settings_providers.dart';
+import 'package:tlbbtoolkit/features/settings/settings_routes.dart';
+import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 
 /// 顶栏毛玻璃参数与底部 tabbar 共用 [TgGlass]（对应原型 `--blur`）。
 
