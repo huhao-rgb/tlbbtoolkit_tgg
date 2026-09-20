@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tlbbtoolkit/app/app.dart';
@@ -240,6 +241,25 @@ void main() {
 
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pump(const Duration(milliseconds: 100));
+  });
+
+  testWidgets('三级页面（商品详情）返回回到列表页，而非直接回 hub', (tester) async {
+    await pumpApp(tester);
+
+    // 复刻真实路径：行情列表页 → push 商品详情（列表页留在分支栈中）。
+    final router = GoRouter.of(tester.element(find.byKey(_infoBarKey)));
+    router.go('/misc/market');
+    await tester.pumpAndSettle();
+    expect(infoBarTitle('珍兽行情'), findsOneWidget);
+
+    router.push('/misc/market/detail');
+    await tester.pumpAndSettle();
+    expect(infoBarTitle('商品详情'), findsOneWidget);
+
+    // 返回 → 回到行情列表（而不是「实用工具」hub）。
+    await tester.tap(find.byKey(_backButtonKey));
+    await tester.pumpAndSettle();
+    expect(infoBarTitle('珍兽行情'), findsOneWidget);
   });
 
   testWidgets('设置：顶栏齿轮进入 shell 内设置页，返回回到实用 hub', (tester) async {

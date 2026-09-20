@@ -32,7 +32,15 @@ void main() {
     picker = FakeMusicFilePicker();
   });
 
-  Future<void> pumpButton(WidgetTester tester) async {
+  /// 泵入按钮。[mobile] 为 true 时用手机尺寸（390×844，< 1024 断点），
+  /// 否则用桌面尺寸（1440×1024）。
+  Future<void> pumpButton(WidgetTester tester, {bool mobile = false}) async {
+    tester.view.physicalSize = mobile
+        ? const Size(390, 844)
+        : const Size(1440, 1024);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -54,11 +62,11 @@ void main() {
     await tester.pump();
   }
 
-  /// 点按钮打开弹层并消化 200ms 入场动画。
+  /// 点按钮打开面板并消化入场动画（浮层 200ms / sheet 250ms）。
   Future<void> openPopover(WidgetTester tester) async {
     await tester.tap(find.byTooltip('怀旧音律'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 300));
   }
 
   /// 弹层控制条按钮内的图标（用于断言播放/暂停等视觉状态）。
@@ -72,6 +80,8 @@ void main() {
 
     await openPopover(tester);
     expect(find.text('怀旧音律'), findsOneWidget);
+    // 桌面：锚定浮层，不是底部 sheet
+    expect(find.byType(BottomSheet), findsNothing);
     expect(find.text('本地音乐 · 共 2 首'), findsOneWidget);
     expect(find.text('大理城'), findsOneWidget);
     expect(find.text('苏州'), findsOneWidget);
@@ -179,18 +189,41 @@ void main() {
     expect(ctlIcon(tester, 'music-loop').color, TgColors.dark.gold2);
   });
 
-  testWidgets('移动端窄屏（390×844）：弹层仍完整可点且不溢出', (tester) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
+  testWidgets('移动端（<1024 断点）：改为底部 sheet', (tester) async {
+    await pumpButton(tester, mobile: true);
+    expect(find.byType(BottomSheet), findsNothing);
 
-    await pumpButton(tester);
     await openPopover(tester);
-
-    // 面板宽度取 min(320, 94vw)：窄屏下仍能完整容纳控制条。
-    expect(tester.takeException(), isNull);
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.text('本地音乐 · 共 2 首'), findsOneWidget);
     expect(find.text('大理城'), findsOneWidget);
     expect(find.byKey(const Key('music-next')), findsOneWidget);
     expect(find.text('本地'), findsOneWidget);
+    // 窄屏下整宽贴底，不再有横向/纵向出屏
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('移动端：点遮罩关闭 sheet', (tester) async {
+    await pumpButton(tester, mobile: true);
+    await openPopover(tester);
+
+    await tester.tapAt(const Offset(195, 80)); // sheet 上方空白（遮罩）
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(find.text('大理城'), findsNothing);
+  });
+
+  testWidgets('移动端：sheet 内点曲目起播，按钮转均衡器', (tester) async {
+    await pumpButton(tester, mobile: true);
+    await openPopover(tester);
+
+    await tester.tap(find.text('苏州'));
+    await tester.pump();
+
+    expect(engine.playedPaths, ['/music/b.mp3']);
+    expect(find.byType(MusicEqBars), findsNWidgets(2));
+    expect(ctlIcon(tester, 'music-play-toggle').icon, Icons.pause_rounded);
   });
 }
