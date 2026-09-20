@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../core/responsive/breakpoints.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../providers/music_player_providers.dart';
 import 'music_eq_bars.dart';
+import 'music_panel_sheet.dart';
 import 'music_popover_panel.dart';
 
 /// hover 底色（与侧栏导航项一致：深色白 4% / 浅色墨 5%）。
@@ -16,11 +18,13 @@ const _hoverLight = Color(0x0D2A251D);
 
 /// 信息栏「怀旧音律」按钮（对应原型 `.bgm-btn` / `#bgmBtn`）。
 ///
-/// 点击后在其**右下方 9px、右对齐**弹出播放列表与控制面板
-/// （原型用 `position:fixed` + `getBoundingClientRect` 定位，
-/// 这里用 [OverlayPortal] + [CompositedTransformFollower] 锚定按钮，
-/// 窗口缩放 / 布局变化时会自动跟随），点击面板外或按 Esc 关闭
-/// （原型 `document click` / `Escape`）。
+/// 点击后打开播放列表与控制面板，按布局分流（断点同 shell）：
+/// - 桌面（≥ [Breakpoints.desktop]）：在按钮**右下方 9px、右对齐**弹出浮层
+///   （原型 `position:fixed` 的效果，这里用 [OverlayPortal] +
+///   [CompositedTransformFollower] 锚定按钮，窗口缩放时自动跟随），
+///   点击面板外或按 Esc 关闭（原型 `document click` / `Escape`）；
+/// - 移动端（< [Breakpoints.desktop]）：从底部弹出 sheet
+///   （见 `showMusicPanelSheet`），避免窄屏下浮层出屏。
 class MusicPlayerButton extends ConsumerStatefulWidget {
   const MusicPlayerButton({super.key});
 
@@ -32,6 +36,18 @@ class _MusicPlayerButtonState extends ConsumerState<MusicPlayerButton> {
   final OverlayPortalController _portal = OverlayPortalController();
   final LayerLink _link = LayerLink();
   bool _hover = false;
+
+  /// 打开播放面板：窄窗口/移动端走底部 sheet，桌面走锚定浮层。
+  void _togglePanel() {
+    final isMobileLayout =
+        Breakpoints.layoutOf(MediaQuery.sizeOf(context).width) ==
+        DeviceLayout.mobile;
+    if (isMobileLayout) {
+      showMusicPanelSheet(context);
+      return;
+    }
+    _portal.toggle();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +71,7 @@ class _MusicPlayerButtonState extends ConsumerState<MusicPlayerButton> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: _portal.toggle,
+                onTap: _togglePanel,
                 borderRadius: BorderRadius.circular(TgRadius.md),
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,

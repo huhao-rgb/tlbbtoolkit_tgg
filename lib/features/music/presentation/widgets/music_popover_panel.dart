@@ -24,24 +24,56 @@ const double _listViewportRatio = .45;
 const _hoverDark = Color(0x0AFFFFFF);
 const _hoverLight = Color(0x0D2A251D);
 
-/// 「怀旧音律」弹层（对应原型 `#bgmPop`）：标题 + 播放列表 + 播放控制条。
+/// 「怀旧音律」面板内容（标题 + 播放列表 + 播放控制条）。
 ///
-/// ⚠️ 面板整体挂在 `CompositedTransformFollower`（`RenderFollowerLayer`）之下，
+/// 桌面弹层 [MusicPopoverPanel] 与移动端底部面板（`music_panel_sheet.dart`）
+/// 共用这份内容，只在外层 chrome（宽度/圆角/阴影/拖拽手柄）上区分。
+///
+/// ⚠️ 桌面弹层挂在 `CompositedTransformFollower`（`RenderFollowerLayer`）之下，
 /// 该 layer 的 paint transform 只在**绘制阶段**才建立。因此面板内部**不要**放
 /// `Tooltip` / `DropdownMenu` 等依赖 `OverlayPortal.overlayChildLayoutBuilder`
 /// 的组件 —— 它们在 layout 阶段取不到 transform，会抛
 /// "The paint transform cannot be reliably computed because of RenderFollowerLayer(s)"。
 /// 提示语义改用 `Icon.semanticLabel` / `Semantics` 表达（见 `_CtlButton`）。
-class MusicPopoverPanel extends ConsumerWidget {
+class MusicPanelContent extends ConsumerWidget {
+  const MusicPanelContent({super.key, required this.maxListHeight});
+
+  /// 列表区最大高度（由外层按视口高度算好）。
+  final double maxListHeight;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(musicPlayerControllerProvider);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _Head(state: state),
+        Flexible(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxListHeight),
+            child: _TrackList(state: state),
+          ),
+        ),
+        const _Controls(),
+      ],
+    );
+  }
+}
+
+/// 桌面弹层（对应原型 `#bgmPop`）：锚定信息栏按钮右下方的浮层。
+///
+/// 仅用于桌面布局（≥ [Breakpoints.desktop]）。窄窗口/移动端改用底部面板
+/// （`showMusicPanelSheet`）：`CompositedTransformFollower` 的锚定位置依赖
+/// 目标已绘制的位置，窄屏下弹层容易被推到屏幕外。
+class MusicPopoverPanel extends StatelessWidget {
   const MusicPopoverPanel({super.key, required this.width});
 
   /// 由弹出方按屏幕宽度算好的实际宽度。
   final double width;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final tg = context.tg;
-    final state = ref.watch(musicPlayerControllerProvider);
     final maxListHeight = math.min(
       _listMaxHeight,
       MediaQuery.sizeOf(context).height * _listViewportRatio,
@@ -65,19 +97,7 @@ class MusicPopoverPanel extends ConsumerWidget {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _Head(state: state),
-            Flexible(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: maxListHeight),
-                child: _TrackList(state: state),
-              ),
-            ),
-            const _Controls(),
-          ],
-        ),
+        child: MusicPanelContent(maxListHeight: maxListHeight),
       ),
     );
   }

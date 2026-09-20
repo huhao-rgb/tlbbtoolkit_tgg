@@ -54,8 +54,17 @@ class AppShellNavigation extends ConsumerWidget {
     );
   }
 
-  void _goBack() {
-    // 返回当前分支的根页面（如 /pet/calc → 宝宝工具 hub）。
+  /// 信息条返回钮。
+  ///
+  /// 先 pop 当前分支导航栈内的上一层页面（如 `/misc/market/detail` 商品详情
+  /// → `/misc/market` 行情列表，列表滚动位置随之保留）；仅当栈内已是分支
+  /// 内首个页面时才回到该分支的 hub（如 `/pet/calc` → 宝宝工具 hub）。
+  void _goBack(BuildContext context) {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+      return;
+    }
     navigationShell.goBranch(
       navigationShell.currentIndex,
       initialLocation: true,
@@ -75,7 +84,7 @@ class AppShellNavigation extends ConsumerWidget {
           key: const Key('shell-info-bar'),
           title: navState.title,
           showBack: navState.isSecondLevel,
-          onBack: _goBack,
+          onBack: () => _goBack(context),
           desktop: desktop,
         );
 
