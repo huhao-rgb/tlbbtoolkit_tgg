@@ -118,6 +118,7 @@ flutter:
     - assets/skill_icons/
     - assets/wudao_icons/
     - assets/beast_soul/
+    - assets/pet_suit/
     - assets/splash/
 
   # To add assets to your application, add an assets section, like this:

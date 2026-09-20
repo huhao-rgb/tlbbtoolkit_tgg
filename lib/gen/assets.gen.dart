@@ -255,6 +255,39 @@ class $AssetsLogoGen {
   List<String> get values => [logo];
 }
 
+class $AssetsPetSuitGen {
+  const $AssetsPetSuitGen();
+
+  /// File path: assets/pet_suit/part_armor.png
+  AssetGenImage get partArmor =>
+      const AssetGenImage('assets/pet_suit/part_armor.png');
+
+  /// File path: assets/pet_suit/part_charm.png
+  AssetGenImage get partCharm =>
+      const AssetGenImage('assets/pet_suit/part_charm.png');
+
+  /// File path: assets/pet_suit/part_claw.png
+  AssetGenImage get partClaw =>
+      const AssetGenImage('assets/pet_suit/part_claw.png');
+
+  /// File path: assets/pet_suit/part_helm.png
+  AssetGenImage get partHelm =>
+      const AssetGenImage('assets/pet_suit/part_helm.png');
+
+  /// File path: assets/pet_suit/part_ring.png
+  AssetGenImage get partRing =>
+      const AssetGenImage('assets/pet_suit/part_ring.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [
+    partArmor,
+    partCharm,
+    partClaw,
+    partHelm,
+    partRing,
+  ];
+}
+
 class $AssetsSkillIconsGen {
   const $AssetsSkillIconsGen();
 
@@ -2980,6 +3013,7 @@ abstract final class Assets {
   static const $AssetsBeastSoulGen beastSoul = $AssetsBeastSoulGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsLogoGen logo = $AssetsLogoGen();
+  static const $AssetsPetSuitGen petSuit = $AssetsPetSuitGen();
   static const $AssetsSkillIconsGen skillIcons = $AssetsSkillIconsGen();
   static const $AssetsSplashGen splash = $AssetsSplashGen();
   static const $AssetsWudaoIconsGen wudaoIcons = $AssetsWudaoIconsGen();

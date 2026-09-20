@@ -120,16 +120,21 @@ void main() {
       expect(byName['乌豚望日·忠'], '提升体力');
     });
 
-    test('五件套部位：面甲 / 武器 / 体甲 / 项圈 / 护符', () {
+    test('五件套部位：兽盔 / 兽爪 / 兽甲 / 兽环 / 兽饰', () {
       expect(
         kPetSuitSlots.map((s) => s.slot).toList(),
         ['头', '爪', '躯干', '颈', '护符'],
       );
       expect(
         kPetSuitSlots.map((s) => s.name).toList(),
-        ['珍兽面甲', '珍兽武器', '珍兽体甲', '珍兽项圈', '珍兽护符'],
+        ['兽盔', '兽爪', '兽甲', '兽环', '兽饰'],
       );
-      // 只有项圈带出战后生效的系列效果
+      // 每个部位都带图标资产名（assets/pet_suit/<icon>.png）
+      expect(
+        kPetSuitSlots.map((s) => s.icon).toList(),
+        ['part_helm', 'part_claw', 'part_armor', 'part_ring', 'part_charm'],
+      );
+      // 只有兽环（颈）带出战后生效的系列效果
       expect(kPetSuitSlots[3].note, contains('出战'));
       for (final slot in kPetSuitSlots) {
         expect(slot.note, isNotEmpty, reason: slot.name);

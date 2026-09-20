@@ -98,7 +98,7 @@ void main() {
 
     // 弹窗内容
     expect(find.text('五件套部件'), findsOneWidget);
-    for (final slot in ['珍兽面甲', '珍兽武器', '珍兽体甲', '珍兽项圈', '珍兽护符']) {
+    for (final slot in ['兽盔', '兽爪', '兽甲', '兽环', '兽饰']) {
       expect(find.text(slot), findsOneWidget, reason: slot);
     }
     expect(find.text('出战后提升力量、体力'), findsWidgets);
@@ -113,6 +113,17 @@ void main() {
     expect(find.text('20 / 30 / 35 / 42 / 57'), findsOneWidget);
     expect(find.text('适配：'), findsOneWidget);
     expect(find.text('外功型 · 勇猛性格'), findsOneWidget);
+
+    // 五个部位都渲染了资源图标（assets/pet_suit/*.png）
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName.startsWith('assets/pet_suit/'),
+      ),
+      findsNWidgets(5),
+    );
 
     // 关闭
     await tester.tap(_closeIcon);

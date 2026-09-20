@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/responsive/breakpoints.dart';
+import '../../../../gen/assets.gen.dart';
 import '../../../../shared/tools/tool_catalog.dart';
 import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_card.dart';
@@ -374,6 +375,20 @@ class _SuitCardState extends State<_SuitCard> {
     );
   }
 }
+
+/// 部位图标资产名 → flutter_gen 资产（`assets/pet_suit/`）。
+///
+/// 目前 5 个图标是从官方装等图鉴截图中裁出的 40×40 小图（质量一般）；
+/// 之后用游戏内截图替换时，只要保持同名同路径（建议 96×96 及以上的正方形 PNG，
+/// 不带外框亦可 —— 渲染尺寸 34×34，`BoxFit.contain`）即可，无需改代码；
+/// 若改了文件名，重跑 `fvm dart run build_runner build` 并更新本函数即可。
+AssetGenImage _slotIcon(String name) => switch (name) {
+  'part_claw' => Assets.petSuit.partClaw,
+  'part_armor' => Assets.petSuit.partArmor,
+  'part_ring' => Assets.petSuit.partRing,
+  'part_charm' => Assets.petSuit.partCharm,
+  _ => Assets.petSuit.partHelm,
+};
 
 /// 套装名称样式（原型 `.suit-name`：serif 15.5 · 600 · 字距1）。
 TextStyle _suitNameStyle(TgColors tg) => TextStyle(
@@ -761,21 +776,13 @@ class _PartRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: tg.goldTint(.10),
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: tg.goldTint(.28), width: 1),
-            ),
-            child: Text(
-              slot.slot,
-              style: TgType.caption.copyWith(
-                color: tg.gold2,
-                fontWeight: FontWeight.w600,
-              ),
+          // 部位图标（游戏内道具图，取自珍兽装备图鉴截图）
+          ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: _slotIcon(slot.icon).image(
+              width: 34,
+              height: 34,
+              fit: BoxFit.contain,
             ),
           ),
           const SizedBox(width: TgSpacing.s12),

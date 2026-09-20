@@ -79,6 +79,17 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.text('猛虎越山·勇'));
       await tester.pumpAndSettle();
+      // 预加载部位图标：Image.asset 在测试里需要先解码，否则截图里是空白
+      final ctx = tester.element(find.text('五件套部件'));
+      for (final name in [
+        'part_helm',
+        'part_claw',
+        'part_armor',
+        'part_ring',
+        'part_charm',
+      ]) {
+        await precacheImage(AssetImage('assets/pet_suit/$name.png'), ctx);
+      }
       await tester.pump(const Duration(milliseconds: 400));
       await _snapView(
         tester,

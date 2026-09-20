@@ -78,30 +78,39 @@ class PetSuitSlot {
   const PetSuitSlot({
     required this.name,
     required this.slot,
+    required this.icon,
     required this.note,
   });
 
-  /// 部位装备名，如「珍兽面甲」。
+  /// 游戏内部位名：兽盔 / 兽爪 / 兽甲 / 兽环 / 兽饰。
   final String name;
 
-  /// 部位简称，如「头」「躯干」（弹窗行首徽章）。
+  /// 部位简称：头 / 爪 / 躯干 / 颈 / 护符。
   final String slot;
+
+  /// 部位图标资产名（`assets/pet_suit/<icon>.png`，取自游戏内珍兽装备图鉴截图）。
+  final String icon;
 
   /// 部位说明。
   final String note;
 }
 
-/// 五个部位（顺序：头 / 爪 / 躯干 / 颈 / 护符）。
+/// 五个部位（顺序：兽盔 / 兽爪 / 兽甲 / 兽环 / 兽饰）。
 ///
-/// 官方资料：珍兽装备分五件 —— 头部的珍兽面甲、爪部的珍兽武器、躯干的珍兽体甲、
-/// 颈部的珍兽项圈、身上的珍兽护符；项圈另有「出战后生效的系列专属效果」，
-/// 其余部位提供散件基础属性（数值随星级提升）。
+/// 部位名取自游戏内道具名（官方资料里对应写作珍兽面甲 / 武器 / 体甲 / 项圈 / 护符）；
+/// 其中兽环（项圈）另有「出战后生效的系列专属效果」，其余部位提供散件基础属性
+/// （数值随星级提升）。
 const List<PetSuitSlot> kPetSuitSlots = [
-  PetSuitSlot(name: '珍兽面甲', slot: '头', note: '散件基础属性'),
-  PetSuitSlot(name: '珍兽武器', slot: '爪', note: '散件基础属性'),
-  PetSuitSlot(name: '珍兽体甲', slot: '躯干', note: '散件基础属性'),
-  PetSuitSlot(name: '珍兽项圈', slot: '颈', note: '出战时附加系列专属效果'),
-  PetSuitSlot(name: '珍兽护符', slot: '护符', note: '散件基础属性'),
+  PetSuitSlot(name: '兽盔', slot: '头', icon: 'part_helm', note: '散件基础属性'),
+  PetSuitSlot(name: '兽爪', slot: '爪', icon: 'part_claw', note: '散件基础属性'),
+  PetSuitSlot(name: '兽甲', slot: '躯干', icon: 'part_armor', note: '散件基础属性'),
+  PetSuitSlot(
+    name: '兽环',
+    slot: '颈',
+    icon: 'part_ring',
+    note: '出战后附加系列专属效果',
+  ),
+  PetSuitSlot(name: '兽饰', slot: '护符', icon: 'part_charm', note: '散件基础属性'),
 ];
 
 /// 唯一材料名 —— 圣兽鳞（拆解珍兽套装获得，副本不直接掉落）。
