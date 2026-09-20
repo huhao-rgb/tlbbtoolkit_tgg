@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tlbbtoolkit/features/pet/domain/pet_calc.dart';
 
 void main() {
-  group('computePetCalc —— 与 UI 原型「资质公式 v4」一致', () {
+  group('computePetCalc —— 官方「珍兽养成」口径', () {
     test('默认值：2200 / 当前0-0 / 目标悟8灵5 / 普通 → C 一般', () {
       final r = computePetCalc(
         const PetCalcInput(
@@ -27,7 +27,7 @@ void main() {
       expect(r.blueGrade, isTrue);
       expect(r.currentWlText, '悟性+0% / 灵性+0%');
       expect(r.targetWlText, '悟性+23.5% / 灵性+11%');
-      expect(r.clText, '普通品种（灵10 +31%）');
+      expect(r.clText, '普通品种 · ≥2200 档');
       // 满悟满灵 = round(2200*1.393*1.31) = round(4014.626) = 4015
       expect(r.maxEst, 4015);
       expect(r.tip, '建议更换胚子再培养');
@@ -57,7 +57,7 @@ void main() {
       expect(r.blueGrade, isTrue);
     });
 
-    test('超灵品种：灵性10 加成 34%（对比普通 31%）', () {
+    test('超灵品种：≥2200 档灵性10 加成 34%（普通 31%）', () {
       final normal = computePetCalc(
         const PetCalcInput(
           base: 2500,
@@ -83,8 +83,64 @@ void main() {
       // 超灵：2500*1.393*1.34
       expect(superLing.result, (2500 * 1.393 * 1.34).round());
       expect(superLing.result, greaterThan(normal.result));
-      expect(superLing.clText, '超灵品种（灵10 +34%）');
-      expect(normal.clText, '普通品种（灵10 +31%）');
+      expect(superLing.clText, '超灵品种 · ≥2200 档');
+      expect(normal.clText, '普通品种 · ≥2200 档');
+    });
+
+    test('灵性加成按「悟性后资质」分档（低资质宝宝不再套用 ≥2200 档）', () {
+      PetCalcResult calc(int base, {bool superLing = false}) => computePetCalc(
+            PetCalcInput(
+              base: base,
+              currentWu: 0,
+              currentLing: 0,
+              targetWu: 10,
+              targetLing: 10,
+              isSuperLing: superLing,
+            ),
+          );
+
+      // 裸资 1500 → 悟性后 2089.5，落「1800~2199」档 → 灵性10 +23%
+      final mid = calc(1500);
+      expect(mid.naked, 1500);
+      expect(mid.result, 2570); // 1500×1.393×1.23 = 2570.09
+      expect(mid.clText, '普通品种 · 1800~2199 档');
+
+      // 裸资 1000 → 悟性后 1393，落「＜1800」档 → 灵性10 仅 +10%
+      final low = calc(1000);
+      expect(low.result, 1532); // 1000×1.393×1.10 = 1532.3
+      expect(low.clText, '普通品种 · ＜1800 档');
+
+      // 裸资 2192 → 悟性后 3053 ≥2200 → +31%（资料站例：裸资 2192 上双十 = 4000）
+      expect(calc(2192).result, 4000);
+      // 超灵：裸资 2143 上双十 = 4000（≥2200 档灵性10 +34%）
+      expect(calc(2143, superLing: true).result, 4000);
+    });
+
+    test('档位边界：1799 / 1800 / 2199 / 2200', () {
+      expect(lingTierOf(1799), 0);
+      expect(lingTierOf(1800), 1);
+      expect(lingTierOf(2199), 1);
+      expect(lingTierOf(2200), 2);
+      expect(lingTierLabel(0), '＜1800 档');
+      expect(lingTierLabel(1), '1800~2199 档');
+      expect(lingTierLabel(2), '≥2200 档');
+    });
+
+    test('反推裸资：官方示例 当前资质 3009 / 悟性8 / 灵性4 → 双十 4155', () {
+      final r = computePetCalc(
+        const PetCalcInput(
+          base: 3009,
+          currentWu: 8,
+          currentLing: 4,
+          targetWu: 10,
+          targetLing: 10,
+          isSuperLing: false,
+        ),
+      );
+      // 裸资 = 3009÷1.235÷1.07 = 2277.0
+      expect(r.naked, 2277);
+      // 悟性后 3171.9（≥2200 档）→ ×1.31
+      expect(r.result, 4155);
     });
 
     test('评级边界：S≥5000 / A≥4200 / B≥3400 / C<3400', () {
@@ -173,15 +229,17 @@ void main() {
         const PetCalcInput(
           base: 2000,
           currentWu: 1, // 0.01 → +1%
-          currentLing: 2, // 0.02 → +2%
+          currentLing: 2, // 1800~2199 档 2 级 → +2%
           targetWu: 3, // 0.021 → +2.1%
-          targetLing: 4, // 0.07 → +7%
+          targetLing: 4, // 1800~2199 档 4 级 → +6%
           isSuperLing: false,
         ),
       );
       expect(r.currentWlText, '悟性+1% / 灵性+2%');
-      expect(r.targetWlText, '悟性+2.1% / 灵性+7%');
-      // 超灵品种：悟性8 = 23.5% / 灵性10 = 34%
+      expect(r.targetWlText, '悟性+2.1% / 灵性+6%');
+
+      // 超灵品种：当前落在「＜1800」档（灵性10 +12%），提悟到 10 后跨入
+      // 「1800~2199」档（灵性10 +25%）
       final r2 = computePetCalc(
         const PetCalcInput(
           base: 2000,
@@ -192,8 +250,8 @@ void main() {
           isSuperLing: true,
         ),
       );
-      expect(r2.currentWlText, '悟性+23.5% / 灵性+34%');
-      expect(r2.targetWlText, '悟性+39.3% / 灵性+34%');
+      expect(r2.currentWlText, '悟性+23.5% / 灵性+12%');
+      expect(r2.targetWlText, '悟性+39.3% / 灵性+25%');
     });
 
     test('千分位格式化', () {

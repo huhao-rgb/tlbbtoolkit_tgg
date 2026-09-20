@@ -16,7 +16,7 @@ import '../../domain/pet_calc.dart';
 /// 布局：页头 + split（左：表单卡，右：结果卡 380px，sticky）。
 /// - 表单卡：超灵品种开关 + 当前资质输入 + 当前/目标悟灵步进器 + 开始计算按钮；
 /// - 结果卡：初始隐藏，点击「开始计算」后展示预估成品资质、评级、裸资与培养建议；
-/// - 计算逻辑见 `pet_calc.dart`（与原型「资质公式 v4」一致）。
+/// - 计算逻辑见 `pet_calc.dart`（官方「珍兽养成」口径：灵性加成按悟性后资质分三档）。
 ///
 /// 页面不含 Scaffold/AppBar（信息条与返回按钮由 shell 框架提供）。
 class PetCalcPage extends StatefulWidget {
@@ -254,7 +254,7 @@ class _FormCard extends StatelessWidget {
           // frow 1：宝宝品种（超灵开关）
           _TgSwitchRow(
             label: '宝宝品种',
-            hint: '（超灵品种：灵性10 加成 34%，普通 31%）',
+            hint: '（超灵品种同档位加成更高：灵性10 最高 34%，普通 31%）',
             switchLabel: '超灵品种',
             value: isChaoling,
             showSwitchLabel: !compact,
@@ -270,14 +270,14 @@ class _FormCard extends StatelessWidget {
           _StepperPair(
             left: _StepperField(
               label: '当前悟性',
-              hint: '',
+              hint: '（反推裸资用）',
               value: curWu,
               onMinus: onCurWuMinus,
               onPlus: onCurWuPlus,
             ),
             right: _StepperField(
               label: '当前灵性',
-              hint: '',
+              hint: '（反推裸资用）',
               value: curLing,
               onMinus: onCurLingMinus,
               onPlus: onCurLingPlus,
@@ -295,7 +295,7 @@ class _FormCard extends StatelessWidget {
             ),
             right: _StepperField(
               label: '目标灵性',
-              hint: '（10级 +31%，超灵+34%）',
+              hint: '（10级 +10%~34%，按资质区间分档）',
               value: ling,
               onMinus: onLingMinus,
               onPlus: onLingPlus,
@@ -898,10 +898,12 @@ class _FormulaNote extends StatelessWidget {
           const SizedBox(width: TgSpacing.s9),
           Expanded(
             child: Text(
-              '官方系数表公式（17173 等资料站）：裸资 = 当前资质÷(1+当前悟性%)÷(1+当前灵性%)；'
-              '目标资质 = 裸资×(1+目标悟性%)×(1+目标灵性%)。'
-              '悟性：4级+3%、5级+8%、8级+23.5%、10级+39.3%；'
-              '灵性：5级+11%、8级+22%、10级+31%（超灵品种+34%）。'
+              '官方系数表公式（畅游「珍兽养成」）：裸资 = 当前资质÷(1+当前悟性%)÷(1+当前灵性%)；'
+              '目标资质 = 裸资×(1+目标悟性%)×(1+目标灵性%)（灵性在悟性之后叠加）。'
+              '悟性：4级+3%、5级+8%、8级+23.5%、10级+39.3%。'
+              '灵性加成按「计算悟性后的资质」分档且超灵更高 —— '
+              '普通：＜1800 时10级+10%、1800~2199 时+23%、≥2200 时+31%；'
+              '超灵对应为 +12% / +25% / +34%。'
               '成长率与资质相互独立，不影响本计算。',
               style: TgType.note.copyWith(color: tg.t3, letterSpacing: 0),
             ),

@@ -93,8 +93,9 @@ void main() {
     await tester.tap(find.text('开始计算'));
     await tester.pumpAndSettle();
 
-    // 2200 超灵 0-0 → 9-9 = round(2200*1.30*1.26)=3603.6→3604
-    expect(find.text('3,604'), findsOneWidget);
+    // 2200 超灵 0-0 → 9-9：悟性后 2860（≥2200 档，灵9 +28%）
+    // = round(2200*1.30*1.28) = 3660.8 → 3661
+    expect(find.text('3,661'), findsOneWidget);
 
     // 目标悟性/灵性 9 → 10（各点一次 ＋），结果同步更新
     await tester.tap(find.text('＋').at(2));
@@ -109,7 +110,7 @@ void main() {
     // 2200 超灵 0-0 → 10-10 = round(2200*1.393*1.34)=4106.564→4107
     // （预估成品资质 与 满悟满灵估算 均为 4,107）
     expect(find.text('4,107'), findsNWidgets(2));
-    expect(find.textContaining('超灵品种（灵10 +34%）'), findsOneWidget);
+    expect(find.textContaining('超灵品种 · ≥2200 档'), findsOneWidget);
     expect(find.textContaining('悟性+39.3% / 灵性+34%'), findsWidgets);
   });
 

@@ -1,9 +1,13 @@
-/// 宝宝资质计算 —— 领域模型与公式（与 UI 原型「资质公式 v4」一致）。
+/// 宝宝资质计算 —— 领域模型与公式（官方「珍兽养成」口径）。
 ///
-/// 公式来源 17173 等游戏资料站：
+/// 公式来源：畅游官方「珍兽养成」页 + 17173 资料站数据表。
 /// - 裸资 = 当前资质 ÷ (1+当前悟性加成) ÷ (1+当前灵性加成)
 /// - 目标资质 = 裸资 × (1+目标悟性加成) × (1+目标灵性加成)
-/// - 超灵品种差异：灵性 10 级加成 34%（普通宝宝 31%），其余等级相同。
+///   （灵性加成在悟性之后生效，先除哪个后除哪个不影响结果）
+/// - 悟性加成：固定表，10 级 +39.3%。
+/// - 灵性加成：**按「计算悟性后的资质」分三档**（＜1800 / 1800~2199 / ≥2200），
+///   且超灵 / 非超灵品种各有一套表（10 级最高 34% / 31%）。
+///   ⚠️ 原型 JS 把灵性表硬编码成「≥2200」这一档，低资质宝宝会算错，本实现已修正。
 /// 成长率与资质相互独立，不影响本计算。
 library;
 
@@ -11,17 +15,43 @@ import 'package:flutter/foundation.dart';
 
 /// 悟性加成表（0~10 级）：4级+3% / 5级+8% / 8级+23.5% / 10级+39.3%。
 const List<double> kWuTable = [
-  0, .010, .015, .021, .030, .080, .110, .145, .235, .300, .393,
+  0,
+  .010,
+  .015,
+  .021,
+  .030,
+  .080,
+  .110,
+  .145,
+  .235,
+  .300,
+  .393,
 ];
 
-/// 灵性加成表（普通品种，0~10 级）：5级+11% / 8级+22% / 10级+31%。
-const List<double> kLingTable = [
-  0, .010, .020, .050, .070, .110, .140, .180, .220, .260, .310,
+/// 灵性加成档位边界（按「计算悟性后的资质」判定）。
+const int kLingTierMid = 1800;
+const int kLingTierHigh = 2200;
+
+/// 灵性加成表（普通品种）—— 三个档位依次为 ＜1800 / 1800~2199 / ≥2200。
+///
+/// 官方说明：资质越高，同等灵性等级带来的加成越多（10 级分别为 +10% / +23% / +31%）。
+const List<List<double>> kLingTable = [
+  // ＜1800：1%~10%
+  [0, .010, .020, .030, .040, .050, .060, .070, .080, .090, .100],
+  // 1800~2199：10 级 +23%
+  [0, .010, .020, .040, .060, .090, .100, .130, .160, .190, .230],
+  // ≥2200：10 级 +31%
+  [0, .010, .020, .050, .070, .110, .140, .180, .220, .260, .310],
 ];
 
-/// 灵性加成表（超灵品种）：仅 10 级不同（+34%），其余等级与普通一致。
-const List<double> kLingSuperTable = [
-  0, .010, .020, .050, .070, .110, .140, .180, .220, .260, .340,
+/// 灵性加成表（超灵品种）—— 同档位下各级加成均高于普通品种。
+const List<List<double>> kLingSuperTable = [
+  // ＜1800：10 级 +12%
+  [0, .010, .020, .030, .040, .060, .070, .080, .090, .100, .120],
+  // 1800~2199：10 级 +25%
+  [0, .010, .020, .040, .070, .100, .110, .140, .170, .200, .250],
+  // ≥2200：10 级 +34%
+  [0, .010, .020, .050, .070, .120, .150, .200, .240, .280, .340],
 ];
 
 /// 悟灵等级边界。
@@ -61,7 +91,7 @@ class PetCalcInput {
   /// 目标灵性（0~10）。
   final int targetLing;
 
-  /// 是否超灵品种（灵性 10 加成 34%，普通 31%）。
+  /// 是否超灵品种（同档位下灵性加成高于普通品种：10 级最高 34% / 普通 31%）。
   final bool isSuperLing;
 }
 
@@ -106,10 +136,10 @@ class PetCalcResult {
   /// 目标悟性/灵性展示文案。
   final String targetWlText;
 
-  /// 超灵加成展示文案。
+  /// 品种与目标灵性档位文案，如「超灵品种 · ≥2200 档」。
   final String clText;
 
-  /// 满悟满灵估算（目标裸资 × 悟性10 × 灵性10 档）。
+  /// 满悟满灵估算（裸资 × 悟性10 × 灵性10，灵性档位按悟性 10 后的资质判定）。
   final int maxEst;
 
   /// 建议培养方向。
@@ -128,22 +158,75 @@ class PetCalcResult {
   String get pctText => '${pct >= 0 ? '+' : ''}$pct%';
 }
 
-/// 核心计算（与原型 `doCalc` 一致）。
+/// 灵性加成档位下标：0 = ＜1800 / 1 = 1800~2199 / 2 = ≥2200。
+///
+/// 官方口径：「灵性提升的几率和效果与珍兽计算悟性后的资质有关」
+/// —— 档位按 [wuBoosted]（裸资 × (1+悟性加成)）判定，而非裸资本身。
+int lingTierOf(num wuBoosted) {
+  if (wuBoosted < kLingTierMid) return 0;
+  if (wuBoosted < kLingTierHigh) return 1;
+  return 2;
+}
+
+/// 灵性档位文案，如 `≥2200 档`。
+String lingTierLabel(int tier) => switch (tier) {
+  0 => '＜1800 档',
+  1 => '1800~2199 档',
+  _ => '≥2200 档',
+};
+
+/// 反推裸资的中间结果。
+typedef _NakedSolve = ({double naked, int tier, double lingBoost});
+
+/// 由「当前资质 + 当前悟性 + 当前灵性」反推裸资，并定位当前灵性档位。
+///
+/// 循环依赖：灵性档位取决于「悟性后资质」= 裸资 × (1+悟性)，而裸资又要用
+/// 灵性加成反推。故用不动点迭代：先按「灵性加成 = 0」定位档位，再逐轮修正
+/// （档位单调，通常 1 轮即收敛）。
+_NakedSolve _solveNaked({
+  required int base,
+  required int wu,
+  required int ling,
+  required List<List<double>> lingTable,
+}) {
+  final wuBoost = kWuTable[wu];
+  if (base <= 0) return (naked: 0, tier: 0, lingBoost: lingTable[0][ling]);
+
+  var tier = lingTierOf(base / (1 + wuBoost));
+  var lingBoost = lingTable[tier][ling];
+  for (var i = 0; i < 3; i++) {
+    // 悟性后资质 = base ÷ (1+灵性加成)（与 ×(1+悟性) 等价）
+    final next = lingTierOf(base / (1 + lingBoost));
+    if (next == tier) break;
+    tier = next;
+    lingBoost = lingTable[tier][ling];
+  }
+  return (
+    naked: base / (1 + wuBoost) / (1 + lingBoost),
+    tier: tier,
+    lingBoost: lingBoost,
+  );
+}
+
+/// 核心计算（官方「珍兽养成」口径，已修正原型的灵性硬编码档位）。
 PetCalcResult computePetCalc(PetCalcInput input) {
-  final lt = input.isSuperLing ? kLingSuperTable : kLingTable;
-  final base = input.base.toDouble();
+  final lingTable = input.isSuperLing ? kLingSuperTable : kLingTable;
 
-  // 反推裸资：max(0, base / (1+当前悟性) / (1+当前灵性))
-  final naked = base <= 0
-      ? 0.0
-      : (base / (1 + kWuTable[input.currentWu]) /
-              (1 + lt[input.currentLing]))
-          .clamp(0.0, double.infinity);
+  // 反推裸资（同时定位「当前」灵性档位）
+  final cur = _solveNaked(
+    base: input.base,
+    wu: input.currentWu,
+    ling: input.currentLing,
+    lingTable: lingTable,
+  );
+  final naked = cur.naked;
 
-  // 目标资质 = 裸资 × (1+目标悟性) × (1+目标灵性)
-  final r = (naked * (1 + kWuTable[input.targetWu]) *
-          (1 + lt[input.targetLing]))
-      .round();
+  // 目标资质：悟性后资质 → 定档 → 叠灵性加成
+  final targetWuBoost = kWuTable[input.targetWu];
+  final targetWuBoosted = naked * (1 + targetWuBoost);
+  final targetTier = lingTierOf(targetWuBoosted);
+  final targetLingBoost = lingTable[targetTier][input.targetLing];
+  final r = (targetWuBoosted * (1 + targetLingBoost)).round();
 
   // 相对当前资质变化
   final pct = input.base != 0 ? ((r / input.base - 1) * 100).round() : 0;
@@ -173,14 +256,16 @@ PetCalcResult computePetCalc(PetCalcInput input) {
   final tip = r < input.base
       ? '目标悟灵低于当前，成品资质将回落'
       : grade == 'S'
-          ? '可直接培养至成品'
-          : grade == 'A'
-              ? '裸资优秀，可继续培养'
-              : '建议更换胚子再培养';
+      ? '可直接培养至成品'
+      : grade == 'A'
+      ? '裸资优秀，可继续培养'
+      : '建议更换胚子再培养';
 
-  // 满悟满灵估算
+  // 满悟满灵估算（悟性 10 → 再按所处档位取灵性 10）
+  final maxWuBoosted = naked * (1 + kWuTable[kWuLingMax]);
   final maxEst =
-      (naked * (1 + kWuTable[kWuLingMax]) * (1 + lt[kWuLingMax])).round();
+      (maxWuBoosted * (1 + lingTable[lingTierOf(maxWuBoosted)][kWuLingMax]))
+          .round();
 
   return PetCalcResult(
     naked: naked.round(),
@@ -190,10 +275,10 @@ PetCalcResult computePetCalc(PetCalcInput input) {
     gradeText: gradeText,
     blueGrade: blueGrade,
     currentWlText:
-        '悟性${_pct(kWuTable[input.currentWu])} / 灵性${_pct(lt[input.currentLing])}',
-    targetWlText:
-        '悟性${_pct(kWuTable[input.targetWu])} / 灵性${_pct(lt[input.targetLing])}',
-    clText: input.isSuperLing ? '超灵品种（灵10 +34%）' : '普通品种（灵10 +31%）',
+        '悟性${_pct(kWuTable[input.currentWu])} / 灵性${_pct(cur.lingBoost)}',
+    targetWlText: '悟性${_pct(targetWuBoost)} / 灵性${_pct(targetLingBoost)}',
+    clText:
+        '${input.isSuperLing ? '超灵' : '普通'}品种 · ${lingTierLabel(targetTier)}',
     maxEst: maxEst,
     tip: tip,
   );
