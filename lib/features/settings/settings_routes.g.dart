@@ -9,7 +9,7 @@ part of 'settings_routes.dart';
 List<RouteBase> get $appRoutes => [$settingsRoute];
 
 RouteBase get $settingsRoute => GoRouteData.$route(
-  path: '/settings',
+  path: '/misc/settings',
   name: '设置',
   hasOverriddenOnExit: false,
   factory: $SettingsRoute._fromState,
@@ -19,7 +19,7 @@ mixin $SettingsRoute on GoRouteData {
   static SettingsRoute _fromState(GoRouterState state) => const SettingsRoute();
 
   @override
-  String get location => GoRouteData.$location('/settings');
+  String get location => GoRouteData.$location('/misc/settings');
 
   @override
   void go(BuildContext context) => context.go(location);

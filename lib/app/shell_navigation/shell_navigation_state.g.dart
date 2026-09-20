@@ -59,7 +59,7 @@ final class ShellNavigationProvider
   }
 }
 
-String _$shellNavigationHash() => r'd24520ed803fdfbf4549f5916671d00c510dbc61';
+String _$shellNavigationHash() => r'1b5027a61ef9843c93ef178238e4c923c774094d';
 
 /// 监听 GoRouter 状态变化，推导信息条所需的标题与是否二级页面。
 ///

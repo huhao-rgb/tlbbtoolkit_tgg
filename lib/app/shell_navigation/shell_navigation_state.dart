@@ -69,7 +69,12 @@ class ShellNavigation extends _$ShellNavigation {
 
     // 递归统计匹配数（含 shell 嵌套），> 2 说明当前是二级页面。
     final matchCount = _countMatches(configuration.matches);
-    final isSecondLevel = matchCount > 2;
+    // 与分支根平级的二级页（如 `/misc/settings`）匹配数与 hub 一样是 2，
+    // 因此再按路径段数兜底：分支根只有一段（`/home`、`/misc`…）。
+    final segmentCount = configuration.uri.pathSegments
+        .where((s) => s.isNotEmpty)
+        .length;
+    final isSecondLevel = matchCount > 2 || segmentCount > 1;
 
     return ShellNavigationState(
       title: leaf.route.name ?? '',

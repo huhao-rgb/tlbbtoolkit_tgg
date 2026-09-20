@@ -8,6 +8,7 @@ import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
+import '../../../../shared/widgets/tg_segmented.dart';
 import '../../domain/pet_suit.dart';
 
 /// 宝宝套装图鉴（对应原型 `v-pet-suit`）。
@@ -294,7 +295,7 @@ class _SuitCardState extends State<_SuitCard> {
                         ),
                       ),
                       const SizedBox(width: TgSpacing.sm),
-                      _Seg(
+                      TgSegmented(
                         values: kSuitLvKeys,
                         selected: lv,
                         onSelect: widget.onLvChanged,
@@ -519,81 +520,6 @@ class _EffectRow extends StatelessWidget {
   }
 }
 
-/// 分段控件（`.lv-seg`）：inset 底 + 按钮，选中金色提亮。
-class _Seg extends StatelessWidget {
-  const _Seg({
-    required this.values,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  final List<String> values;
-  final String selected;
-  final ValueChanged<String> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: tg.inset,
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: tg.borderHi, width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final v in values)
-            _SegBtn(label: v, active: v == selected, onTap: () => onSelect(v)),
-        ],
-      ),
-    );
-  }
-}
-
-class _SegBtn extends StatelessWidget {
-  const _SegBtn({
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6.5),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
-          decoration: BoxDecoration(
-            color: active ? tg.goldTint(.14) : Colors.transparent,
-            borderRadius: BorderRadius.circular(6.5),
-            border: active
-                ? Border.all(color: tg.goldTint(.4), width: 1)
-                : null,
-          ),
-          child: Text(
-            label,
-            style: TgType.caption.copyWith(
-              color: active ? tg.gold2 : tg.t3,
-              fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-              height: 1,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// 五件套部件预览弹窗（对应 `.modal` / `suitModal`）。
 class _SuitPartsDialog extends StatefulWidget {
   const _SuitPartsDialog({
@@ -687,7 +613,7 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                                 ],
                               ),
                               const SizedBox(height: TgSpacing.s12),
-                              _Seg(
+                              TgSegmented(
                                 values: kSuitLvKeys,
                                 selected: _lv,
                                 onSelect: (lv) {
@@ -719,7 +645,7 @@ class _SuitPartsDialogState extends State<_SuitPartsDialog> {
                                 ),
                               ),
                               const SizedBox(width: TgSpacing.sm),
-                              _Seg(
+                              TgSegmented(
                                 values: kSuitLvKeys,
                                 selected: _lv,
                                 onSelect: (lv) {
@@ -953,10 +879,14 @@ class _CalcCard extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _CalcLabel(text: '套装档位'),
-              _Seg(values: kSuitLvKeys, selected: lv, onSelect: onLvChanged),
+              TgSegmented(
+                values: kSuitLvKeys,
+                selected: lv,
+                onSelect: onLvChanged,
+              ),
               const SizedBox(width: TgSpacing.s10),
               _CalcLabel(text: '当前星级'),
-              _Seg(
+              TgSegmented(
                 values: const ['0★', '1★', '2★', '3★', '4★'],
                 selected: '$star★',
                 onSelect: (s) =>

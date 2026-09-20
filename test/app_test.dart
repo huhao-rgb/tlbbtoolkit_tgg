@@ -11,12 +11,15 @@ import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/features/home/presentation/pages/home_page.dart';
+import 'package:tlbbtoolkit/features/settings/presentation/pages/settings_page.dart';
 
 /// 信息条组件的 key（与 app_info_bar 中的 `AppInfoBar` 对应）。
 const _infoBarKey = Key('shell-info-bar');
 const _backButtonKey = Key('shell-back-button');
 const _chipsKey = Key('home-filter-chips');
-const _settingsBackKey = Key('settings-back-button');
+
+/// 设置页主题模式分段按钮组的 key（与 settings_page 对应）。
+const _themeSegKey = Key('settings-theme-mode');
 
 /// 在信息条内查找指定标题。
 Finder infoBarTitle(String title) =>
@@ -239,18 +242,83 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   });
 
-  testWidgets('设置：顶栏齿轮进入独立设置页，可返回', (tester) async {
+  testWidgets('设置：顶栏齿轮进入 shell 内设置页，返回回到实用 hub', (tester) async {
     await pumpApp(tester);
 
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
 
+    // 设置页在 shell 内：信息条标题 + 返回按钮 + 底部 tabbar 一并由 shell 提供。
+    expect(infoBarTitle('设置'), findsOneWidget);
     expect(find.text('外观'), findsOneWidget);
-    expect(find.byKey(_settingsBackKey), findsOneWidget);
+    expect(find.byKey(_backButtonKey), findsOneWidget);
+    expect(find.byKey(_tabBarKey), findsOneWidget);
 
-    await tester.tap(find.byKey(_settingsBackKey));
+    await tester.tap(find.byKey(_backButtonKey));
     await tester.pumpAndSettle();
-    expect(infoBarTitle('首页'), findsOneWidget);
+    expect(infoBarTitle('实用工具'), findsOneWidget);
+  });
+
+  testWidgets('设置：主题模式用分段控件切换并持久化', (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.descendant(of: find.byKey(_themeSegKey), matching: find.text('深色')),
+    );
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('app_settings'), contains('dark'));
+  });
+
+  testWidgets('设置：通知提醒用自绘开关切换并持久化', (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('tg-switch-通知提醒')));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getString('app_settings'),
+      contains('"enableNotifications":false'),
+    );
+  });
+
+  testWidgets('移动端设置页：窄屏 390 不溢出，且为悬浮栏预留空间', (tester) async {
+    tester.view.physicalSize =
+        const Size(390, 844) * tester.view.devicePixelRatio;
+    addTearDown(tester.view.resetPhysicalSize);
+    await pumpApp(tester);
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    expect(infoBarTitle('设置'), findsOneWidget);
+    expect(find.byKey(_themeSegKey), findsOneWidget);
+    expect(find.byKey(const Key('tg-switch-通知提醒')), findsOneWidget);
+
+    // 内容区与其它页面同一套内边距（预留悬浮顶栏 / 底栏）。
+    final scroll = tester.widget<SingleChildScrollView>(
+      find.descendant(
+        of: find.byType(SettingsPage),
+        matching: find.byType(SingleChildScrollView),
+      ),
+    );
+    expect(
+      scroll.padding,
+      const EdgeInsets.fromLTRB(
+        TgSpacing.pagePaddingMobileH,
+        20 + Breakpoints.topbarOverlayHeight,
+        TgSpacing.pagePaddingMobileH,
+        40 + Breakpoints.tabbarOverlayHeight,
+      ),
+    );
   });
 
   testWidgets('顶栏主题快捷切换会持久化', (tester) async {

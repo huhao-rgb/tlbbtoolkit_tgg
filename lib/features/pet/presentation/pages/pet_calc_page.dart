@@ -8,6 +8,7 @@ import '../../../../shared/widgets/page_head.dart';
 import '../../../../shared/widgets/tg_card.dart';
 import '../../../../shared/widgets/tg_icon.dart';
 import '../../../../shared/widgets/tg_page_entrance.dart';
+import '../../../../shared/widgets/tg_switch.dart';
 import '../../../../shared/widgets/tg_text_field.dart';
 import '../../domain/pet_calc.dart';
 
@@ -252,7 +253,7 @@ class _FormCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // frow 1：宝宝品种（超灵开关）
-          _TgSwitchRow(
+          TgSwitchRow(
             label: '宝宝品种',
             hint: '（超灵品种同档位加成更高：灵性10 最高 34%，普通 31%）',
             switchLabel: '超灵品种',
@@ -509,121 +510,6 @@ class _Label extends StatelessWidget {
             text: hint,
             style: TgType.label.copyWith(color: tg.t3),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 超灵品种开关行（`.switch-row`）：左 label，右 switch。
-class _TgSwitchRow extends StatelessWidget {
-  const _TgSwitchRow({
-    required this.label,
-    required this.hint,
-    required this.switchLabel,
-    required this.value,
-    required this.showSwitchLabel,
-    required this.onChanged,
-  });
-
-  final String label;
-  final String hint;
-  final String switchLabel;
-  final bool value;
-  final bool showSwitchLabel;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Row(
-      children: [
-        Expanded(
-          child: Text.rich(
-            TextSpan(
-              text: label,
-              style: TgType.label.copyWith(color: tg.t2),
-              children: [
-                TextSpan(
-                  text: hint,
-                  style: TgType.label.copyWith(color: tg.t3),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: TgSpacing.s12),
-        _TgSwitch(
-          label: switchLabel,
-          value: value,
-          showLabel: showSwitchLabel,
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-}
-
-/// 自定义开关（对应原型 `.switch`）：46×26 轨道 · 20 圆钮 · 金渐变选中。
-class _TgSwitch extends StatelessWidget {
-  const _TgSwitch({
-    required this.label,
-    required this.value,
-    required this.showLabel,
-    required this.onChanged,
-  });
-
-  final String label;
-  final bool value;
-  final bool showLabel;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return GestureDetector(
-      onTap: () => onChanged(!value),
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 轨道：46×26 · 内边距2（+边框1 各侧）· 圆钮 20
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOut,
-            width: 46,
-            height: 26,
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: value ? tg.goldTint(.14) : tg.inset2,
-              borderRadius: TgRadius.pillShape,
-              border: Border.all(
-                color: value ? tg.gold : tg.borderHi,
-                width: 1,
-              ),
-            ),
-            child: AnimatedAlign(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOut,
-              alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  gradient: value ? tg.gradGold : null,
-                  color: value ? null : tg.t3,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ),
-          if (showLabel) ...[
-            const SizedBox(width: TgSpacing.s10),
-            Text(
-              label,
-              style: TgType.label.copyWith(color: value ? tg.gold2 : tg.t3),
-            ),
-          ],
         ],
       ),
     );

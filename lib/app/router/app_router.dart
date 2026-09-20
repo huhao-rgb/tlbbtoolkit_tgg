@@ -20,7 +20,8 @@ import '../shell_navigation/shell_navigation.dart';
 /// - `misc`   → `/misc`    实用工具 hub（+ 2 个二级工具）
 ///
 /// 各 feature 通过 `@TypedGoRoute` 生成 `$appRoutes`，在此按 tab 聚合为分支。
-/// 「设置」为 shell 之外的独立全屏页（顶栏齿轮 / 桌面侧栏入口 push 打开）。
+/// 「设置」(`/misc/settings`) 挂在「实用」分支内，作为 shell 内的二级页，
+/// 与其它工具页共享同一套页面框架（信息条 + 返回 + 底部 tabbar / 侧栏）。
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: home.HomeRoute().location,
@@ -37,12 +38,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [...beast.$appRoutes]),
           // tab 4：职业（job）
           StatefulShellBranch(routes: [...job.$appRoutes]),
-          // tab 5：实用（misc）
-          StatefulShellBranch(routes: [...misc.$appRoutes]),
+          // tab 5：实用（misc）—— 同时容纳「设置」二级页（/misc/settings），
+          // 使其与其它二级页一样由 shell 提供信息条 / 返回 / 底部 tabbar。
+          StatefulShellBranch(
+            routes: [...misc.$appRoutes, ...settings.$appRoutes],
+          ),
         ],
       ),
-      // 设置：独立全屏页（不在 shell 内，自带返回）。
-      ...settings.$appRoutes,
     ],
   );
 });

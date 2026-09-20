@@ -7,23 +7,19 @@ part 'settings_routes.g.dart';
 
 /// settings feature 的路由定义。
 ///
-/// 「设置」是 shell 之外的独立全屏页：由顶栏齿轮 / 桌面侧栏入口 push 打开，
-/// 自带 Scaffold 与返回（不占用 shell 底部 tab / 侧栏分组）。
-@TypedGoRoute<SettingsRoute>(path: '/settings', name: '设置')
+/// 设置页是「实用」分支下的二级页（`/misc/settings`）：与其它工具二级页完全同构，
+/// **不写 Scaffold / AppBar** —— 顶部信息条（含返回按钮）与底部 tabbar / 桌面侧栏
+/// 均由 shell（`AppShellNavigation`）统一提供，页面自己只负责内容区
+/// （见 `settings_page.dart` 的 `TgPageEntrance` + 悬浮栏预留内边距）。
+///
+/// 之所以与 `/misc` 平级（而非声明为 `/misc` 的子路由）：go_router 的嵌套子路由
+/// 必须由其父路由所在文件（`misc_routes.dart`）声明，那会让 misc feature 反向依赖
+/// settings feature；两者在 shell 中的渲染与返回行为一致（返回均回到「实用工具」hub）。
+@TypedGoRoute<SettingsRoute>(path: '/misc/settings', name: '设置')
 class SettingsRoute extends GoRouteData with $SettingsRoute {
   const SettingsRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) => Scaffold(
-        appBar: AppBar(
-          title: const Text('设置'),
-          leading: IconButton(
-            key: const Key('settings-back-button'),
-            icon: const Icon(Icons.arrow_back),
-            tooltip: '返回',
-            onPressed: () => context.pop(),
-          ),
-        ),
-        body: const SettingsPage(),
-      );
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SettingsPage();
 }

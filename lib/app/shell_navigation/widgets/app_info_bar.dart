@@ -161,14 +161,14 @@ class _ThemeToggleButton extends ConsumerWidget {
   }
 }
 
-/// 顶栏设置入口：push 打开 shell 外的独立设置页。
+/// 顶栏设置入口：切到「实用」分支下的设置二级页（shell 内，保留信息条与底栏）。
 class _SettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _TopButton(
       tooltip: '设置',
       icon: Icons.settings_outlined,
-      onTap: () => context.push(SettingsRoute().location),
+      onTap: () => context.go(SettingsRoute().location),
     );
   }
 }
