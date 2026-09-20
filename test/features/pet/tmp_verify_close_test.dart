@@ -22,7 +22,7 @@ void main() {
   testWidgets('关闭按钮：X 渲染 14x14，点击可关闭弹窗', (tester) async {
     await pumpPage(tester);
 
-    await tester.tap(find.text('勇猛套装'));
+    await tester.tap(find.text('猛虎越山·勇'));
     await tester.pumpAndSettle();
 
     // 弹窗出现

@@ -183,9 +183,9 @@ abstract final class ToolCatalog {
     group: ToolGroup.pet,
     title: '宝宝套装图鉴',
     crumb: '宝宝 / 套装图鉴',
-    pageSubtitle: '六大性格套装的件数效果与适配宝宝类型',
-    cardDesc: '六大性格套装件数效果与适配推荐',
-    keywords: ['套装', '图鉴', '宝宝', '勇猛', '胆小', '谨慎', '精明', '忠诚', '内敛'],
+    pageSubtitle: '怀旧服 75 / 85 / 95 三档 22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
+    cardDesc: '22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
+    keywords: ['套装', '图鉴', '宝宝', '珍兽', '圣兽鳞', '苍狼啸月', '黄雀戏水', '猛虎越山', '雄狮逆鳞', '升星'],
     location: '/pet/suit',
     icon: 'shield',
   );

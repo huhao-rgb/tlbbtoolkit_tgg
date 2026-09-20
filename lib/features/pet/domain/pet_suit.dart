@@ -1,423 +1,506 @@
-/// 宝宝套装图鉴 —— 领域模型与数据（与 UI 原型 `v-pet-suit` 一致）。
+/// 珍兽套装图鉴 —— 领域模型与数据（天龙八部怀旧服 / 经典版「宝宝套」）。
 ///
-/// 六大性格套装 × 三档（75 / 85 / 95），每套：
-/// - 分类 / 图标 / 适配类型；
-/// - 2 件 / 3 件效果随档位变化；
-/// - 五件套部件（头饰 / 铠甲 / 项圈 / 利爪 / 玉佩）的主副词条随档位变化。
-/// 另含套装兑换 / 升星材料（`kSuitMats`），供「材料计算器」使用。
+/// 怀旧服的珍兽套装即 2009 年随「十二煞星」加入的宝宝套，数值与经典版一致：
+/// - 三档（75 / 85 / 95），**每档是独立的一批系列**，同名系列不跨档复用；
+/// - 22 个系列：75 档 4 套、85 档 9 套、95 档 9 套，按「类型 + 性格」划分；
+/// - 每套 5 件：珍兽面甲（头）/ 珍兽武器（爪）/ 珍兽体甲（躯干）/ 珍兽项圈（颈）/ 珍兽护符；
+/// - **全套只用一种材料：圣兽鳞**（兑换 1★ 与升星），由拆解珍兽套装获得，副本不直接掉落；
+/// - 星级 1★~5★（5★ 为怀旧服上限），另有少量金钱消耗（本页只计圣兽鳞）。
+///
+/// 数据来源（2026-09 核对，均为怀旧服 / 经典版口径）：
+/// - 畅游官方「珍兽装备」资料：五部位构成、NPC（苏州 248,184 云姗姗）、圣兽鳞用途。
+/// - 经典怀旧·新天龙八部官网「游戏资料 · 珍兽装备」：杀星副本与套装星级提升。
+/// - 17173《珍兽套装全攻略（上 / 中 / 下篇）》：22 个系列名、全套效果与兑换 / 升星 / 拆解数值。
+/// - 17173 怀旧服攻略：确认怀旧服沿用同一套数值（如 75 档升满 5 星共 130 个圣兽鳞）。
 library;
 
 import 'package:flutter/foundation.dart';
 
-/// 套装档位（75 / 85 / 95）。
+/// 套装档位（珍兽穿戴等级）：75 / 85 / 95。
 const List<String> kSuitLvKeys = ['75', '85', '95'];
 
 /// 标签配色（对应原型 `.tag-<catType>`）。
 enum PetSuitCatColor { gold, cyan, green, blue, purple }
 
-/// 一套宝宝套装。
+/// 一个珍兽套装系列（同一档位下按「类型 + 性格」划分）。
 @immutable
-class PetSuit {
-  const PetSuit({
+class PetSuitSeries {
+  const PetSuitSeries({
     required this.name,
-    required this.cat,
-    required this.catColor,
+    required this.lv,
+    required this.type,
+    required this.typeColor,
     required this.icon,
-    required this.fits,
-    required this.levels,
-    required this.parts,
+    required this.personality,
+    required this.fullEffect,
+    this.stats = const <String>[],
+    this.collar,
   });
 
-  /// 套装名，如「勇猛套装」。
+  /// 系列名，如「苍狼啸月·勇」。
   final String name;
 
-  /// 分类，如「外功输出」。
-  final String cat;
+  /// 档位（75 / 85 / 95），即该套装的珍兽穿戴等级要求。
+  final String lv;
 
-  /// 分类 tag 配色。
-  final PetSuitCatColor catColor;
+  /// 类型：外功 / 内功 / 体力 / 身法。
+  final String type;
+
+  /// 类型 tag 配色。
+  final PetSuitCatColor typeColor;
 
   /// 图标资产名（经 `TgIcon` 渲染，如 `sword`）。
   final String icon;
 
-  /// 适配类型，如「勇猛性格」「外功型宝宝」。
-  final List<String> fits;
+  /// 适配性格：勇猛 / 精明 / 谨慎 / 胆小 / 忠诚 / 谨慎平衡。
+  final String personality;
 
-  /// 各档位效果：档位（75/85/95）→ 件数效果列表。
-  final Map<String, List<PetSuitEffect>> levels;
+  /// 穿齐 5 件的全套效果。
+  final String fullEffect;
 
-  /// 五件套部件（顺序：头饰 / 铠甲 / 项圈 / 利爪 / 玉佩）。
-  final List<PetSuitPart> parts;
+  /// 散件属性方向（官方资料仅 75 档逐系列列出，其余为空）。
+  final List<String> stats;
+
+  /// 项圈出战效果（官方资料未列出时为空）。
+  final String? collar;
+
+  /// 适配文案，如「外功型 · 勇猛性格」。
+  String get fitText => '$type型 · $personality性格';
 }
 
-/// 件数效果（如 `2 件 / 外功攻击 +2%`）。
+/// 指定档位的系列清单（75 → 4 套 / 85 → 9 套 / 95 → 9 套）。
+List<PetSuitSeries> petSuitsAt(String lv) =>
+    kPetSuitSeries.where((s) => s.lv == lv).toList(growable: false);
+
+/// 五件套中的一个部位。
 @immutable
-class PetSuitEffect {
-  const PetSuitEffect({required this.pieces, required this.text});
-
-  /// 件数说明，如「2 件」「3 件」。
-  final String pieces;
-
-  /// 效果文案，如「外功攻击 +2%」。
-  final String text;
-}
-
-/// 单件部件（属性随档位：三档三值）。
-@immutable
-class PetSuitPart {
-  const PetSuitPart({
-    required this.slot,
+class PetSuitSlot {
+  const PetSuitSlot({
     required this.name,
-    required this.attr,
-    required this.sub,
+    required this.slot,
+    required this.note,
   });
 
-  /// 部位，如「头饰」「铠甲」「项圈」「利爪」「玉佩」。
+  /// 部位装备名，如「珍兽面甲」。
+  final String name;
+
+  /// 部位简称，如「头」「躯干」（弹窗行首徽章）。
   final String slot;
 
-  /// 部件名，如「赤焰·裂空盔」。
-  final String name;
-
-  /// 主属性（三档）：[75 档, 85 档, 95 档]。
-  final List<String> attr;
-
-  /// 副词条（三档）。
-  final List<String> sub;
-
-  /// 主属性（指定档位）。
-  String attrAt(int lvIndex) => attr[lvIndex];
-
-  /// 副词条（指定档位）。
-  String subAt(int lvIndex) => sub[lvIndex];
+  /// 部位说明。
+  final String note;
 }
 
-/// 材料类型：兑换整套 / 升星基础。
-enum SuitMatKind { exchange, starBase }
-
-/// 套装兑换 / 升星材料。
-@immutable
-class SuitMats {
-  const SuitMats({required this.exchange, required this.starBase});
-
-  /// 兑换整套所需（每部件消耗，整套 ×5）：档位 → [[材料, 单件数], ...]。
-  final Map<String, List<SuitMatItem>> exchange;
-
-  /// 升星每部件基础消耗，第 k 星需 count × k（整套 ×5）。
-  final Map<String, List<SuitMatItem>> starBase;
-}
-
-/// 单个材料条目。
-@immutable
-class SuitMatItem {
-  const SuitMatItem({required this.name, required this.count});
-
-  final String name;
-  final int count;
-}
-
-/// 六大性格套装（与原型 `SUITS` 一致）。
-const List<PetSuit> kPetSuits = [
-  PetSuit(
-    name: '勇猛套装',
-    cat: '外功输出',
-    catColor: PetSuitCatColor.gold,
-    icon: 'sword',
-    fits: ['勇猛性格', '外功型宝宝'],
-    levels: {
-      '75': [
-        PetSuitEffect(pieces: '2 件', text: '外功攻击 +2%'),
-        PetSuitEffect(pieces: '3 件', text: '会心伤害 +6%，命中 +1%'),
-      ],
-      '85': [
-        PetSuitEffect(pieces: '2 件', text: '外功攻击 +3%'),
-        PetSuitEffect(pieces: '3 件', text: '会心伤害 +8%，命中 +2%'),
-      ],
-      '95': [
-        PetSuitEffect(pieces: '2 件', text: '外功攻击 +4%'),
-        PetSuitEffect(pieces: '3 件', text: '会心伤害 +11%，命中 +3%'),
-      ],
-    },
-    parts: [
-      PetSuitPart(slot: '头饰', name: '赤焰·裂空盔', attr: ['外功攻击 +62', '外功攻击 +86', '外功攻击 +118'], sub: ['力量 +8', '力量 +11', '力量 +15']),
-      PetSuitPart(slot: '铠甲', name: '赤焰·吞霄甲', attr: ['外防 +44', '外防 +60', '外防 +82'], sub: ['体力 +10', '体力 +14', '体力 +19']),
-      PetSuitPart(slot: '项圈', name: '赤焰·噬日圈', attr: ['命中 +36', '命中 +50', '命中 +68'], sub: ['会心 +3', '会心 +4', '会心 +6']),
-      PetSuitPart(slot: '利爪', name: '赤焰·撕裂爪', attr: ['外功攻击 +78', '外功攻击 +108', '外功攻击 +148'], sub: ['外功 +15', '外功 +21', '外功 +29']),
-      PetSuitPart(slot: '玉佩', name: '赤焰·狂战玉', attr: ['会心伤害 +4%', '会心伤害 +6%', '会心伤害 +8%'], sub: ['力量 +6', '力量 +9', '力量 +12']),
-    ],
-  ),
-  PetSuit(
-    name: '胆小套装',
-    cat: '灵巧输出',
-    catColor: PetSuitCatColor.cyan,
-    icon: 'spark',
-    fits: ['胆小性格', '身法流'],
-    levels: {
-      '75': [
-        PetSuitEffect(pieces: '2 件', text: '命中 +2%'),
-        PetSuitEffect(pieces: '3 件', text: '闪避 +4%，移动速度 +3%'),
-      ],
-      '85': [
-        PetSuitEffect(pieces: '2 件', text: '命中 +3%'),
-        PetSuitEffect(pieces: '3 件', text: '闪避 +6%，移动速度 +4%'),
-      ],
-      '95': [
-        PetSuitEffect(pieces: '2 件', text: '命中 +4%'),
-        PetSuitEffect(pieces: '3 件', text: '闪避 +8%，移动速度 +5%'),
-      ],
-    },
-    parts: [
-      PetSuitPart(slot: '头饰', name: '疾风·追风帽', attr: ['身法 +9', '身法 +12', '身法 +16'], sub: ['闪避 +14', '闪避 +19', '闪避 +26']),
-      PetSuitPart(slot: '铠甲', name: '疾风·蝉翼衫', attr: ['闪避 +40', '闪避 +55', '闪避 +75'], sub: ['身法 +7', '身法 +10', '身法 +13']),
-      PetSuitPart(slot: '项圈', name: '疾风·逐影圈', attr: ['命中 +42', '命中 +58', '命中 +79'], sub: ['命中 +5', '命中 +7', '命中 +9']),
-      PetSuitPart(slot: '利爪', name: '疾风·无影爪', attr: ['外功攻击 +56', '外功攻击 +77', '外功攻击 +105'], sub: ['攻速 +2%', '攻速 +3%', '攻速 +4%']),
-      PetSuitPart(slot: '玉佩', name: '疾风·游龙玉', attr: ['移动速度 +3%', '移动速度 +4%', '移动速度 +5%'], sub: ['身法 +5', '身法 +7', '身法 +10']),
-    ],
-  ),
-  PetSuit(
-    name: '谨慎套装',
-    cat: '生存防护',
-    catColor: PetSuitCatColor.green,
-    icon: 'shield',
-    fits: ['谨慎性格', '肉盾型宝宝'],
-    levels: {
-      '75': [
-        PetSuitEffect(pieces: '2 件', text: '气血上限 +2%'),
-        PetSuitEffect(pieces: '3 件', text: '受到伤害 -3%，外防 +1%'),
-      ],
-      '85': [
-        PetSuitEffect(pieces: '2 件', text: '气血上限 +3%'),
-        PetSuitEffect(pieces: '3 件', text: '受到伤害 -4%，外防 +2%'),
-      ],
-      '95': [
-        PetSuitEffect(pieces: '2 件', text: '气血上限 +4%'),
-        PetSuitEffect(pieces: '3 件', text: '受到伤害 -5%，外防 +3%'),
-      ],
-    },
-    parts: [
-      PetSuitPart(slot: '头饰', name: '玄龟·玄武盔', attr: ['外防 +48', '外防 +66', '外防 +90'], sub: ['体力 +9', '体力 +13', '体力 +17']),
-      PetSuitPart(slot: '铠甲', name: '玄龟·重岳甲', attr: ['气血上限 +320', '气血上限 +440', '气血上限 +600'], sub: ['外防 +12', '外防 +17', '外防 +23']),
-      PetSuitPart(slot: '项圈', name: '玄龟·盘石圈', attr: ['内防 +36', '内防 +50', '内防 +68'], sub: ['定力 +7', '定力 +10', '定力 +13']),
-      PetSuitPart(slot: '利爪', name: '玄龟·碎岩爪', attr: ['外防 +40', '外防 +55', '外防 +75'], sub: ['格挡 +3%', '格挡 +4%', '格挡 +5%']),
-      PetSuitPart(slot: '玉佩', name: '玄龟·镇岳玉', attr: ['受到伤害 -2%', '受到伤害 -3%', '受到伤害 -4%'], sub: ['体力 +8', '体力 +11', '体力 +15']),
-    ],
-  ),
-  PetSuit(
-    name: '精明套装',
-    cat: '内功输出',
-    catColor: PetSuitCatColor.blue,
-    icon: 'calc',
-    fits: ['精明性格', '内功型宝宝'],
-    levels: {
-      '75': [
-        PetSuitEffect(pieces: '2 件', text: '内功攻击 +2%'),
-        PetSuitEffect(pieces: '3 件', text: '技能触发概率 +3%'),
-      ],
-      '85': [
-        PetSuitEffect(pieces: '2 件', text: '内功攻击 +3%'),
-        PetSuitEffect(pieces: '3 件', text: '技能触发概率 +5%'),
-      ],
-      '95': [
-        PetSuitEffect(pieces: '2 件', text: '内功攻击 +4%'),
-        PetSuitEffect(pieces: '3 件', text: '技能触发概率 +7%'),
-      ],
-    },
-    parts: [
-      PetSuitPart(slot: '头饰', name: '灵犀·灵犀冠', attr: ['内功攻击 +58', '内功攻击 +80', '内功攻击 +110'], sub: ['灵气 +9', '灵气 +13', '灵气 +17']),
-      PetSuitPart(slot: '铠甲', name: '灵犀·云纹衣', attr: ['内防 +40', '内防 +55', '内防 +75'], sub: ['灵气 +7', '灵气 +10', '灵气 +13']),
-      PetSuitPart(slot: '项圈', name: '灵犀·凝露圈', attr: ['内功攻击 +46', '内功攻击 +63', '内功攻击 +86'], sub: ['气上限 +60', '气上限 +82', '气上限 +112']),
-      PetSuitPart(slot: '利爪', name: '灵犀·摄魂爪', attr: ['内功攻击 +72', '内功攻击 +99', '内功攻击 +135'], sub: ['内功 +14', '内功 +20', '内功 +27']),
-      PetSuitPart(slot: '玉佩', name: '灵犀·慧心玉', attr: ['技能触发概率 +2%', '技能触发概率 +3%', '技能触发概率 +4%'], sub: ['灵气 +6', '灵气 +8', '灵气 +11']),
-    ],
-  ),
-  PetSuit(
-    name: '忠诚套装',
-    cat: '守护辅助',
-    catColor: PetSuitCatColor.purple,
-    icon: 'paw',
-    fits: ['忠诚性格', '守护型宝宝'],
-    levels: {
-      '75': [
-        PetSuitEffect(pieces: '2 件', text: '内外防 +2%'),
-        PetSuitEffect(pieces: '3 件', text: '主人受到伤害 -2%'),
-      ],
-      '85': [
-        PetSuitEffect(pieces: '2 件', text: '内外防 +3%'),
-        PetSuitEffect(pieces: '3 件', text: '主人受到伤害 -3%'),
-      ],
-      '95': [
-        PetSuitEffect(pieces: '2 件', text: '内外防 +4%'),
-        PetSuitEffect(pieces: '3 件', text: '主人受到伤害 -4%'),
-      ],
-    },
-    parts: [
-      PetSuitPart(slot: '头饰', name: '守望·忠勇盔', attr: ['内外防 +34', '内外防 +47', '内外防 +64'], sub: ['定力 +8', '定力 +11', '定力 +15']),
-      PetSuitPart(slot: '铠甲', name: '守望·铁卫甲', attr: ['气血上限 +280', '气血上限 +385', '气血上限 +525'], sub: ['外防 +10', '外防 +14', '外防 +19']),
-      PetSuitPart(slot: '项圈', name: '守望·护主圈', attr: ['主人受伤减免 +1.5%', '主人受伤减免 +2%', '主人受伤减免 +2.5%'], sub: ['定力 +6', '定力 +9', '定力 +12']),
-      PetSuitPart(slot: '利爪', name: '守望·警觉爪', attr: ['闪避 +30', '闪避 +41', '闪避 +56'], sub: ['身法 +6', '身法 +9', '身法 +12']),
-      PetSuitPart(slot: '玉佩', name: '守望·赤诚玉', attr: ['内外防 +5%', '内外防 +7%', '内外防 +9%'], sub: ['体力 +7', '体力 +10', '体力 +13']),
-    ],
-  ),
-  PetSuit(
-    name: '内敛套装',
-    cat: '爆发会心',
-    catColor: PetSuitCatColor.gold,
-    icon: 'flame',
-    fits: ['内敛性格', '会心流宝宝'],
-    levels: {
-      '75': [
-        PetSuitEffect(pieces: '2 件', text: '会心 +2%'),
-        PetSuitEffect(pieces: '3 件', text: '会心防御 +6%，气上限 +3%'),
-      ],
-      '85': [
-        PetSuitEffect(pieces: '2 件', text: '会心 +3%'),
-        PetSuitEffect(pieces: '3 件', text: '会心防御 +8%，气上限 +4%'),
-      ],
-      '95': [
-        PetSuitEffect(pieces: '2 件', text: '会心 +4%'),
-        PetSuitEffect(pieces: '3 件', text: '会心防御 +10%，气上限 +5%'),
-      ],
-    },
-    parts: [
-      PetSuitPart(slot: '头饰', name: '惊雷·敛雷冠', attr: ['会心 +22', '会心 +30', '会心 +41'], sub: ['灵气 +8', '灵气 +11', '灵气 +15']),
-      PetSuitPart(slot: '铠甲', name: '惊雷·暗锋衣', attr: ['会心防御 +30', '会心防御 +41', '会心防御 +56'], sub: ['气上限 +55', '气上限 +76', '气上限 +104']),
-      PetSuitPart(slot: '项圈', name: '惊雷·惊蛰圈', attr: ['会心 +18', '会心 +25', '会心 +34'], sub: ['会心伤害 +2%', '会心伤害 +3%', '会心伤害 +4%']),
-      PetSuitPart(slot: '利爪', name: '惊雷·破军爪', attr: ['会心 +26', '会心 +36', '会心 +49'], sub: ['会心 +4', '会心 +6', '会心 +8']),
-      PetSuitPart(slot: '玉佩', name: '惊雷·雷引玉', attr: ['气上限 +4%', '气上限 +5%', '气上限 +6%'], sub: ['会心防御 +5', '会心防御 +7', '会心防御 +10']),
-    ],
-  ),
+/// 五个部位（顺序：头 / 爪 / 躯干 / 颈 / 护符）。
+///
+/// 官方资料：珍兽装备分五件 —— 头部的珍兽面甲、爪部的珍兽武器、躯干的珍兽体甲、
+/// 颈部的珍兽项圈、身上的珍兽护符；项圈另有「出战后生效的系列专属效果」，
+/// 其余部位提供散件基础属性（数值随星级提升）。
+const List<PetSuitSlot> kPetSuitSlots = [
+  PetSuitSlot(name: '珍兽面甲', slot: '头', note: '散件基础属性'),
+  PetSuitSlot(name: '珍兽武器', slot: '爪', note: '散件基础属性'),
+  PetSuitSlot(name: '珍兽体甲', slot: '躯干', note: '散件基础属性'),
+  PetSuitSlot(name: '珍兽项圈', slot: '颈', note: '出战时附加系列专属效果'),
+  PetSuitSlot(name: '珍兽护符', slot: '护符', note: '散件基础属性'),
 ];
 
-/// 套装兑换 / 升星材料（与原型 `SUIT_MATS` 一致）。
-const SuitMats kSuitMats = SuitMats(
-  exchange: {
-    '85': [
-      SuitMatItem(name: '玄铁令', count: 8),
-      SuitMatItem(name: '锻魂石', count: 4),
-      SuitMatItem(name: '银两', count: 150000),
-    ],
-    '95': [
-      SuitMatItem(name: '赤金令', count: 16),
-      SuitMatItem(name: '洗魂髓', count: 6),
-      SuitMatItem(name: '银两', count: 400000),
-    ],
-  },
-  starBase: {
-    '75': [
-      SuitMatItem(name: '套装精魄', count: 6),
-      SuitMatItem(name: '寒铁', count: 3),
-      SuitMatItem(name: '银两', count: 25000),
-    ],
-    '85': [
-      SuitMatItem(name: '套装精魄', count: 10),
-      SuitMatItem(name: '玄铁', count: 5),
-      SuitMatItem(name: '银两', count: 60000),
-    ],
-    '95': [
-      SuitMatItem(name: '套装精魄', count: 16),
-      SuitMatItem(name: '赤铁', count: 8),
-      SuitMatItem(name: '银两', count: 150000),
-    ],
-  },
-);
+/// 唯一材料名 —— 圣兽鳞（拆解珍兽套装获得，副本不直接掉落）。
+const String kSuitMatName = '圣兽鳞';
+
+/// 某档位的圣兽鳞消耗（均为「每件」口径）。
+@immutable
+class SuitMatCost {
+  const SuitMatCost({
+    required this.exchange,
+    required this.starUp,
+    required this.salvage,
+  });
+
+  /// 兑换 1★ 部件所需（每件）；75 档也可由煞星副本掉落。
+  final int exchange;
+
+  /// 每件由 k★ 升到 (k+1)★ 所需：下标 0 为 1★→2★。
+  final List<int> starUp;
+
+  /// 每件 k★ 拆解返还的圣兽鳞：下标 0 为 1★。
+  final List<int> salvage;
+
+  /// 每件升到 [star] 星的累计圣兽鳞（1★ 即兑换消耗）。
+  int perPieceTo(int star) {
+    var n = exchange;
+    for (var k = 2; k <= star; k++) {
+      n += starUp[k - 2];
+    }
+    return n;
+  }
+}
+
+/// 各档位圣兽鳞消耗表（每件）。
+const Map<String, SuitMatCost> kSuitMatCost = {
+  // 75 档：兑换 1 个（该档部件主要来自煞星副本掉落，落地产出为 1★）；
+  // 升星 3 / 5 / 7 / 11 → 每件升满 5★ 共 27 个，一套 5 件 135 个。
+  '75': SuitMatCost(
+    exchange: 1,
+    starUp: [3, 5, 7, 11],
+    salvage: [1, 3, 7, 12, 20],
+  ),
+  // 85 档：兑换 30 个；升星 16 / 18 / 20 / 24 → 每件升满 5★ 共 108 个，一套 5 件 540 个。
+  '85': SuitMatCost(
+    exchange: 30,
+    starUp: [16, 18, 20, 24],
+    salvage: [20, 30, 35, 42, 57],
+  ),
+  // 95 档：兑换 100 个；升星 36 / 43 / 50 / 56 → 每件升满 5★ 共 285 个，一套 5 件 1425 个。
+  '95': SuitMatCost(
+    exchange: 100,
+    starUp: [36, 43, 50, 56],
+    salvage: [50, 68, 90, 115, 143],
+  ),
+};
+
+/// 22 个珍兽套装系列（75 档 4 套 + 85 档 9 套 + 95 档 9 套）。
+///
+/// 系列名 / 适配性格 / 项圈效果 / 全套效果照 17173《新版：珍兽套装全攻略（上 / 中 / 下篇）》
+/// 原文整理；75 档的散件属性方向取自同批资料。
+const List<PetSuitSeries> kPetSuitSeries = [
+  // ---------------- 75 档（4 套） ----------------
+  PetSuitSeries(
+    name: '黄雀戏水·怯',
+    lv: '75',
+    type: '内功',
+    typeColor: PetSuitCatColor.blue,
+    icon: 'spark',
+    personality: '胆小',
+    stats: ['内功攻击', '灵气', '命中'],
+    fullEffect: '烈火咒 / 玄雷咒 / 血毒咒 / 寒冰咒释放时额外增加对应属性攻击',
+    collar: '提升灵气、体力',
+  ),
+  PetSuitSeries(
+    name: '苍狼啸月·勇',
+    lv: '75',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '勇猛',
+    stats: ['外功攻击', '力量', '命中'],
+    fullEffect: '猛击技能释放时额外增加外功攻击',
+    collar: '提升体力',
+  ),
+  PetSuitSeries(
+    name: '苍狼啸月·狡',
+    lv: '75',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '精明',
+    stats: ['外功攻击', '力量', '血上限'],
+    fullEffect: '增加摔绊技能对目标的生效几率',
+  ),
+  PetSuitSeries(
+    name: '乌豚望日·忠',
+    lv: '75',
+    type: '体力',
+    typeColor: PetSuitCatColor.green,
+    icon: 'shield',
+    personality: '忠诚',
+    stats: ['内外功防御', '血上限'],
+    fullEffect: '增加灵动技能对珍兽的生效几率',
+    collar: '提升体力',
+  ),
+
+  // ---------------- 85 档（9 套） ----------------
+  PetSuitSeries(
+    name: '猛虎越山·勇',
+    lv: '85',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '勇猛',
+    fullEffect: '增加猛击技能的释放几率',
+    collar: '提升力量、体力',
+  ),
+  PetSuitSeries(
+    name: '猛虎越山·狡',
+    lv: '85',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '精明',
+    fullEffect: '增加反震技能的生效几率',
+    collar: '提升命中、会心攻击',
+  ),
+  PetSuitSeries(
+    name: '猛虎越山·慎',
+    lv: '85',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '谨慎',
+    fullEffect: '增加吸气技能的生效几率',
+    collar: '提升力量、体力',
+  ),
+  PetSuitSeries(
+    name: '飞鹰翔空·狡',
+    lv: '85',
+    type: '内功',
+    typeColor: PetSuitCatColor.blue,
+    icon: 'spark',
+    personality: '精明',
+    fullEffect: '增加反震技能的生效几率',
+    collar: '提升命中、会心攻击',
+  ),
+  PetSuitSeries(
+    name: '飞鹰翔空·怯',
+    lv: '85',
+    type: '内功',
+    typeColor: PetSuitCatColor.blue,
+    icon: 'spark',
+    personality: '胆小',
+    fullEffect: '增加痛击技能的伤害',
+    collar: '提升灵气、体力',
+  ),
+  PetSuitSeries(
+    name: '飞鹰翔空·慎',
+    lv: '85',
+    type: '内功',
+    typeColor: PetSuitCatColor.blue,
+    icon: 'spark',
+    personality: '谨慎',
+    fullEffect: '增加吸气技能的释放几率',
+    collar: '提升灵气、身法',
+  ),
+  PetSuitSeries(
+    name: '巨熊哮路·忠',
+    lv: '85',
+    type: '体力',
+    typeColor: PetSuitCatColor.green,
+    icon: 'shield',
+    personality: '忠诚',
+    fullEffect: '增加忠心技能的生效几率',
+    collar: '提升体力',
+  ),
+  PetSuitSeries(
+    name: '巨熊哮路·慎',
+    lv: '85',
+    type: '体力',
+    typeColor: PetSuitCatColor.green,
+    icon: 'shield',
+    personality: '谨慎平衡',
+    fullEffect: '增加吸气技能的生效几率',
+    collar: '提升体力、身法',
+  ),
+  PetSuitSeries(
+    name: '奔马逐风·慎',
+    lv: '85',
+    type: '身法',
+    typeColor: PetSuitCatColor.cyan,
+    icon: 'pct',
+    personality: '谨慎平衡',
+    fullEffect: '增加吸气技能的生效几率',
+    collar: '提升身法',
+  ),
+
+  // ---------------- 95 档（9 套） ----------------
+  PetSuitSeries(
+    name: '雄狮逆鳞·勇',
+    lv: '95',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '勇猛',
+    fullEffect: '增加连击技能的释放几率',
+    collar: '提升力量、体力',
+  ),
+  PetSuitSeries(
+    name: '雄狮逆鳞·狡',
+    lv: '95',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '精明',
+    fullEffect: '增加反击技能的生效几率',
+    collar: '提升命中、会心攻击',
+  ),
+  PetSuitSeries(
+    name: '雄狮逆鳞·慎',
+    lv: '95',
+    type: '外功',
+    typeColor: PetSuitCatColor.gold,
+    icon: 'sword',
+    personality: '谨慎',
+    fullEffect: '增加打怒技能的生效几率',
+    collar: '提升力量、身法',
+  ),
+  PetSuitSeries(
+    name: '鲲鹏异羽·狡',
+    lv: '95',
+    type: '内功',
+    typeColor: PetSuitCatColor.blue,
+    icon: 'spark',
+    personality: '精明',
+    fullEffect: '增加反击技能的生效几率',
+    collar: '提升命中、会心攻击',
+  ),
+  PetSuitSeries(
+    name: '鲲鹏异羽·怯',
+    lv: '95',
+    type: '内功',
+    typeColor: PetSuitCatColor.blue,
+    icon: 'spark',
+    personality: '胆小',
+    fullEffect: '增加烈火咒 / 寒冰咒 / 玄雷咒 / 血毒咒技能的释放几率',
+    collar: '提升灵气、体力',
+  ),
+  PetSuitSeries(
+    name: '鲲鹏异羽·慎',
+    lv: '95',
+    type: '内功',
+    typeColor: PetSuitCatColor.blue,
+    icon: 'spark',
+    personality: '谨慎',
+    fullEffect: '增加打怒技能的释放几率',
+    collar: '提升灵气、身法',
+  ),
+  PetSuitSeries(
+    name: '玄龟奇血·忠',
+    lv: '95',
+    type: '体力',
+    typeColor: PetSuitCatColor.green,
+    icon: 'shield',
+    personality: '忠诚',
+    fullEffect: '增加灵气技能的生效几率',
+    collar: '提升体力',
+  ),
+  PetSuitSeries(
+    name: '玄龟奇血·慎',
+    lv: '95',
+    type: '体力',
+    typeColor: PetSuitCatColor.green,
+    icon: 'shield',
+    personality: '谨慎平衡',
+    fullEffect: '增加打怒技能的生效几率',
+    collar: '提升体力、身法',
+  ),
+  PetSuitSeries(
+    name: '墨豹惊步·慎',
+    lv: '95',
+    type: '身法',
+    typeColor: PetSuitCatColor.cyan,
+    icon: 'pct',
+    personality: '谨慎平衡',
+    fullEffect: '增加打怒技能的生效几率',
+    collar: '提升身法',
+  ),
+];
 
 /// 材料计算输入。
 @immutable
 class SuitMatCalcInput {
   const SuitMatCalcInput({
     required this.lv,
-    required this.currentStar,
+    required this.targetStar,
     required this.withExchange,
   });
 
   /// 档位（75 / 85 / 95）。
   final String lv;
 
-  /// 当前星级（0~4，升到 5 星）。
-  final int currentStar;
+  /// 目标星级（1★~5★）：1★ 只需兑换 1★ 整套，5★ 为兑换 + 逐星升满。
+  final int targetStar;
 
-  /// 是否计入兑换整套材料。
+  /// 是否计入兑换 1★ 整套的材料（已有 1★ 部件时可关闭）。
   final bool withExchange;
 }
 
-/// 材料计算结果：兑换行 / 升星各行 / 合计。
+/// 单次升星消耗（每件 / 整套 5 件）。
+@immutable
+class SuitMatStarRow {
+  const SuitMatStarRow({
+    required this.star,
+    required this.perPiece,
+    required this.setTotal,
+  });
+
+  /// 目标星级（2~5）。
+  final int star;
+
+  /// 每件消耗。
+  final int perPiece;
+
+  /// 整套（5 件）消耗。
+  final int setTotal;
+}
+
+/// 材料计算结果（单位：圣兽鳞）。
 @immutable
 class SuitMatCalcResult {
   const SuitMatCalcResult({
-    required this.exchange,
+    required this.lv,
+    required this.targetStar,
+    required this.exchangePerPiece,
+    required this.exchangeSet,
     required this.starRows,
+    required this.upgradeSet,
     required this.total,
+    required this.salvagePerPiece,
+    required this.fullSetTotal,
   });
 
-  /// 兑换整套材料（每部件消耗 ×5；不计入则空）。
-  final List<SuitMatItem> exchange;
+  /// 档位。
+  final String lv;
 
-  /// 升星各星级消耗：下标 k 对应「k+1★ → (k+1)★」的消耗。
+  /// 目标星级（1★~5★）。
+  final int targetStar;
+
+  /// 兑换 1★ 的每件消耗。
+  final int exchangePerPiece;
+
+  /// 兑换 1★ 整套（5 件）消耗；不计入兑换时为 0。
+  final int exchangeSet;
+
+  /// 升到目标星级的逐星消耗（2★ 起；目标 1★ 时为空）。
   final List<SuitMatStarRow> starRows;
 
-  /// 合计消耗。
-  final List<SuitMatItem> total;
+  /// 升星合计（5 件）。
+  final int upgradeSet;
+
+  /// 合计 = 兑换 + 升星。
+  final int total;
+
+  /// 各星级每件拆解返还（下标 0 为 1★）。
+  final List<int> salvagePerPiece;
+
+  /// 该档位「兑换 1★ + 升满 5★」整套（5 件）参考值。
+  final int fullSetTotal;
 }
 
-/// 单星级升星消耗。
-@immutable
-class SuitMatStarRow {
-  const SuitMatStarRow({required this.star, required this.mats});
-
-  /// 目标星级（1~5）。
-  final int star;
-
-  final List<SuitMatItem> mats;
-}
-
-/// 计算材料消耗（与原型 `suitMatsCalc` 一致）：
-/// - 兑换：每部件消耗 ×5（整套）；
-/// - 升星：第 k 星消耗 = 基础消耗 × k × 5（整套）。
+/// 计算做到目标星级所需的圣兽鳞（怀旧服口径）：
+/// - 兑换：每件 [SuitMatCost.exchange]（1★ 装备），整套按 5 件；
+/// - 升星：1★ → [SuitMatCalcInput.targetStar]，逐星「每件消耗 × 5 件」，目标 1★ 时无升星行。
 SuitMatCalcResult suitMatsCalc(SuitMatCalcInput input) {
-  final lv = input.lv;
-  final exchange = input.withExchange
-      ? (kSuitMats.exchange[lv] ?? const <SuitMatItem>[])
-          .map((m) => SuitMatItem(name: m.name, count: m.count * 5))
-          .toList(growable: false)
-      : const <SuitMatItem>[];
+  final cost = kSuitMatCost[input.lv] ?? kSuitMatCost[kSuitLvKeys.first]!;
+  final exchangeSet = input.withExchange ? cost.exchange * 5 : 0;
 
-  final base = kSuitMats.starBase[lv] ?? const <SuitMatItem>[];
+  // 目标星级取值 1★~5★（越界值按边界处理）。
+  final target = input.targetStar.clamp(1, 5);
   final rows = <SuitMatStarRow>[];
-  for (var k = input.currentStar + 1; k <= 5; k++) {
-    rows.add(SuitMatStarRow(
-      star: k,
-      mats: base
-          .map((m) => SuitMatItem(name: m.name, count: m.count * k * 5))
-          .toList(growable: false),
-    ));
+  for (var k = 2; k <= target; k++) {
+    final perPiece = cost.starUp[k - 2];
+    rows.add(
+      SuitMatStarRow(star: k, perPiece: perPiece, setTotal: perPiece * 5),
+    );
   }
-
-  final total = <String, int>{};
-  void add(List<SuitMatItem> items) {
-    for (final m in items) {
-      total[m.name] = (total[m.name] ?? 0) + m.count;
-    }
-  }
-
-  add(exchange);
-  for (final r in rows) {
-    add(r.mats);
-  }
+  final upgradeSet = rows.fold<int>(0, (sum, r) => sum + r.setTotal);
 
   return SuitMatCalcResult(
-    exchange: exchange,
+    lv: input.lv,
+    targetStar: target,
+    exchangePerPiece: cost.exchange,
+    exchangeSet: exchangeSet,
     starRows: rows,
-    total: total.entries
-        .map((e) => SuitMatItem(name: e.key, count: e.value))
-        .toList(growable: false),
+    upgradeSet: upgradeSet,
+    total: exchangeSet + upgradeSet,
+    salvagePerPiece: cost.salvage,
+    fullSetTotal: cost.perPieceTo(5) * 5,
   );
-}
-
-/// 大数字格式化：≥1 万显示 `x.x万`（整数则不带小数），否则原样。
-String suitFmtCount(int n) {
-  if (n >= 10000) {
-    final wan = n / 10000;
-    final text = n % 10000 == 0 ? wan.toStringAsFixed(0) : wan.toStringAsFixed(1);
-    return '$text万';
-  }
-  return '$n';
 }

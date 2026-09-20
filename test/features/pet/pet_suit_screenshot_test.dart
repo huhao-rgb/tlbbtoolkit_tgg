@@ -32,6 +32,16 @@ Future<void> _snap(WidgetTester tester, String path) async {
   image.dispose();
 }
 
+/// 整屏快照（含 Overlay，如弹窗）。
+Future<void> _snapView(WidgetTester tester, String path) async {
+  final view = tester.binding.renderViews.first;
+  final layer = view.debugLayer! as OffsetLayer;
+  final image = await layer.toImage(Offset.zero & view.size, pixelRatio: 2);
+  final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+  File(path).writeAsBytesSync(bytes!.buffer.asUint8List());
+  image.dispose();
+}
+
 void main() {
   testWidgets('capture screenshots', (tester) async {
     await tester.runAsync(_loadFonts);
@@ -61,6 +71,19 @@ void main() {
       await tester.tap(find.text('材料计算器'));
       await tester.pump(const Duration(milliseconds: 400));
       await _snap(tester, '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_calc.png');
+    });
+
+    // 五件套部件弹窗（85 档第一张卡）
+    await tester.runAsync(() async {
+      await tester.tap(find.text('套装图鉴'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('猛虎越山·勇'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 400));
+      await _snapView(
+        tester,
+        '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_dialog.png',
+      );
     });
 
     // 窄屏
