@@ -2,11 +2,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tlbbtoolkit/app/app.dart';
+import 'package:tlbbtoolkit/app/shell_navigation/widgets/android_back_exit_guard.dart';
 import 'package:tlbbtoolkit/app/shell_navigation/widgets/desktop_sidebar.dart';
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
@@ -41,6 +43,16 @@ Finder sidebarItem(String label) => find.descendant(
 /// 首页分类筛选 chips 中的项。
 Finder homeChip(String label) =>
     find.descendant(of: find.byKey(_chipsKey), matching: find.text(label));
+
+/// 模拟按下 Android 系统返回键（引擎向 `flutter/navigation` 发 `popRoute`）。
+Future<void> pressSystemBack(WidgetTester tester) async {
+  await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+    'flutter/navigation',
+    const JSONMethodCodec().encodeMethodCall(const MethodCall('popRoute')),
+    (_) {},
+  );
+  await tester.pumpAndSettle();
+}
 
 /// 滚动到目标并令其居于视口中央（默认 ensureVisible 会贴顶，
 /// 在悬浮毛玻璃顶栏下会被玻璃遮挡）。
@@ -78,6 +90,109 @@ void main() {
   }
 
   // ---------- 移动端 ----------
+
+  testWidgets('Android 系统返回：栈内可返回时回上一层，不弹退出提示', (tester) async {
+    await pumpApp(tester);
+
+    final router = GoRouter.of(tester.element(find.byKey(_infoBarKey)));
+    router.go('/misc/market');
+    await tester.pumpAndSettle();
+    router.push('/misc/market/detail');
+    await tester.pumpAndSettle();
+    expect(infoBarTitle('商品详情'), findsOneWidget);
+
+    // 系统返回键与信息条返回钮同语义：先回列表页。
+    await pressSystemBack(tester);
+    expect(infoBarTitle('珍兽行情'), findsOneWidget);
+    expect(find.text(AndroidBackExitGuard.exitHint), findsNothing);
+  });
+
+  testWidgets('Android 系统返回：非首页 tab 的分支根先回首页 tab，再按才提示退出', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    await tester.tap(bottomTab('实用'));
+    await tester.pumpAndSettle();
+    expect(infoBarTitle('实用工具'), findsOneWidget);
+
+    // 分支根：先切回「首页」tab，不弹退出提示。
+    await pressSystemBack(tester);
+    expect(infoBarTitle('首页'), findsOneWidget);
+    expect(find.text(AndroidBackExitGuard.exitHint), findsNothing);
+
+    // 首页已无处可返回：再按才弹「再按一次返回键退出应用」。
+    await pressSystemBack(tester);
+    expect(find.text(AndroidBackExitGuard.exitHint), findsOneWidget);
+
+    // 消化 SnackBar 自动隐藏的计时器，避免收尾时残留 pending timer。
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('Android 系统返回：无可返回页面时先提示，短时间内再按才退出应用', (
+    tester,
+  ) async {
+    final platformCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        platformCalls.add(call);
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+
+    await pumpApp(tester);
+    expect(infoBarTitle('首页'), findsOneWidget);
+
+    // 首次系统返回：只弹提示，不退出应用。
+    await pressSystemBack(tester);
+    final hint = find.text(AndroidBackExitGuard.exitHint);
+    expect(hint, findsOneWidget);
+
+    // 提示在页面顶部（信息条下方），且带 1px 描边（暗色下更醒目）。
+    final screenHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(tester.getCenter(hint).dy, lessThan(screenHeight / 2));
+    final hintBox = tester.widget<Container>(
+      find.ancestor(of: hint, matching: find.byType(Container)).first,
+    );
+    final hintDecoration = hintBox.decoration! as BoxDecoration;
+    expect((hintDecoration.border! as Border).top.width, 1);
+
+    // 浮层在 Scaffold 之外，必须自带 Material 祖先并显式关掉下划线，
+    // 否则文字会继承 WidgetsApp 的兜底样式而出现黄色双下划线。
+    expect(
+      find.ancestor(of: hint, matching: find.byType(Material)),
+      findsWidgets,
+    );
+    expect(
+      tester.widget<Text>(hint).style?.decoration,
+      TextDecoration.none,
+    );
+
+    expect(
+      platformCalls.any((c) => c.method == 'SystemNavigator.pop'),
+      isFalse,
+    );
+
+    // 时间窗口内再次按下：退出应用。
+    await pressSystemBack(tester);
+    expect(
+      platformCalls.any((c) => c.method == 'SystemNavigator.pop'),
+      isTrue,
+    );
+
+    // 消化 SnackBar 自动隐藏的计时器，避免收尾时残留 pending timer。
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('移动端首页：Hero + 信息条 + 5 段底部 tab', (tester) async {
     await pumpApp(tester);

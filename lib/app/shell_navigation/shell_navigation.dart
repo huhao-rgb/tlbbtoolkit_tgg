@@ -9,6 +9,7 @@ import '../../core/responsive/breakpoints.dart';
 import '../../shared/widgets/tg_icon.dart';
 import '../../app/theme/design_tokens.dart';
 import 'shell_navigation_state.dart';
+import 'widgets/android_back_exit_guard.dart';
 import 'widgets/app_info_bar.dart';
 import 'widgets/desktop_sidebar.dart';
 
@@ -46,6 +47,9 @@ class AppShellNavigation extends ConsumerWidget {
     (icon: 'spark', label: '实用'),
   ];
 
+  /// 「首页」tab 对应的分支索引（系统返回键的最终落点，同 [_tabs] 首项）。
+  static const int _homeBranchIndex = 0;
+
   void _onTabSelected(int index) {
     // goBranch 保留各分支导航栈；点当前 tab 回到该分支根。
     navigationShell.goBranch(
@@ -54,27 +58,62 @@ class AppShellNavigation extends ConsumerWidget {
     );
   }
 
+  /// 尝试在当前分支导航栈内返回一层（pop）。
+  ///
+  /// 成功（栈内确有上一页）返回 `true`；栈内已是该分支首个页面时返回
+  /// `false`，此时「上一层」是该分支的 hub，需由调用方决定怎么走。
+  bool _popBranchStack(BuildContext context) {
+    final router = GoRouter.of(context);
+    if (!router.canPop()) return false;
+    router.pop();
+    return true;
+  }
+
   /// 信息条返回钮。
   ///
   /// 先 pop 当前分支导航栈内的上一层页面（如 `/misc/market/detail` 商品详情
   /// → `/misc/market` 行情列表，列表滚动位置随之保留）；仅当栈内已是分支
   /// 内首个页面时才回到该分支的 hub（如 `/pet/calc` → 宝宝工具 hub）。
   void _goBack(BuildContext context) {
-    final router = GoRouter.of(context);
-    if (router.canPop()) {
-      router.pop();
-      return;
-    }
+    if (_popBranchStack(context)) return;
     navigationShell.goBranch(
       navigationShell.currentIndex,
       initialLocation: true,
     );
   }
 
+  /// Android 系统返回键处理（见 [AndroidBackExitGuard]）。
+  ///
+  /// 逐层回退：
+  /// 1. 本分支栈内有上一页 → pop（如详情页 → 列表页）；
+  /// 2. 已到分支内首个页面，且不在「首页」tab → 切回首页 tab（保留首页
+  ///    分支自己的导航栈，与点 tab 切分支一致）；
+  /// 3. 已在首页 tab → 返回 `false`，交由守卫走「再按一次退出应用」。
+  bool _onSystemBack(BuildContext context) {
+    if (_popBranchStack(context)) return true;
+    if (navigationShell.currentIndex != _homeBranchIndex) {
+      navigationShell.goBranch(_homeBranchIndex);
+      return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final navState = ref.watch(shellNavigationProvider);
 
+    // Android：接管系统返回键 —— 栈内能返回就先返回，分支根先回首页 tab；
+    // 首页也无可返回时才首次弹提示，短时间内再按一次才退出应用
+    // （见 [AndroidBackExitGuard]）。其余平台原样返回（不干扰 iOS 侧滑返回 /
+    // 桌面与 Web 的返回语义）。
+    return AndroidBackExitGuard(
+      onBack: () => _onSystemBack(context),
+      child: _buildShell(context, navState),
+    );
+  }
+
+  /// shell 骨架：信息条 + 内容区，外加移动端底部 tabbar / 桌面端侧栏。
+  Widget _buildShell(BuildContext context, ShellNavigationState navState) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final layout = Breakpoints.layoutOf(constraints.maxWidth);
