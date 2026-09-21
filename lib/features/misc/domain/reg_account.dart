@@ -44,9 +44,9 @@ const List<RegSect> kRegSects = [
 
 /// 按 key 取门派（未知回退逍遥）。
 RegSect regSectOf(String key) => kRegSects.firstWhere(
-      (s) => s.key == key,
-      orElse: () => kRegSects.firstWhere((s) => s.key == 'xiaoyao'),
-    );
+  (s) => s.key == key,
+  orElse: () => kRegSects.firstWhere((s) => s.key == 'xiaoyao'),
+);
 
 /// 账号回归状态。
 enum RegState { idle, run, done }
@@ -59,13 +59,12 @@ class RegRun {
   final int startMs;
   final int endMs;
 
-  Map<String, dynamic> toJson() =>
-      {'s': startMs, 'e': endMs};
+  Map<String, dynamic> toJson() => {'s': startMs, 'e': endMs};
 
   factory RegRun.fromJson(Map<String, dynamic> json) => RegRun(
-        startMs: (json['s'] as num?)?.toInt() ?? 0,
-        endMs: (json['e'] as num?)?.toInt() ?? 0,
-      );
+    startMs: (json['s'] as num?)?.toInt() ?? 0,
+    endMs: (json['e'] as num?)?.toInt() ?? 0,
+  );
 }
 
 /// 一个回归账号。
@@ -98,36 +97,35 @@ class RegAccount {
     int? curMs,
     bool clearCur = false,
     List<RegRun>? runs,
-  }) =>
-      RegAccount(
-        id: id,
-        name: name ?? this.name,
-        lv: lv ?? this.lv,
-        sectKey: sectKey ?? this.sectKey,
-        curMs: clearCur ? null : (curMs ?? this.curMs),
-        runs: runs ?? this.runs,
-      );
+  }) => RegAccount(
+    id: id,
+    name: name ?? this.name,
+    lv: lv ?? this.lv,
+    sectKey: sectKey ?? this.sectKey,
+    curMs: clearCur ? null : (curMs ?? this.curMs),
+    runs: runs ?? this.runs,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'lv': lv,
-        'sect': sectKey,
-        'cur': curMs,
-        'runs': [for (final r in runs) r.toJson()],
-      };
+    'id': id,
+    'name': name,
+    'lv': lv,
+    'sect': sectKey,
+    'cur': curMs,
+    'runs': [for (final r in runs) r.toJson()],
+  };
 
   factory RegAccount.fromJson(Map<String, dynamic> json) => RegAccount(
-        id: json['id'] as String? ?? '',
-        name: json['name'] as String? ?? '',
-        lv: (json['lv'] as num?)?.toInt() ?? 89,
-        sectKey: json['sect'] as String? ?? 'xiaoyao',
-        curMs: (json['cur'] as num?)?.toInt(),
-        runs: [
-          for (final r in (json['runs'] as List? ?? const []))
-            if (r is Map<String, dynamic>) RegRun.fromJson(r),
-        ],
-      );
+    id: json['id'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+    lv: (json['lv'] as num?)?.toInt() ?? 89,
+    sectKey: json['sect'] as String? ?? 'xiaoyao',
+    curMs: (json['cur'] as num?)?.toInt(),
+    runs: [
+      for (final r in (json['runs'] as List? ?? const []))
+        if (r is Map<String, dynamic>) RegRun.fromJson(r),
+    ],
+  );
 }
 
 /// 卡回归周期：7 天 + 1 分钟（原型 `REG_DUR`）。

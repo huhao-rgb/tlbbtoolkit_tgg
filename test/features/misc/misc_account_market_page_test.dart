@@ -12,7 +12,10 @@ import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_account_market
 
 /// 默认 mock：注入 132 条快照数据（页面进入即自动拉取，模拟接口成功）。
 Future<AccountMarketFetchResult> _defaultFetch() async =>
-    AccountMarketFetchResult(raw: kAccountMarketData.length, parsed: kAccountMarketData);
+    AccountMarketFetchResult(
+      raw: kAccountMarketData.length,
+      parsed: kAccountMarketData,
+    );
 
 /// 默认 mock：从快照数据推导区服目录。
 Future<List<SxdsRegion>> _defaultRegions() async {
@@ -235,6 +238,7 @@ void main() {
       outerScrollable.position.jumpTo(target);
       await tester.pumpAndSettle();
     }
+
     await centerList();
 
     final outerBottom = outerScrollable.position.pixels;
@@ -275,9 +279,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 万人大区样本 10 条（快照区服分布）
-    final count = kAccountMarketData
-        .where((x) => x.area == '万人大区')
-        .length;
+    final count = kAccountMarketData.where((x) => x.area == '万人大区').length;
     expect(find.text('$count 条'), findsWidgets);
     expect(find.text('共 $count 条'), findsOneWidget);
   });
@@ -322,9 +324,8 @@ void main() {
   testWidgets('紧凑（移动）宽度：筛选下拉两列等宽，一行两个', (tester) async {
     await pumpPage(tester, size: const Size(390, 16000));
 
-    Rect box(String label) => tester.getRect(
-      find.byKey(ValueKey('tg-select-$label')),
-    );
+    Rect box(String label) =>
+        tester.getRect(find.byKey(ValueKey('tg-select-$label')));
     final area = box('大区');
     final server = box('服务器');
     final band = box('角色等级');

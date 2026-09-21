@@ -67,11 +67,7 @@ class BeastSoulRhTier {
 /// 融魂技能（原型 `rh`）。
 @immutable
 class BeastSoulRh {
-  const BeastSoulRh({
-    required this.name,
-    required this.tiers,
-    this.iconPath,
-  });
+  const BeastSoulRh({required this.name, required this.tiers, this.iconPath});
 
   /// 融魂技能名（如「青龙魂附·天罡」）。
   final String name;
@@ -125,10 +121,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的冰攻击350点 2）提高主人的忽略目标冰抗125点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的冰攻击350点 2）提高主人的忽略目标冰抗125点'),
       ],
     ),
   ),
@@ -149,10 +142,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的玄攻击350点 2）提高主人的忽略目标玄抗125点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的玄攻击350点 2）提高主人的忽略目标玄抗125点'),
       ],
     ),
   ),
@@ -173,10 +163,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的毒攻击350点 2）提高主人的忽略目标毒抗125点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的毒攻击350点 2）提高主人的忽略目标毒抗125点'),
       ],
     ),
   ),
@@ -197,10 +184,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的火攻击350点 2）提高主人的忽略目标火抗125点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的火攻击350点 2）提高主人的忽略目标火抗125点'),
       ],
     ),
   ),
@@ -234,7 +218,8 @@ const List<BeastSoul> kBeastSouls = [
     type: BeastSoulType.huang,
     cs: BeastSoulSkill(
       name: '溯洄',
-      description: '被动：死亡时，给主人一个状态，可使主人在任何状态下，不用读条立即召唤珍兽，且使珍兽无敌2秒，状态持续15秒，冷却时间200秒。',
+      description:
+          '被动：死亡时，给主人一个状态，可使主人在任何状态下，不用读条立即召唤珍兽，且使珍兽无敌2秒，状态持续15秒，冷却时间200秒。',
       iconPath: 'assets/beast_soul/soul_5_cs.webp',
     ),
     rh: BeastSoulRh(
@@ -246,10 +231,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的冰攻击245点 2）提高主人的命中2740点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的冰攻击245点 2）提高主人的命中2740点'),
       ],
     ),
   ),
@@ -258,7 +240,8 @@ const List<BeastSoul> kBeastSouls = [
     type: BeastSoulType.huang,
     cs: BeastSoulSkill(
       name: '萦舞',
-      description: '主动：牺牲自己，使主人进入无敌、围困状态，持续15秒，冷却300秒。（注：使用技能后会生成对应BUFF，此BUFF可手动取消）',
+      description:
+          '主动：牺牲自己，使主人进入无敌、围困状态，持续15秒，冷却300秒。（注：使用技能后会生成对应BUFF，此BUFF可手动取消）',
     ),
     rh: BeastSoulRh(
       name: '幻蝶魂附·晓梦',
@@ -268,10 +251,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的玄攻击245点 2）提高主人的命中2740点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的玄攻击245点 2）提高主人的命中2740点'),
       ],
     ),
   ),
@@ -292,10 +272,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的会心40点 2）提高主人的会心防御40点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的会心40点 2）提高主人的会心防御40点'),
       ],
     ),
   ),
@@ -314,10 +291,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的毒攻击245点 2）提高主人的命中2740点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的毒攻击245点 2）提高主人的命中2740点'),
       ],
     ),
   ),
@@ -336,10 +310,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的火攻击245点 2）提高主人的命中2740点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的火攻击245点 2）提高主人的命中2740点'),
       ],
     ),
   ),
@@ -403,20 +374,14 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的命中2329点 2）提高主人的闪避893点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的命中2329点 2）提高主人的闪避893点'),
       ],
     ),
   ),
   BeastSoul(
     name: '苍狼',
     type: BeastSoulType.ling,
-    cs: BeastSoulSkill(
-      name: '煞月',
-      description: '被动：自身血量低于50%时，造成的伤害提高50%。',
-    ),
+    cs: BeastSoulSkill(name: '煞月', description: '被动：自身血量低于50%时，造成的伤害提高50%。'),
     rh: BeastSoulRh(
       name: '苍狼魂附·噬月',
       tiers: [
@@ -425,20 +390,14 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的血上限9371点 2）提高主人的会心24点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的血上限9371点 2）提高主人的会心24点'),
       ],
     ),
   ),
   BeastSoul(
     name: '飞羚',
     type: BeastSoulType.ling,
-    cs: BeastSoulSkill(
-      name: '星驰',
-      description: '被动：主人受到的减速效果，时间减免55%。',
-    ),
+    cs: BeastSoulSkill(name: '星驰', description: '被动：主人受到的减速效果，时间减免55%。'),
     rh: BeastSoulRh(
       name: '飞羚魂附·灵眷',
       tiers: [
@@ -447,10 +406,7 @@ const List<BeastSoul> kBeastSouls = [
         BeastSoulRhTier(lv: 3),
         BeastSoulRhTier(lv: 4),
         BeastSoulRhTier(lv: 5),
-        BeastSoulRhTier(
-          lv: 6,
-          description: '1）提高主人的体力142点 2）提高主人的会心防御24点',
-        ),
+        BeastSoulRhTier(lv: 6, description: '1）提高主人的体力142点 2）提高主人的会心防御24点'),
       ],
     ),
   ),

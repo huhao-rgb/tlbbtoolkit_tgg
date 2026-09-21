@@ -286,8 +286,7 @@ class _SchoolCard extends StatelessWidget {
                   ? '武道${kWudaoTierCn[li]}'
                   : '武道${li + 1}重',
             ),
-            for (final node in school.layers[li].nodes)
-              _NodeRow(node: node),
+            for (final node in school.layers[li].nodes) _NodeRow(node: node),
           ],
         ],
       ),
@@ -385,9 +384,7 @@ class _NodeRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 7),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: tg.border, width: 0.5),
-        ),
+        border: Border(bottom: BorderSide(color: tg.border, width: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -422,11 +419,7 @@ class _NodeRow extends StatelessWidget {
           Expanded(
             child: Text(
               node.effect,
-              style: TextStyle(
-                fontSize: 12.5,
-                color: tg.t2,
-                height: 1.45,
-              ),
+              style: TextStyle(fontSize: 12.5, color: tg.t2, height: 1.45),
             ),
           ),
         ],
@@ -437,7 +430,11 @@ class _NodeRow extends StatelessWidget {
 
 /// 武道图标（`.wd-ic` / `.wd-pd img`）。
 class _NodeIcon extends StatelessWidget {
-  const _NodeIcon({required this.path, required this.size, required this.radius});
+  const _NodeIcon({
+    required this.path,
+    required this.size,
+    required this.radius,
+  });
 
   final String path;
   final double size;
@@ -452,11 +449,8 @@ class _NodeIcon extends StatelessWidget {
         width: size,
         height: size,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stack) => Container(
-          width: size,
-          height: size,
-          color: context.tg.inset,
-        ),
+        errorBuilder: (context, error, stack) =>
+            Container(width: size, height: size, color: context.tg.inset),
       ),
     );
   }

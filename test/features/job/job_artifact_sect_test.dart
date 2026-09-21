@@ -10,7 +10,8 @@ import 'package:tlbbtoolkit/features/job/presentation/pages/job_artifact_page.da
 import 'package:tlbbtoolkit/features/job/presentation/pages/job_sect_intro_page.dart';
 
 Future<void> _pumpArtifact(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1200, 1600) * tester.view.devicePixelRatio;
+  tester.view.physicalSize =
+      const Size(1200, 1600) * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
     MaterialApp(
@@ -23,7 +24,8 @@ Future<void> _pumpArtifact(WidgetTester tester) async {
 }
 
 Future<void> _pumpSect(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1200, 1600) * tester.view.devicePixelRatio;
+  tester.view.physicalSize =
+      const Size(1200, 1600) * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
     MaterialApp(

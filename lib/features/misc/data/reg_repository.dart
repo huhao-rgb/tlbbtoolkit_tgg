@@ -97,7 +97,9 @@ class RegRepository {
         skipped++;
         continue;
       }
-      final id = (x['id'] is String && (x['id'] as String).isNotEmpty &&
+      final id =
+          (x['id'] is String &&
+              (x['id'] as String).isNotEmpty &&
               !existing.any((a) => a.id == x['id']))
           ? x['id'] as String
           : 'i${DateTime.now().millisecondsSinceEpoch}${seq++}';
@@ -110,10 +112,11 @@ class RegRepository {
         curMs: (x['cur'] as num?)?.toInt(),
         runs: [
           for (final r in (x['runs'] as List? ?? const []))
-            if (r is Map<String, dynamic> &&
-                r['s'] is num &&
-                r['e'] is num)
-              RegRun(startMs: (r['s'] as num).toInt(), endMs: (r['e'] as num).toInt()),
+            if (r is Map<String, dynamic> && r['s'] is num && r['e'] is num)
+              RegRun(
+                startMs: (r['s'] as num).toInt(),
+                endMs: (r['e'] as num).toInt(),
+              ),
         ],
       );
       merged.add(a);

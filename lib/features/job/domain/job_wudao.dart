@@ -48,7 +48,11 @@ class WudaoLayer {
 /// 一个武道流派。
 @immutable
 class WudaoSchool {
-  const WudaoSchool({required this.name, required this.passive, required this.layers});
+  const WudaoSchool({
+    required this.name,
+    required this.passive,
+    required this.layers,
+  });
 
   /// 流派名（如 专心治疗）。
   final String name;
@@ -62,6 +66,10 @@ class WudaoSchool {
 
 /// 重数标签（`.wd-lname`）。
 const List<String> kWudaoTierCn = ['一重', '二重', '三重', '四重'];
+
+// 以下数据表为人工紧凑排版（一行一个门派 / 一条记录），便于对照官方资料
+// 核对与增改，故豁免 dart format 的 80 列展开。
+// dart format off
 
 /// 按门派武道数据（对应原型 `WUDAO`）。
 const Map<String, List<WudaoSchool>> kWudao = {
@@ -285,6 +293,7 @@ const Map<String, List<WudaoSchool>> kWudao = {
   ],
 };
 
+
+// dart format on
 /// 按门派取武道流派（未知门派返回空列表）。
 List<WudaoSchool> wudaoOf(String sectKey) => kWudao[sectKey] ?? const [];
-

@@ -89,15 +89,15 @@ void main() {
 
     test('灵性加成按「悟性后资质」分档（低资质宝宝不再套用 ≥2200 档）', () {
       PetCalcResult calc(int base, {bool superLing = false}) => computePetCalc(
-            PetCalcInput(
-              base: base,
-              currentWu: 0,
-              currentLing: 0,
-              targetWu: 10,
-              targetLing: 10,
-              isSuperLing: superLing,
-            ),
-          );
+        PetCalcInput(
+          base: base,
+          currentWu: 0,
+          currentLing: 0,
+          targetWu: 10,
+          targetLing: 10,
+          isSuperLing: superLing,
+        ),
+      );
 
       // 裸资 1500 → 悟性后 2089.5，落「1800~2199」档 → 灵性10 +23%
       final mid = calc(1500);
@@ -145,15 +145,15 @@ void main() {
 
     test('评级边界：S≥5000 / A≥4200 / B≥3400 / C<3400', () {
       PetCalcResult calc(int base, int wu, int ling) => computePetCalc(
-            PetCalcInput(
-              base: base,
-              currentWu: 0,
-              currentLing: 0,
-              targetWu: wu,
-              targetLing: ling,
-              isSuperLing: false,
-            ),
-          );
+        PetCalcInput(
+          base: base,
+          currentWu: 0,
+          currentLing: 0,
+          targetWu: wu,
+          targetLing: ling,
+          isSuperLing: false,
+        ),
+      );
       // 裸资 2750 → 2750*1.393*1.31 = 5018.29 → S / 极品
       final s = calc(2750, 10, 10);
       expect(s.result, 5018);

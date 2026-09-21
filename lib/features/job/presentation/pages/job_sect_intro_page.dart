@@ -200,7 +200,8 @@ class _SectDetail extends StatelessWidget {
               for (final l in info.life)
                 JobMatItem(
                   label: l.name,
-                  value: l.desc +
+                  value:
+                      l.desc +
                       (l.at != null && l.at!.isNotEmpty
                           ? '\n学习地点：${l.at}'
                           : ''),

@@ -137,4 +137,3 @@ String formatThousand(int value) {
   final out = buf.toString();
   return value < 0 ? '-$out' : out;
 }
-

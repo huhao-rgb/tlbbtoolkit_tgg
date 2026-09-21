@@ -50,7 +50,9 @@ class TlbbApp extends ConsumerWidget {
             systemNavigationBarColor: Colors.transparent,
             systemNavigationBarDividerColor: Colors.transparent,
             // 图标明暗跟随主题：深色 → 亮图标，浅色 → 暗图标。
-            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            statusBarIconBrightness: isDark
+                ? Brightness.light
+                : Brightness.dark,
             statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
             systemNavigationBarIconBrightness: isDark
                 ? Brightness.light

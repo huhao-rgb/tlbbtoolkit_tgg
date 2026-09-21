@@ -45,19 +45,24 @@ void main() {
 
   test('mergeImported：按「姓名+门派」判重，非法记录跳过，未知门派回退逍遥', () async {
     final r = await repo();
-    final current = [RegAccount(id: 'a1', name: '已有号', lv: 89, sectKey: 'xiaoyao')];
-    final res = r.mergeImported(
-      [
-        {'name': '已有号', 'sect': 'xiaoyao'}, // 重复 → 跳过
-        {'name': '', 'sect': 'shaolin'}, // 空名 → 跳过
-        {'name': '新号', 'sect': 'not-a-sect', 'lv': 30}, // 未知门派回退逍遥，lv 钳制
-        {'name': '新号2', 'sect': 'tianlong', 'lv': 200, 'cur': 123, 'runs': [
+    final current = [
+      RegAccount(id: 'a1', name: '已有号', lv: 89, sectKey: 'xiaoyao'),
+    ];
+    final res = r.mergeImported([
+      {'name': '已有号', 'sect': 'xiaoyao'}, // 重复 → 跳过
+      {'name': '', 'sect': 'shaolin'}, // 空名 → 跳过
+      {'name': '新号', 'sect': 'not-a-sect', 'lv': 30}, // 未知门派回退逍遥，lv 钳制
+      {
+        'name': '新号2',
+        'sect': 'tianlong',
+        'lv': 200,
+        'cur': 123,
+        'runs': [
           {'s': 1, 'e': 2},
           {'s': 'bad'}, // 非法 run → 过滤
-        ]},
-      ],
-      current: current,
-    );
+        ],
+      },
+    ], current: current);
     expect(res.added, 2);
     expect(res.skipped, 2);
     expect(res.merged, hasLength(3));

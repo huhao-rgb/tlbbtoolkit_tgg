@@ -53,9 +53,8 @@ void main() {
   testWidgets('紧凑（移动）宽度：筛选下拉两列等宽，一行两个', (tester) async {
     await pumpPage(tester);
 
-    Rect box(String label) => tester.getRect(
-      find.byKey(ValueKey('tg-select-$label')),
-    );
+    Rect box(String label) =>
+        tester.getRect(find.byKey(ValueKey('tg-select-$label')));
     final area = box('大区');
     final server = box('服务器');
     final band = box('可携带等级');

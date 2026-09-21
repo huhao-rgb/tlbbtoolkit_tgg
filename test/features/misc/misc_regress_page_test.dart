@@ -11,7 +11,8 @@ import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_regress_page.d
 Future<void> pumpPage(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
-  tester.view.physicalSize = const Size(1200, 1000) * tester.view.devicePixelRatio;
+  tester.view.physicalSize =
+      const Size(1200, 1000) * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
     ProviderScope(

@@ -104,12 +104,7 @@ const List<PetSuitSlot> kPetSuitSlots = [
   PetSuitSlot(name: '兽盔', slot: '头', icon: 'part_helm', note: '散件基础属性'),
   PetSuitSlot(name: '兽爪', slot: '爪', icon: 'part_claw', note: '散件基础属性'),
   PetSuitSlot(name: '兽甲', slot: '躯干', icon: 'part_armor', note: '散件基础属性'),
-  PetSuitSlot(
-    name: '兽环',
-    slot: '颈',
-    icon: 'part_ring',
-    note: '出战后附加系列专属效果',
-  ),
+  PetSuitSlot(name: '兽环', slot: '颈', icon: 'part_ring', note: '出战后附加系列专属效果'),
   PetSuitSlot(name: '兽饰', slot: '护符', icon: 'part_charm', note: '散件基础属性'),
 ];
 

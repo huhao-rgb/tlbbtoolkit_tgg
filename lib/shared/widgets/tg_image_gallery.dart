@@ -118,17 +118,21 @@ class _TgImageGalleryState extends State<TgImageGallery>
     _heroSrc = widget.sourceRect;
     _pageController = PageController(initialPage: _index);
 
-    _dismissCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 240),
-    )..addListener(_onDismissTick)
-      ..addStatusListener(_onDismissStatus);
+    _dismissCtrl =
+        AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 240),
+          )
+          ..addListener(_onDismissTick)
+          ..addStatusListener(_onDismissStatus);
 
-    _heroCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 320),
-    )..addListener(_onHeroTick)
-      ..addStatusListener(_onHeroStatus);
+    _heroCtrl =
+        AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 320),
+          )
+          ..addListener(_onHeroTick)
+          ..addStatusListener(_onHeroStatus);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _startOpening());
   }
@@ -210,9 +214,7 @@ class _TgImageGalleryState extends State<TgImageGallery>
     final shouldClose =
         totalDy.abs() > h * _kDismissRatio || velocity.abs() > _kFlingPxPerSec;
     _dismissFrom = _dismissDy;
-    _dismissTo = shouldClose
-        ? (totalDy > 0 ? h * 1.2 : -h * 1.2)
-        : 0;
+    _dismissTo = shouldClose ? (totalDy > 0 ? h * 1.2 : -h * 1.2) : 0;
     _dismissingOut = shouldClose;
     _dismissCtrl.forward(from: 0);
   }
@@ -281,7 +283,9 @@ class _TgImageGalleryState extends State<TgImageGallery>
             children: [
               // 黑底：随飞入/飞出淡入淡出，随下滑关闭渐隐
               ColoredBox(
-                color: Colors.black.withValues(alpha: _blackOpacity * (1 - progress * 0.96)),
+                color: Colors.black.withValues(
+                  alpha: _blackOpacity * (1 - progress * 0.96),
+                ),
               ),
               // 画廊主体（Hero 飞行期间隐藏，避免提前露出目标图）
               if (!_heroVisible)
@@ -303,10 +307,7 @@ class _TgImageGalleryState extends State<TgImageGallery>
                 ),
               // 顶栏 / 页码 / 关闭 + 底部说明（飞行与关闭动画期间隐藏）
               if (!_heroVisible && !_closing)
-                Opacity(
-                  opacity: fade * (1 - progress),
-                  child: _buildChrome(),
-                ),
+                Opacity(opacity: fade * (1 - progress), child: _buildChrome()),
             ],
           );
         },
@@ -349,9 +350,8 @@ class _TgImageGalleryState extends State<TgImageGallery>
         cacheWidth: 1600,
         filterQuality: FilterQuality.medium,
         gaplessPlayback: true,
-        loadingBuilder: (_, child, progress) => progress == null
-            ? child
-            : const ColoredBox(color: Colors.black26),
+        loadingBuilder: (_, child, progress) =>
+            progress == null ? child : const ColoredBox(color: Colors.black26),
         errorBuilder: (_, _, _) => ColoredBox(
           color: Colors.black26,
           child: Center(
@@ -489,7 +489,7 @@ class _ZoomableGalleryPage extends StatefulWidget {
   final ValueChanged<bool> onZoomChanged;
   final ValueChanged<double> onDismissDrag;
   final void Function({required double velocity, required double totalDy})
-      onDismissEnd;
+  onDismissEnd;
 
   @override
   State<_ZoomableGalleryPage> createState() => _ZoomableGalleryPageState();

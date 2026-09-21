@@ -84,12 +84,7 @@ enum ToolGroup {
   ///
   /// 与 [values]（首页 chips / 移动 tab 顺序，misc 在最后）不同，因此侧栏
   /// 遍历本列表而非 `ToolGroup.values`。
-  static const List<ToolGroup> sidebarOrder = [
-    misc,
-    pet,
-    beast,
-    job,
-  ];
+  static const List<ToolGroup> sidebarOrder = [misc, pet, beast, job];
 }
 
 /// 单个工具的元信息。
@@ -185,7 +180,18 @@ abstract final class ToolCatalog {
     crumb: '宝宝 / 套装图鉴',
     pageSubtitle: '怀旧服 75 / 85 / 95 三档 22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
     cardDesc: '22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
-    keywords: ['套装', '图鉴', '宝宝', '珍兽', '圣兽鳞', '苍狼啸月', '黄雀戏水', '猛虎越山', '雄狮逆鳞', '升星'],
+    keywords: [
+      '套装',
+      '图鉴',
+      '宝宝',
+      '珍兽',
+      '圣兽鳞',
+      '苍狼啸月',
+      '黄雀戏水',
+      '猛虎越山',
+      '雄狮逆鳞',
+      '升星',
+    ],
     location: '/pet/suit',
     icon: 'shield',
   );

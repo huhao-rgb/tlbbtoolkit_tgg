@@ -42,10 +42,13 @@ void main() {
     });
 
     test('面板预览公式', () {
-      final p = computePreview(
-        119,
-        {'li': 0, 'ling': 100, 'ti': 100, 'ding': 0, 'shen': 100},
-      );
+      final p = computePreview(119, {
+        'li': 0,
+        'ling': 100,
+        'ti': 100,
+        'ding': 0,
+        'shen': 100,
+      });
       expect(p.hp, 119 * 28 + 100 * 52);
       expect(p.mp, 119 * 20 + 100 * 36);
       expect(p.atkP, 100 * 9);

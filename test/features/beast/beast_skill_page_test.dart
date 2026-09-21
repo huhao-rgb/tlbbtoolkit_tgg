@@ -85,9 +85,7 @@ void main() {
   testWidgets('页脚展示', (tester) async {
     await pumpPage(tester);
 
-    await tester.ensureVisible(
-      find.text('天工阁 · 玩家自制工具集合，与畅游官方无关'),
-    );
+    await tester.ensureVisible(find.text('天工阁 · 玩家自制工具集合，与畅游官方无关'));
     await tester.pumpAndSettle();
     expect(find.text('天工阁 · 玩家自制工具集合，与畅游官方无关'), findsOneWidget);
   });

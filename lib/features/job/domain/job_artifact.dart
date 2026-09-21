@@ -57,6 +57,10 @@ class JobArtifact {
   final List<JobArtifactTier> tiers;
 }
 
+// 以下数据表为人工紧凑排版（一行一个门派 / 一条记录），便于对照官方资料
+// 核对与增改，故豁免 dart format 的 80 列展开。
+// dart format off
+
 /// 十二大门派神器（对应原型 `SECT_ARTIFACTS`）。
 const Map<String, JobArtifact> kJobArtifacts = {
   'shaolin': JobArtifact(
@@ -444,3 +448,5 @@ const Map<String, JobArtifact> kJobArtifacts = {
       )],
   ),
 };
+
+// dart format on

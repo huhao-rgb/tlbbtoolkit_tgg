@@ -144,7 +144,10 @@ Map<String, String> _signHeaders() {
   final data = json['data'];
   final goodsList = data is Map ? data['goodsList'] : null;
   if (goodsList is! List) {
-    throw const AccountMarketFetchException('接口返回格式异常（无商品列表）', isWebBlocked: false);
+    throw const AccountMarketFetchException(
+      '接口返回格式异常（无商品列表）',
+      isWebBlocked: false,
+    );
   }
   final total = data is Map ? (data['total'] as num?)?.toInt() ?? 0 : 0;
   return (goodsList, total);
@@ -193,26 +196,19 @@ AccountListing? _mapGood(dynamic item) {
     price: price.round(),
     views: (_pickNum(item, ['viewNum', 'v', 'views', '浏览量']) ?? 0).round(),
     area: _pickStr(item, ['areaName', 'a', 'area', 'serverArea', '大区']),
-    server: _pickStr(item, [
-      'serverName',
-      's',
-      'server',
-      'serverZone',
-      '服务器',
-    ]),
+    server: _pickStr(item, ['serverName', 's', 'server', 'serverZone', '服务器']),
     job: _pickStr(item, ['jobsName', 'job', 'jobName', '职业']),
     sex: _pickStr(item, ['roleSexName', 'sex', 'gender', '性别']),
     lv: (_pickNum(item, ['roleLevel', 'lv', 'level', '等级']) ?? 0).round(),
-    atk: _pickStr(item, [
-      'mainattributeattackName',
-      'atk',
-      'mainAtk',
-      '主属性攻击',
-    ]),
+    atk: _pickStr(item, ['mainattributeattackName', 'atk', 'mainAtk', '主属性攻击']),
     attr: (_pickNum(item, ['mattributeLevel', 'attr', 'mainAttr', '主属性']) ?? 0)
         .round(),
-    attr2: (_pickNum(item, ['subattributeItn', 'attr2', 'subAttr', '副属性']))
-        ?.round(),
+    attr2: (_pickNum(item, [
+      'subattributeItn',
+      'attr2',
+      'subAttr',
+      '副属性',
+    ]))?.round(),
     areaId: (_pickNum(item, ['areaId', '大区id']))?.round(),
     serverId: (_pickNum(item, ['serverId', '服务器id']))?.round(),
     img: _pickImg(item),

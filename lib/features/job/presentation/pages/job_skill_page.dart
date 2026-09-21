@@ -145,7 +145,10 @@ class _JobSkillPageState extends State<JobSkillPage> {
                     ),
                     const SizedBox(height: 10),
                     // xf-note：心法计数 / 说明（超长可点击展开）
-                    _MindNote(mind: _mind == -1 ? null : _minds[_mind], total: _skills.length),
+                    _MindNote(
+                      mind: _mind == -1 ? null : _minds[_mind],
+                      total: _skills.length,
+                    ),
                     const SizedBox(height: 14),
                     // 技能列表卡片
                     _SkillList(
@@ -564,11 +567,8 @@ class _SkillIcon extends StatelessWidget {
         width: 30,
         height: 30,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stack) => Container(
-          width: 30,
-          height: 30,
-          color: context.tg.inset,
-        ),
+        errorBuilder: (context, error, stack) =>
+            Container(width: 30, height: 30, color: context.tg.inset),
       ),
     );
   }

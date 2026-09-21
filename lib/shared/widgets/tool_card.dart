@@ -51,10 +51,7 @@ class _ToolCardState extends State<ToolCard> {
             splashColor: Colors.transparent,
             onTap: () => context.go(widget.tool.location),
             child: TgCardPadding(
-              base: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 17,
-              ),
+              base: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
               child: Row(
                 children: [
                   _ToolTile(tool: widget.tool),
@@ -72,8 +69,7 @@ class _ToolCardState extends State<ToolCard> {
                                 widget.tool.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style:
-                                    TgType.cardTitle.copyWith(color: tg.t1),
+                                style: TgType.cardTitle.copyWith(color: tg.t1),
                               ),
                             ),
                             if (widget.tool.isHot) ...[
@@ -98,11 +94,7 @@ class _ToolCardState extends State<ToolCard> {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
-                    transform: Matrix4.translationValues(
-                      _hover ? 3 : 0,
-                      0,
-                      0,
-                    ),
+                    transform: Matrix4.translationValues(_hover ? 3 : 0, 0, 0),
                     child: TgIcon(
                       'chev',
                       size: 16,
@@ -163,10 +155,7 @@ class TgHotBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(TgRadius.xs),
         boxShadow: TgShadows.goldBadge,
       ),
-      child: Text(
-        '热门',
-        style: TgType.hot.copyWith(color: TgTokens.btnInk),
-      ),
+      child: Text('热门', style: TgType.hot.copyWith(color: TgTokens.btnInk)),
     );
   }
 }

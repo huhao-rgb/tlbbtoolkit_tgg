@@ -21,12 +21,38 @@ void main() {
     });
 
     test('atk 主攻简写：主玄攻→玄 / 主火攻→火', () {
-      expect(const AccountListing(sn: '', title: '', price: 0, views: 0,
-        area: '', server: '', job: '', sex: '', lv: 119, atk: '主玄攻',
-        attr: 100).atkShort, '玄');
-      expect(const AccountListing(sn: '', title: '', price: 0, views: 0,
-        area: '', server: '', job: '', sex: '', lv: 119, atk: '主火攻',
-        attr: 100).atkShort, '火');
+      expect(
+        const AccountListing(
+          sn: '',
+          title: '',
+          price: 0,
+          views: 0,
+          area: '',
+          server: '',
+          job: '',
+          sex: '',
+          lv: 119,
+          atk: '主玄攻',
+          attr: 100,
+        ).atkShort,
+        '玄',
+      );
+      expect(
+        const AccountListing(
+          sn: '',
+          title: '',
+          price: 0,
+          views: 0,
+          area: '',
+          server: '',
+          job: '',
+          sex: '',
+          lv: 119,
+          atk: '主火攻',
+          attr: 100,
+        ).atkShort,
+        '火',
+      );
     });
   });
 
@@ -142,7 +168,10 @@ void main() {
     });
 
     test('明细按价格升序', () {
-      final rows = amDetailRows(kAccountMarketData, const AccountMarketFilter());
+      final rows = amDetailRows(
+        kAccountMarketData,
+        const AccountMarketFilter(),
+      );
       expect(rows, hasLength(132));
       for (var i = 0; i + 1 < rows.length; i++) {
         expect(rows[i].price <= rows[i + 1].price, isTrue);

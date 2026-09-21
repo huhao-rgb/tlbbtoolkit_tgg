@@ -74,6 +74,10 @@ class JobSectInfo {
   final List<JobLifeSkill> life;
 }
 
+// 以下数据表为人工紧凑排版（一行一个门派 / 一条记录），便于对照官方资料
+// 核对与增改，故豁免 dart format 的 80 列展开。
+// dart format off
+
 /// 十二大门派介绍（对应原型 `SECT_INFO`）。
 const Map<String, JobSectInfo> kJobSectInfo = {
   'shaolin': JobSectInfo(
@@ -209,3 +213,5 @@ const Map<String, JobSectInfo> kJobSectInfo = {
     life: [],
   ),
 };
+
+// dart format on

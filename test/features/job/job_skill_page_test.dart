@@ -16,9 +16,7 @@ Future<void> pumpPage(
     MaterialApp(
       theme: TgTheme.dark,
       darkTheme: TgTheme.dark,
-      home: Scaffold(
-        body: JobSkillPage(initialSect: initialSect),
-      ),
+      home: Scaffold(body: JobSkillPage(initialSect: initialSect)),
     ),
   );
   await tester.pumpAndSettle();
@@ -38,15 +36,7 @@ void main() {
 
     // 心法 chips：全部 + 7 本心法（官网数据）
     expect(find.text('全部'), findsOneWidget);
-    for (final name in [
-      '百花经',
-      '遁甲天书',
-      '太平要术',
-      '短歌行',
-      '丹青引',
-      '惊涛掌法',
-      '北冥神功',
-    ]) {
+    for (final name in ['百花经', '遁甲天书', '太平要术', '短歌行', '丹青引', '惊涛掌法', '北冥神功']) {
       expect(find.text(name), findsWidgets);
     }
 

@@ -459,11 +459,7 @@ void main() {
 
   testWidgets('大数据量（500 条）：明细表惰性构建，无异常且表内行可进入详情', (tester) async {
     final big = List<PetListing>.generate(500, (i) {
-      final g = _good(
-        title: '测试珍兽 ${i + 1}',
-        price: 100 + i,
-        sn: 'BBG$i',
-      );
+      final g = _good(title: '测试珍兽 ${i + 1}', price: 100 + i, sn: 'BBG$i');
       return PetListing.fromJson(g);
     });
     await pumpPage(
@@ -482,10 +478,7 @@ void main() {
     expect(detailCount, lessThan(100));
 
     // 明细表内首行「详情」仍可进入商品详情页。
-    final tableDetail = find.descendant(
-      of: list,
-      matching: find.text('详情'),
-    );
+    final tableDetail = find.descendant(of: list, matching: find.text('详情'));
     await tester.ensureVisible(tableDetail.first);
     await tester.pumpAndSettle();
     await tester.tap(tableDetail.first);
@@ -529,6 +522,7 @@ void main() {
       outerScrollable.position.jumpTo(target);
       await tester.pumpAndSettle();
     }
+
     await centerList();
 
     final outerBottom = outerScrollable.position.pixels;

@@ -5,11 +5,7 @@ import 'package:dio/dio.dart';
 /// 所有 feature 的网络错误都应被转换为 [ApiException]，
 /// 这样 UI 层只需要针对一种异常做展示与重试处理。
 class ApiException implements Exception {
-  const ApiException(
-    this.message, {
-    this.statusCode,
-    this.cause,
-  });
+  const ApiException(this.message, {this.statusCode, this.cause});
 
   /// 面向用户的错误提示。
   final String message;
@@ -43,5 +39,6 @@ class ApiException implements Exception {
   }
 
   @override
-  String toString() => 'ApiException(message: $message, statusCode: $statusCode)';
+  String toString() =>
+      'ApiException(message: $message, statusCode: $statusCode)';
 }

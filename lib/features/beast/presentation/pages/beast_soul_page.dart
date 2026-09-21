@@ -464,10 +464,17 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
               ? Image.asset(
                   _soul.cs.iconPath!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stack) =>
-                      _CharTile(char: _soul.name.characters.first, accent: a, fontSize: 22),
+                  errorBuilder: (context, error, stack) => _CharTile(
+                    char: _soul.name.characters.first,
+                    accent: a,
+                    fontSize: 22,
+                  ),
                 )
-              : _CharTile(char: _soul.name.characters.first, accent: a, fontSize: 22),
+              : _CharTile(
+                  char: _soul.name.characters.first,
+                  accent: a,
+                  fontSize: 22,
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -525,7 +532,9 @@ class _SoulDetailDialogState extends State<_SoulDetailDialog> {
                 text: '魂境阶级',
                 style: TextStyle(fontSize: 11.5, color: tg.gold2),
               ),
-              const TextSpan(text: '（上限 6 阶）提升而增强；官网资料站与官方攻略站目前仅公布 6 阶（满阶）数值，1–5 阶数值官方暂未发布。（数据源：官网资料站「兽魂技能」、官网攻略站「融魂、技能和扩展属性」）'),
+              const TextSpan(
+                text: '（上限 6 阶）提升而增强；官网资料站与官方攻略站目前仅公布 6 阶（满阶）数值，1–5 阶数值官方暂未发布。（数据源：官网资料站「兽魂技能」、官网攻略站「融魂、技能和扩展属性」）',
+              ),
             ],
           ),
         ),
@@ -678,8 +687,7 @@ class _MatShell extends StatelessWidget {
                 width: iconSize,
                 height: iconSize,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stack) =>
-                    _Badge(text: badge),
+                errorBuilder: (context, error, stack) => _Badge(text: badge),
               ),
             )
           else
@@ -779,7 +787,10 @@ class _RhSeg extends StatelessWidget {
               onTap: () => onSelect(i),
               borderRadius: BorderRadius.circular(6.5),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 9,
+                  vertical: 3.5,
+                ),
                 decoration: BoxDecoration(
                   // 原型 .lv-seg button.on：半透明金底 .14 + 内嵌 1px 金描边
                   color: i == selected ? tg.goldTint(.14) : Colors.transparent,
@@ -844,10 +855,7 @@ class _DashedBorderPainter extends CustomPainter {
       ..strokeWidth = 1;
     final path = Path()
       ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          Radius.circular(radius),
-        ),
+        RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)),
       );
     for (final metric in path.computeMetrics()) {
       var dist = 0.0;

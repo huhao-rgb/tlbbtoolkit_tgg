@@ -22,8 +22,12 @@ class AppAsyncView<T> extends StatelessWidget {
   final Widget Function(BuildContext context, T data) dataBuilder;
 
   /// 自定义错误视图，默认提供"错误信息 + 重试按钮"。
-  final Widget Function(BuildContext context, Object error, StackTrace? stackTrace)?
-      errorBuilder;
+  final Widget Function(
+    BuildContext context,
+    Object error,
+    StackTrace? stackTrace,
+  )?
+  errorBuilder;
 
   /// 自定义 loading 视图，默认提供居中 [CircularProgressIndicator]。
   final Widget Function(BuildContext context)? loadingBuilder;
@@ -36,7 +40,8 @@ class AppAsyncView<T> extends StatelessWidget {
     return value.when(
       data: (data) => dataBuilder(context, data),
       loading: () => loadingBuilder?.call(context) ?? const _LoadingView(),
-      error: (error, stackTrace) => errorBuilder?.call(context, error, stackTrace) ??
+      error: (error, stackTrace) =>
+          errorBuilder?.call(context, error, stackTrace) ??
           _ErrorView(message: '$error', onRetry: onRetry),
     );
   }

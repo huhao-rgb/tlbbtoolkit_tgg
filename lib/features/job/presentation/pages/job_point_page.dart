@@ -290,8 +290,9 @@ class _NumberField extends StatefulWidget {
 }
 
 class _NumberFieldState extends State<_NumberField> {
-  late final TextEditingController _controller =
-      TextEditingController(text: '${widget.value}');
+  late final TextEditingController _controller = TextEditingController(
+    text: '${widget.value}',
+  );
 
   bool _focused = false;
 
@@ -326,11 +327,7 @@ class _NumberFieldState extends State<_NumberField> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textAlign: TextAlign.center,
                 onSubmitted: (_) => widget.onChanged(_controller.text),
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.4,
-                  color: tg.t1,
-                ),
+                style: TextStyle(fontSize: 13, height: 1.4, color: tg.t1),
                 cursorColor: tg.gold,
                 decoration: const InputDecoration(
                   isCollapsed: true,

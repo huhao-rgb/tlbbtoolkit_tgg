@@ -30,7 +30,19 @@ void main() {
     expect(find.textContaining('选择门派，查看攻伐与御守'), findsOneWidget);
 
     // 12 门派 pill（逍遥还作为当前门派名出现一次）
-    for (final name in ['少林', '明教', '丐帮', '天山', '峨眉', '武当', '星宿', '慕容', '曼陀山庄', '天龙', '恶人谷']) {
+    for (final name in [
+      '少林',
+      '明教',
+      '丐帮',
+      '天山',
+      '峨眉',
+      '武当',
+      '星宿',
+      '慕容',
+      '曼陀山庄',
+      '天龙',
+      '恶人谷',
+    ]) {
       expect(find.text(name), findsOneWidget);
     }
     expect(find.text('逍遥'), findsNWidgets(2)); // pill + 当前门派名

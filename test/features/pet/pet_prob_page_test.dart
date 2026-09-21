@@ -5,7 +5,10 @@ import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/pet_prob_page.dart';
 
 /// 以完整主题（含 TgColors extension）泵入技能概率页。
-Future<void> pumpPage(WidgetTester tester, {Size size = const Size(1180, 900)}) async {
+Future<void> pumpPage(
+  WidgetTester tester, {
+  Size size = const Size(1180, 900),
+}) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
@@ -46,7 +49,18 @@ void main() {
     expect(find.text('20%'), findsOneWidget);
     expect(find.text('100%'), findsOneWidget);
     // 全部 10 个技能名（有描述的技能经 Text.rich 渲染，用 textContaining 匹配）
-    for (final name in ['猛击', '连击', '痛击', '寒冰咒', '烈火咒', '虚弱', '打怒', '迟缓', '吸血', '护主']) {
+    for (final name in [
+      '猛击',
+      '连击',
+      '痛击',
+      '寒冰咒',
+      '烈火咒',
+      '虚弱',
+      '打怒',
+      '迟缓',
+      '吸血',
+      '护主',
+    ]) {
       expect(find.textContaining(name), findsOneWidget);
     }
     // 公式说明
@@ -118,7 +132,9 @@ void main() {
           find.ancestor(of: tagText, matching: find.byType(Container)),
         )
         .firstWhere(
-          (c) => c.padding == const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          (c) =>
+              c.padding ==
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         );
 
     final tagSize = tester.getSize(find.byWidget(tagContainer));

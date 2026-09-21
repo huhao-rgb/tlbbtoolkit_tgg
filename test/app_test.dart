@@ -107,9 +107,7 @@ void main() {
     expect(find.text(AndroidBackExitGuard.exitHint), findsNothing);
   });
 
-  testWidgets('Android 系统返回：非首页 tab 的分支根先回首页 tab，再按才提示退出', (
-    tester,
-  ) async {
+  testWidgets('Android 系统返回：非首页 tab 的分支根先回首页 tab，再按才提示退出', (tester) async {
     await pumpApp(tester);
 
     await tester.tap(bottomTab('实用'));
@@ -130,9 +128,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('Android 系统返回：无可返回页面时先提示，短时间内再按才退出应用', (
-    tester,
-  ) async {
+  testWidgets('Android 系统返回：无可返回页面时先提示，短时间内再按才退出应用', (tester) async {
     final platformCalls = <MethodCall>[];
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       SystemChannels.platform,
@@ -172,10 +168,7 @@ void main() {
       find.ancestor(of: hint, matching: find.byType(Material)),
       findsWidgets,
     );
-    expect(
-      tester.widget<Text>(hint).style?.decoration,
-      TextDecoration.none,
-    );
+    expect(tester.widget<Text>(hint).style?.decoration, TextDecoration.none);
 
     expect(
       platformCalls.any((c) => c.method == 'SystemNavigator.pop'),
@@ -184,10 +177,7 @@ void main() {
 
     // 时间窗口内再次按下：退出应用。
     await pressSystemBack(tester);
-    expect(
-      platformCalls.any((c) => c.method == 'SystemNavigator.pop'),
-      isTrue,
-    );
+    expect(platformCalls.any((c) => c.method == 'SystemNavigator.pop'), isTrue);
 
     // 消化 SnackBar 自动隐藏的计时器，避免收尾时残留 pending timer。
     await tester.pump(const Duration(seconds: 3));

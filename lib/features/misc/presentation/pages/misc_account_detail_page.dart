@@ -35,9 +35,8 @@ class AccountDetailPage extends StatelessWidget {
           else ...[
             _DetailHead(
               account: p,
-              onHub: () => context.go(
-                ToolCatalog.miscAccountMarket.group.hubLocation,
-              ),
+              onHub: () =>
+                  context.go(ToolCatalog.miscAccountMarket.group.hubLocation),
               onBack: () => context.pop(),
             ),
             _DetailBody(account: p, onBack: () => context.pop()),
@@ -72,9 +71,7 @@ class AccountDetailPage extends StatelessWidget {
             slivers: [
               SliverPadding(
                 padding: pad,
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(blocks),
-                ),
+                sliver: SliverList(delegate: SliverChildListDelegate(blocks)),
               ),
             ],
           ),
@@ -384,9 +381,10 @@ class _DetailInfo extends StatelessWidget {
             // 卡片铺满整行避免水平留白。
             const gap = 10.0;
             const cellMin = 150.0;
-            final cols = ((c.maxWidth + gap) / (cellMin + gap))
-                .floor()
-                .clamp(2, 6);
+            final cols = ((c.maxWidth + gap) / (cellMin + gap)).floor().clamp(
+              2,
+              6,
+            );
             final cellW = (c.maxWidth - gap * (cols - 1)) / cols;
             return Wrap(
               spacing: gap,
@@ -417,10 +415,16 @@ class _DetailInfo extends StatelessWidget {
                 ),
                 _PdCell(
                   label: '副属性',
-                  value: t.attr2 != null && t.attr2! > 0 ? amFmt(t.attr2!) : '—',
+                  value: t.attr2 != null && t.attr2! > 0
+                      ? amFmt(t.attr2!)
+                      : '—',
                   width: cellW,
                 ),
-                _PdCell(label: '浏览量', value: amThousands(t.views), width: cellW),
+                _PdCell(
+                  label: '浏览量',
+                  value: amThousands(t.views),
+                  width: cellW,
+                ),
                 _PdCell(
                   label: '大区 · 服务器',
                   value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',

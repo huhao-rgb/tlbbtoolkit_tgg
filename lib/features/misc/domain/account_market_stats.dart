@@ -9,7 +9,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
-import 'package:tlbbtoolkit/features/misc/domain/pet_market_stats.dart' show pmMedian, pmThousands;
+import 'package:tlbbtoolkit/features/misc/domain/pet_market_stats.dart'
+    show pmMedian, pmThousands;
 
 /// 金额格式化（原型 `amFmt`）：≥10000 → `x.x 万`（去尾 .0），否则千分位四舍五入整数。
 String amFmt(num n) {
@@ -117,6 +118,7 @@ class AmStatCards {
     if (lo == null) return '—';
     return '${amFmt(lo)} ~ ${amFmt(hiPrice!)}';
   }
+
   String get medianText => empty ? '—' : '￥${amFmt(median)}';
   String get meanText => empty ? '—' : '￥${amFmt(mean)}';
 }
@@ -165,7 +167,8 @@ class AmDistSeg {
   /// 段内均价（原型 avg=round(mean price)）。
   int get avg => list.isEmpty
       ? 0
-      : (list.map((x) => x.price).reduce((a, b) => a + b) / list.length).round();
+      : (list.map((x) => x.price).reduce((a, b) => a + b) / list.length)
+            .round();
 
   /// 段内均主属性（仅统计有主属性的样本，round；无则 0）。
   int get avgAttr {
@@ -238,7 +241,8 @@ List<AmSegProfile> amSegProfiles(List<AmDistSeg> segs) {
         ? null
         : (at.map((x) => x.attr).reduce((a, b) => a + b) / at.length).round();
     // 主流等级：段内中位等级（原型 lvs[mid]）。
-    final lvs = g.map((x) => x.lv).where((v) => v > 0).toList()..sort((a, b) => a - b);
+    final lvs = g.map((x) => x.lv).where((v) => v > 0).toList()
+      ..sort((a, b) => a - b);
     final lvTop = lvs.isEmpty ? '—' : '${lvs[lvs.length >> 1]} 级';
     final ft = <String>[];
     if (g.isNotEmpty) {
@@ -292,12 +296,17 @@ List<AmSectRow> amSectRows(List<AccountListing> d) {
   for (final x in d) {
     if (x.area.isNotEmpty) (sg[x.area] ??= <int>[]).add(x.price);
   }
-  final sr = sg.entries
-      .map(
-        (e) => AmSectRow(area: e.key, count: e.value.length, median: pmMedian(e.value)),
-      )
-      .toList()
-    ..sort((a, b) => b.count.compareTo(a.count));
+  final sr =
+      sg.entries
+          .map(
+            (e) => AmSectRow(
+              area: e.key,
+              count: e.value.length,
+              median: pmMedian(e.value),
+            ),
+          )
+          .toList()
+        ..sort((a, b) => b.count.compareTo(a.count));
   return sr;
 }
 
@@ -313,11 +322,12 @@ class AmBestItem {
 }
 
 List<AmBestItem> amBestItems(List<AccountListing> d) {
-  final best = d
-      .where((x) => x.attr >= 4000 && x.price > 0)
-      .map((x) => AmBestItem(account: x, ix: x.attr / (x.price / 10000)))
-      .toList()
-    ..sort((a, b) => b.ix.compareTo(a.ix));
+  final best =
+      d
+          .where((x) => x.attr >= 4000 && x.price > 0)
+          .map((x) => AmBestItem(account: x, ix: x.attr / (x.price / 10000)))
+          .toList()
+        ..sort((a, b) => b.ix.compareTo(a.ix));
   return best.take(8).toList(growable: false);
 }
 
@@ -326,6 +336,7 @@ List<AccountListing> amDetailRows(
   List<AccountListing> data,
   AccountMarketFilter filter,
 ) {
-  final rows = amFiltered(data, filter).toList()..sort((a, b) => a.price - b.price);
+  final rows = amFiltered(data, filter).toList()
+    ..sort((a, b) => a.price - b.price);
   return rows;
 }

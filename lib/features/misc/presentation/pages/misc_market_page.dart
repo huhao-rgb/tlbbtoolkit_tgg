@@ -234,9 +234,8 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
         // 统一滚动（单滚动体：明细随页滚动，惯性/缓动原生）。
         final blocks = <Widget>[
           _MarketHead(
-            onCrumbTap: () => context.go(
-              ToolCatalog.miscMarket.group.hubLocation,
-            ),
+            onCrumbTap: () =>
+                context.go(ToolCatalog.miscMarket.group.hubLocation),
           ),
           _FilterBar(
             regions: _regions,
@@ -267,7 +266,10 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
             const SizedBox(height: 14),
             _SegCard(filtered: pmFiltered(data, _filter)),
             const SizedBox(height: 14),
-            _BestCard(filtered: pmFiltered(data, _filter), onDetail: _openDetail),
+            _BestCard(
+              filtered: pmFiltered(data, _filter),
+              onDetail: _openDetail,
+            ),
             const SizedBox(height: 14),
             _ListCard(
               data: data,
@@ -295,7 +297,10 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
                     Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
               );
         // 宽视口把内容限宽 1180 并居中：换算为 sliver 的横向 padding。
-        final avail = math.max(0.0, constraints.maxWidth - basePad.left - basePad.right);
+        final avail = math.max(
+          0.0,
+          constraints.maxWidth - basePad.left - basePad.right,
+        );
         final inner = math.min(avail, 1180.0);
         final extra = math.max(0.0, (avail - inner) / 2);
         final pad = basePad.copyWith(
@@ -307,9 +312,7 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
             slivers: [
               SliverPadding(
                 padding: pad,
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(blocks),
-                ),
+                sliver: SliverList(delegate: SliverChildListDelegate(blocks)),
               ),
             ],
           ),
@@ -1316,10 +1319,7 @@ class _BestRow extends StatelessWidget {
         ),
       ),
     );
-    Widget goBtn() => _BestGoBtn(
-      label: '详情',
-      onTap: () => onDetail(t),
-    );
+    Widget goBtn() => _BestGoBtn(label: '详情', onTap: () => onDetail(t));
     final outer = BoxDecoration(
       color: tg.inset,
       borderRadius: BorderRadius.circular(11),
@@ -1458,10 +1458,7 @@ class _BestGoBtnState extends State<_BestGoBtn> {
             maxLines: 1,
             softWrap: false,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 11,
-              color: _hover ? tg.gold2 : tg.t2,
-            ),
+            style: TextStyle(fontSize: 11, color: _hover ? tg.gold2 : tg.t2),
           ),
         ),
       ),
@@ -1700,6 +1697,7 @@ class _DetailTable extends StatelessWidget {
             ),
           );
         }
+
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
@@ -1721,9 +1719,7 @@ class _DetailTable extends StatelessWidget {
                     physics: overflow
                         ? ChainableScrollPhysics(
                             outer:
-                                Scrollable.maybeOf(
-                                  context,
-                                )?.position
+                                Scrollable.maybeOf(context)?.position
                                     as ScrollPositionWithSingleContext?,
                           )
                         : const NeverScrollableScrollPhysics(),
@@ -1901,17 +1897,17 @@ class _ThumbState extends State<_Thumb> {
       child: GestureDetector(
         onTap: hasImg
             ? () => showTgImageGallery(
-                  context,
-                  images: [
-                    TgGalleryImage(
-                      url: url,
-                      caption: widget.pet.title,
-                      errorIcon: 'paw',
-                    ),
-                  ],
-                  sourceRect: _widgetRect(context),
-                  title: '商品图片预览',
-                )
+                context,
+                images: [
+                  TgGalleryImage(
+                    url: url,
+                    caption: widget.pet.title,
+                    errorIcon: 'paw',
+                  ),
+                ],
+                sourceRect: _widgetRect(context),
+                title: '商品图片预览',
+              )
             : null,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -2312,9 +2308,10 @@ class _DetailInfo extends StatelessWidget {
             // 卡片铺满整行避免水平留白。
             const gap = 10.0;
             const cellMin = 150.0;
-            final cols = ((c.maxWidth + gap) / (cellMin + gap))
-                .floor()
-                .clamp(2, 6);
+            final cols = ((c.maxWidth + gap) / (cellMin + gap)).floor().clamp(
+              2,
+              6,
+            );
             final cellW = (c.maxWidth - gap * (cols - 1)) / cols;
             return Wrap(
               spacing: gap,
@@ -2326,11 +2323,7 @@ class _DetailInfo extends StatelessWidget {
                   gold: true,
                   width: cellW,
                 ),
-                _PdCell(
-                  label: '可携带等级',
-                  value: t.carryText,
-                  width: cellW,
-                ),
+                _PdCell(label: '可携带等级', value: t.carryText, width: cellW),
                 _PdCell(
                   label: '灵性 / 悟性',
                   value:
@@ -2654,9 +2647,7 @@ class PetDetailPage extends StatelessWidget {
           else ...[
             _DetailHead(
               pet: p,
-              onHub: () => context.go(
-                ToolCatalog.miscMarket.group.hubLocation,
-              ),
+              onHub: () => context.go(ToolCatalog.miscMarket.group.hubLocation),
               onBack: () => context.pop(),
             ),
             _DetailBody(pet: p, onBack: () => context.pop()),
@@ -2692,9 +2683,7 @@ class PetDetailPage extends StatelessWidget {
             slivers: [
               SliverPadding(
                 padding: pad,
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(blocks),
-                ),
+                sliver: SliverList(delegate: SliverChildListDelegate(blocks)),
               ),
             ],
           ),

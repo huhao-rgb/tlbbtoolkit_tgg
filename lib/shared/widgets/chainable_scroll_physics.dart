@@ -40,12 +40,16 @@ class ChainableScrollPhysics extends ScrollPhysics {
   }
 
   @override
-  Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
+  Simulation? createBallisticSimulation(
+    ScrollMetrics position,
+    double velocity,
+  ) {
     final out = outer;
     if (out != null && out.hasPixels) {
       // 已在顶/底且惯性仍朝外：把惯性转交外层，内层不再动画。
       final atTop = velocity < 0 && position.pixels <= position.minScrollExtent;
-      final atBottom = velocity > 0 && position.pixels >= position.maxScrollExtent;
+      final atBottom =
+          velocity > 0 && position.pixels >= position.maxScrollExtent;
       if (atTop || atBottom) {
         out.goBallistic(velocity);
         return null;
@@ -58,6 +62,8 @@ class ChainableScrollPhysics extends ScrollPhysics {
   /// （其 `setPixels` 会断言 `activity.isScrolling`）；改用
   /// [ScrollPositionWithSingleContext.jumpTo] 直接移动，并 clamp 到外层边界。
   static void _forwardOuter(ScrollPositionWithSingleContext out, double delta) {
-    out.jumpTo((out.pixels - delta).clamp(out.minScrollExtent, out.maxScrollExtent));
+    out.jumpTo(
+      (out.pixels - delta).clamp(out.minScrollExtent, out.maxScrollExtent),
+    );
   }
 }

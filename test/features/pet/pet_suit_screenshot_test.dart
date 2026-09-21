@@ -12,13 +12,33 @@ import 'package:tlbbtoolkit/features/pet/presentation/pages/pet_suit_page.dart';
 Future<void> _loadFonts() async {
   Future<ByteData> bytes(String p) async =>
       ByteData.sublistView(await File(p).readAsBytes());
-  final regular = FontLoader('Noto Sans SC')..addFont(bytes('/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSansSC-Regular.ttf'));
+  final regular = FontLoader('Noto Sans SC')
+    ..addFont(
+      bytes(
+        '/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSansSC-Regular.ttf',
+      ),
+    );
   await regular.load();
-  final medium = FontLoader('Noto Sans SC')..addFont(bytes('/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSansSC-Medium.ttf'));
+  final medium = FontLoader('Noto Sans SC')
+    ..addFont(
+      bytes(
+        '/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSansSC-Medium.ttf',
+      ),
+    );
   await medium.load();
-  final serifM = FontLoader('Noto Serif SC')..addFont(bytes('/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSerifSC-Medium.ttf'));
+  final serifM = FontLoader('Noto Serif SC')
+    ..addFont(
+      bytes(
+        '/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSerifSC-Medium.ttf',
+      ),
+    );
   await serifM.load();
-  final serifSB = FontLoader('Noto Serif SC')..addFont(bytes('/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSerifSC-SemiBold.ttf'));
+  final serifSB = FontLoader('Noto Serif SC')
+    ..addFont(
+      bytes(
+        '/Users/hu/Documents/tlbbtoolkit/assets/fonts/NotoSerifSC-SemiBold.ttf',
+      ),
+    );
   await serifSB.load();
 }
 
@@ -63,14 +83,20 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     await tester.runAsync(() async {
-      await _snap(tester, '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_wide.png');
+      await _snap(
+        tester,
+        '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_wide.png',
+      );
     });
 
     // 材料计算器视图
     await tester.runAsync(() async {
       await tester.tap(find.text('材料计算器'));
       await tester.pump(const Duration(milliseconds: 400));
-      await _snap(tester, '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_calc.png');
+      await _snap(
+        tester,
+        '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_calc.png',
+      );
     });
 
     // 五件套部件弹窗（85 档第一张卡）
@@ -101,7 +127,10 @@ void main() {
     await tester.runAsync(() async {
       tester.view.physicalSize = const Size(390, 844) * 2.0;
       await tester.pump(const Duration(milliseconds: 400));
-      await _snap(tester, '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_narrow.png');
+      await _snap(
+        tester,
+        '/Users/hu/Documents/tlbbtoolkit/build/pet_suit_narrow.png',
+      );
     });
   });
 }

@@ -26,7 +26,11 @@ import 'package:tlbbtoolkit/features/misc/domain/account_market_stats.dart';
 /// - 「一键获取」可手动重新拉取；Web 端被 CORS 拦截时显示
 ///   「浏览器跨域拦截」提示与空态，桌面/移动端可直连。
 class MiscAccountMarketPage extends StatefulWidget {
-  const MiscAccountMarketPage({super.key, this.fetchAccounts, this.fetchRegions});
+  const MiscAccountMarketPage({
+    super.key,
+    this.fetchAccounts,
+    this.fetchRegions,
+  });
 
   /// 抓取函数（测试注入用）；默认走 `fetchSxdsAccountMarket` 真实接口。
   final Future<AccountMarketFetchResult> Function()? fetchAccounts;
@@ -180,9 +184,7 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
       if (!mounted) return;
       setState(() {
         _fetch = _FetchState.warn;
-        _fetchMsg = e.isWebBlocked
-            ? '浏览器跨域拦截（CORS）$_webCorsText'
-            : e.message;
+        _fetchMsg = e.isWebBlocked ? '浏览器跨域拦截（CORS）$_webCorsText' : e.message;
       });
     } catch (e) {
       if (!mounted) return;
@@ -210,9 +212,8 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
         // （见 _DetailTable），避免大数据量下一次性构建全部行导致卡顿。
         final blocks = <Widget>[
           _MarketHead(
-            onCrumbTap: () => context.go(
-              ToolCatalog.miscAccountMarket.group.hubLocation,
-            ),
+            onCrumbTap: () =>
+                context.go(ToolCatalog.miscAccountMarket.group.hubLocation),
           ),
           _FilterBar(
             regions: _regions,
@@ -264,7 +265,10 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
                     Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
               );
         // 宽视口把内容限宽 1180 并居中：换算为 sliver 的横向 padding。
-        final avail = math.max(0.0, constraints.maxWidth - basePad.left - basePad.right);
+        final avail = math.max(
+          0.0,
+          constraints.maxWidth - basePad.left - basePad.right,
+        );
         final inner = math.min(avail, 1180.0);
         final extra = math.max(0.0, (avail - inner) / 2);
         final pad = basePad.copyWith(
@@ -276,9 +280,7 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
             slivers: [
               SliverPadding(
                 padding: pad,
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(blocks),
-                ),
+                sliver: SliverList(delegate: SliverChildListDelegate(blocks)),
               ),
             ],
           ),
@@ -402,8 +404,7 @@ class _FilterBar extends StatelessWidget {
                   hint: AccountLevelBand.all.label,
                   width: colW,
                   options: [
-                    for (final b in AccountLevelBand.values)
-                      (b.label, b.label),
+                    for (final b in AccountLevelBand.values) (b.label, b.label),
                   ],
                   onChanged: (v) {
                     final band = AccountLevelBand.values.firstWhere(
@@ -804,7 +805,11 @@ class _StatCell extends StatelessWidget {
 
 /// 区块标题（`pm-sec h4`：金条 + serif 标题）。
 class _SecHead extends StatelessWidget {
-  const _SecHead({required this.title, this.trailing, this.titleExpanded = true});
+  const _SecHead({
+    required this.title,
+    this.trailing,
+    this.titleExpanded = true,
+  });
 
   final String title;
   final Widget? trailing;
@@ -1188,7 +1193,11 @@ class _PmTag extends StatelessWidget {
 
 /// 区服在售分布行。
 class _SectRow extends StatelessWidget {
-  const _SectRow({required this.row, required this.total, required this.maxCount});
+  const _SectRow({
+    required this.row,
+    required this.total,
+    required this.maxCount,
+  });
 
   final AmSectRow row;
   final int total;
@@ -1464,7 +1473,11 @@ class _EmptyTip extends StatelessWidget {
 /* ============================== 在售明细 ============================== */
 
 class _ListCard extends StatelessWidget {
-  const _ListCard({required this.data, required this.filter, required this.onDetail});
+  const _ListCard({
+    required this.data,
+    required this.filter,
+    required this.onDetail,
+  });
 
   final List<AccountListing> data;
   final AccountMarketFilter filter;
@@ -1527,10 +1540,15 @@ class _DetailTable extends StatelessWidget {
     Widget tr({required List<Widget> cells, bool last = false}) => Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: last ? BorderSide.none : BorderSide(color: tg.border, width: 1),
+          bottom: last
+              ? BorderSide.none
+              : BorderSide(color: tg.border, width: 1),
         ),
       ),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: cells),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: cells,
+      ),
     );
     Widget cell(Widget child) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
@@ -1601,6 +1619,7 @@ class _DetailTable extends StatelessWidget {
             ),
           );
         }
+
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
@@ -1622,9 +1641,7 @@ class _DetailTable extends StatelessWidget {
                     physics: overflow
                         ? ChainableScrollPhysics(
                             outer:
-                                Scrollable.maybeOf(
-                                  context,
-                                )?.position
+                                Scrollable.maybeOf(context)?.position
                                     as ScrollPositionWithSingleContext?,
                           )
                         : const NeverScrollableScrollPhysics(),
@@ -1815,17 +1832,17 @@ class _ThumbState extends State<_Thumb> {
       child: GestureDetector(
         onTap: hasImg
             ? () => showTgImageGallery(
-                  context,
-                  images: [
-                    TgGalleryImage(
-                      url: url,
-                      caption: widget.account.title,
-                      errorIcon: 'user',
-                    ),
-                  ],
-                  sourceRect: _widgetRect(context),
-                  title: '商品图片预览',
-                )
+                context,
+                images: [
+                  TgGalleryImage(
+                    url: url,
+                    caption: widget.account.title,
+                    errorIcon: 'user',
+                  ),
+                ],
+                sourceRect: _widgetRect(context),
+                title: '商品图片预览',
+              )
             : null,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),

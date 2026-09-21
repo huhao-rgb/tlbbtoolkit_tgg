@@ -649,10 +649,7 @@ class _SuitPartsDialog extends StatelessWidget {
                   text: '升星 1★ → 5★（每件）',
                   value: '${cost.starUp.join(' / ')} 个',
                 ),
-                _CostLine(
-                  text: '兑换 + 升满 5★（每件）',
-                  value: '$perPieceFull 个',
-                ),
+                _CostLine(text: '兑换 + 升满 5★（每件）', value: '$perPieceFull 个'),
                 _CostLine(
                   text: '兑换 + 升满 5★（一套 5 件）',
                   value: '${perPieceFull * 5} 个',
@@ -779,11 +776,8 @@ class _PartRow extends StatelessWidget {
           // 部位图标（游戏内道具图，取自珍兽装备图鉴截图）
           ClipRRect(
             borderRadius: BorderRadius.circular(9),
-            child: _slotIcon(slot.icon).image(
-              width: 34,
-              height: 34,
-              fit: BoxFit.contain,
-            ),
+            child: _slotIcon(slot.icon)
+                .image(width: 34, height: 34, fit: BoxFit.contain),
           ),
           const SizedBox(width: TgSpacing.s12),
           Expanded(
@@ -1001,7 +995,11 @@ class _CalcCard extends StatelessWidget {
 
 /// 计算器内的模块：标题在上、内容在下（无卡片边框 / 无选中态）。
 class _CalcModule extends StatelessWidget {
-  const _CalcModule({required this.title, required this.child, this.titleColor});
+  const _CalcModule({
+    required this.title,
+    required this.child,
+    this.titleColor,
+  });
 
   final String title;
   final Widget child;

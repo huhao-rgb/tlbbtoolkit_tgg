@@ -19,44 +19,40 @@ void main() {
     });
 
     test('75 档系列名照经典版资料', () {
-      expect(
-        petSuitsAt('75').map((s) => s.name).toList(),
-        ['黄雀戏水·怯', '苍狼啸月·勇', '苍狼啸月·狡', '乌豚望日·忠'],
-      );
+      expect(petSuitsAt('75').map((s) => s.name).toList(), [
+        '黄雀戏水·怯',
+        '苍狼啸月·勇',
+        '苍狼啸月·狡',
+        '乌豚望日·忠',
+      ]);
     });
 
     test('85 档系列名照经典版资料', () {
-      expect(
-        petSuitsAt('85').map((s) => s.name).toList(),
-        [
-          '猛虎越山·勇',
-          '猛虎越山·狡',
-          '猛虎越山·慎',
-          '飞鹰翔空·狡',
-          '飞鹰翔空·怯',
-          '飞鹰翔空·慎',
-          '巨熊哮路·忠',
-          '巨熊哮路·慎',
-          '奔马逐风·慎',
-        ],
-      );
+      expect(petSuitsAt('85').map((s) => s.name).toList(), [
+        '猛虎越山·勇',
+        '猛虎越山·狡',
+        '猛虎越山·慎',
+        '飞鹰翔空·狡',
+        '飞鹰翔空·怯',
+        '飞鹰翔空·慎',
+        '巨熊哮路·忠',
+        '巨熊哮路·慎',
+        '奔马逐风·慎',
+      ]);
     });
 
     test('95 档系列名照经典版资料', () {
-      expect(
-        petSuitsAt('95').map((s) => s.name).toList(),
-        [
-          '雄狮逆鳞·勇',
-          '雄狮逆鳞·狡',
-          '雄狮逆鳞·慎',
-          '鲲鹏异羽·狡',
-          '鲲鹏异羽·怯',
-          '鲲鹏异羽·慎',
-          '玄龟奇血·忠',
-          '玄龟奇血·慎',
-          '墨豹惊步·慎',
-        ],
-      );
+      expect(petSuitsAt('95').map((s) => s.name).toList(), [
+        '雄狮逆鳞·勇',
+        '雄狮逆鳞·狡',
+        '雄狮逆鳞·慎',
+        '鲲鹏异羽·狡',
+        '鲲鹏异羽·怯',
+        '鲲鹏异羽·慎',
+        '玄龟奇血·忠',
+        '玄龟奇血·慎',
+        '墨豹惊步·慎',
+      ]);
     });
 
     test('类型四大类齐全，且配色 / 图标一一对应', () {
@@ -93,8 +89,9 @@ void main() {
     });
 
     test('散件属性方向仅 75 档逐系列给出（4 套）', () {
-      final withStats =
-          kPetSuitSeries.where((s) => s.stats.isNotEmpty).toList();
+      final withStats = kPetSuitSeries
+          .where((s) => s.stats.isNotEmpty)
+          .toList();
       expect(withStats.length, 4);
       for (final s in withStats) {
         expect(s.lv, '75', reason: s.name);
@@ -121,19 +118,28 @@ void main() {
     });
 
     test('五件套部位：兽盔 / 兽爪 / 兽甲 / 兽环 / 兽饰', () {
-      expect(
-        kPetSuitSlots.map((s) => s.slot).toList(),
-        ['头', '爪', '躯干', '颈', '护符'],
-      );
-      expect(
-        kPetSuitSlots.map((s) => s.name).toList(),
-        ['兽盔', '兽爪', '兽甲', '兽环', '兽饰'],
-      );
+      expect(kPetSuitSlots.map((s) => s.slot).toList(), [
+        '头',
+        '爪',
+        '躯干',
+        '颈',
+        '护符',
+      ]);
+      expect(kPetSuitSlots.map((s) => s.name).toList(), [
+        '兽盔',
+        '兽爪',
+        '兽甲',
+        '兽环',
+        '兽饰',
+      ]);
       // 每个部位都带图标资产名（assets/pet_suit/<icon>.png）
-      expect(
-        kPetSuitSlots.map((s) => s.icon).toList(),
-        ['part_helm', 'part_claw', 'part_armor', 'part_ring', 'part_charm'],
-      );
+      expect(kPetSuitSlots.map((s) => s.icon).toList(), [
+        'part_helm',
+        'part_claw',
+        'part_armor',
+        'part_ring',
+        'part_charm',
+      ]);
       // 只有兽环（颈）带出战后生效的系列效果
       expect(kPetSuitSlots[3].note, contains('出战'));
       for (final slot in kPetSuitSlots) {

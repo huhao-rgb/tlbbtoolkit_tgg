@@ -167,16 +167,9 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
     if (isMobile) {
       // 移动端：系统分享面板（可选择「存储到文件 / 发送给好友」等）
       try {
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              bytes,
-              mimeType: 'application/json',
-              name: fn,
-            ),
-          ],
-          subject: fn,
-        );
+        await Share.shareXFiles([
+          XFile.fromData(bytes, mimeType: 'application/json', name: fn),
+        ], subject: fn);
         _toast('已导出 ${_accts.length} 个账户（请在分享面板中选择保存方式）');
       } catch (_) {
         _toast('导出失败：无法调起分享面板', warn: true);
@@ -190,8 +183,10 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
         suggestedName: fn,
       );
       if (location == null) return; // 用户取消
-      await XFile.fromData(bytes, mimeType: 'application/json')
-          .saveTo(location.path);
+      await XFile.fromData(
+        bytes,
+        mimeType: 'application/json',
+      ).saveTo(location.path);
       final name = location.path.split(RegExp(r'[/\\]')).last;
       _toast('已导出 ${_accts.length} 个账户 → $name');
     } catch (_) {
@@ -201,9 +196,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
 
   /// 导入：选 JSON → 解析 → 按「姓名+门派」判重合并（原型 `regImportFile`）。
   Future<void> _importJson() async {
-    final files = await openFiles(
-      acceptedTypeGroups: const [_jsonType],
-    );
+    final files = await openFiles(acceptedTypeGroups: const [_jsonType]);
     if (files.isEmpty) return; // 用户取消
     final file = files.first;
     String source;
@@ -228,7 +221,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
     _toast(
       r.added > 0
           ? '导入成功：新增 ${r.added} 条'
-              '${r.skipped > 0 ? ' · 跳过重复/无效 ${r.skipped} 条' : ''}'
+                '${r.skipped > 0 ? ' · 跳过重复/无效 ${r.skipped} 条' : ''}'
           : '没有可导入的新账户（全部重复或无效）',
       warn: r.added == 0,
     );
@@ -265,7 +258,10 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
         for (final x in _accts)
           if (x.id == a.id)
             x.copyWith(
-              runs: [...x.runs, RegRun(startMs: a.curMs!, endMs: end)],
+              runs: [
+                ...x.runs,
+                RegRun(startMs: a.curMs!, endMs: end),
+              ],
               clearCur: true,
             )
           else
@@ -377,22 +373,11 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
     final actions = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _LineIconButton(
-          icon: 'download',
-          label: '导入',
-          onTap: _importJson,
-        ),
+        _LineIconButton(icon: 'download', label: '导入', onTap: _importJson),
         const SizedBox(width: 8),
-        _LineIconButton(
-          icon: 'upload',
-          label: '导出',
-          onTap: _exportJson,
-        ),
+        _LineIconButton(icon: 'upload', label: '导出', onTap: _exportJson),
         const SizedBox(width: 8),
-        _AddButton(
-          onTap: () => _addOrEdit(),
-          compact: compact,
-        ),
+        _AddButton(onTap: () => _addOrEdit(), compact: compact),
       ],
     );
     // 窄屏：标题一行、按钮一组换到下一行，避免挤压溢出
@@ -405,13 +390,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
               Align(alignment: Alignment.centerRight, child: actions),
             ],
           )
-        : Row(
-            children: [
-              titleBadge,
-              const Spacer(),
-              actions,
-            ],
-          );
+        : Row(children: [titleBadge, const Spacer(), actions]);
     return TgCard(
       basePadding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -429,8 +408,8 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
             builder: (context, c) {
               const minTile = 238.0;
               const gap = 12.0;
-              final cols =
-                  (((c.maxWidth + gap) / (minTile + gap)).floor()).clamp(1, 8);
+              final cols = (((c.maxWidth + gap) / (minTile + gap)).floor())
+                  .clamp(1, 8);
               final tileW = (c.maxWidth - gap * (cols - 1)) / cols;
               if (_accts.isEmpty) {
                 return Container(
@@ -559,7 +538,8 @@ class _RegRuleNote extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' 开启回归任务。例：周一 10:00 下线后不再登录，'
+                    text:
+                        ' 开启回归任务。例：周一 10:00 下线后不再登录，'
                         '到下周一 10:01 再上线即完成一个回归周期'
                         '（工具按「起点 + 7天1分」计算达成时刻）。',
                   ),
@@ -621,11 +601,7 @@ class _LineIconButtonState extends State<_LineIconButton> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TgIcon(
-                  widget.icon,
-                  size: 12.5,
-                  color: _hover ? tg.t1 : tg.t2,
-                ),
+                TgIcon(widget.icon, size: 12.5, color: _hover ? tg.t1 : tg.t2),
                 const SizedBox(width: 5),
                 Text(
                   widget.label,
@@ -846,13 +822,13 @@ class _AccountCardState extends State<_AccountCard> {
                         '${sect.name} · ${sect.type}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: tg.t3,
-                        ),
+                        style: TextStyle(fontSize: 11.5, color: tg.t3),
                       ),
                       const SizedBox(height: 5),
-                      _StatusDot(state: state, nowMs: DateTime.now().millisecondsSinceEpoch),
+                      _StatusDot(
+                        state: state,
+                        nowMs: DateTime.now().millisecondsSinceEpoch,
+                      ),
                     ],
                   ),
                 ),
@@ -861,11 +837,7 @@ class _AccountCardState extends State<_AccountCard> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _MiniIcon(
-                      icon: 'pen',
-                      tooltip: '编辑',
-                      onTap: widget.onEdit,
-                    ),
+                    _MiniIcon(icon: 'pen', tooltip: '编辑', onTap: widget.onEdit),
                     const SizedBox(height: 2),
                     _MiniIcon(
                       icon: 'trash',
@@ -877,9 +849,12 @@ class _AccountCardState extends State<_AccountCard> {
                           widget.onDelete();
                         } else {
                           setState(() => _arm = true);
-                          Future.delayed(const Duration(milliseconds: 2600), () {
-                            if (mounted) setState(() => _arm = false);
-                          });
+                          Future.delayed(
+                            const Duration(milliseconds: 2600),
+                            () {
+                              if (mounted) setState(() => _arm = false);
+                            },
+                          );
                         }
                       },
                     ),
@@ -951,10 +926,7 @@ class _MiniIconState extends State<_MiniIcon> {
               ),
               child: Center(
                 child: widget.arm
-                    ? Text(
-                        '确认?',
-                        style: TextStyle(fontSize: 10, color: tg.red),
-                      )
+                    ? Text('确认?', style: TextStyle(fontSize: 10, color: tg.red))
                     : TgIcon(widget.icon, size: 13, color: color),
               ),
             ),
@@ -991,9 +963,7 @@ class _StatusDot extends StatelessWidget {
             color: dot,
             boxShadow: glow == null
                 ? null
-                : [
-                    BoxShadow(color: glow.withValues(alpha: .6), blurRadius: 5),
-                  ],
+                : [BoxShadow(color: glow.withValues(alpha: .6), blurRadius: 5)],
           ),
         ),
         const SizedBox(width: 5),
@@ -1050,11 +1020,7 @@ class _PanelHead extends StatelessWidget {
           ),
           child: Text(
             'Lv.${account.lv} · ${sect.name}',
-            style: TextStyle(
-              fontSize: 11,
-              color: c,
-              height: 1.6,
-            ),
+            style: TextStyle(fontSize: 11, color: c, height: 1.6),
           ),
         ),
         Row(
@@ -1088,11 +1054,7 @@ class _PanelHead extends StatelessWidget {
 
 /// 空闲态：开始回归计时。
 class _IdlePanel extends StatefulWidget {
-  const _IdlePanel({
-    super.key,
-    required this.account,
-    required this.onStart,
-  });
+  const _IdlePanel({super.key, required this.account, required this.onStart});
 
   final RegAccount account;
   final ValueChanged<DateTime> onStart;
@@ -1120,7 +1082,13 @@ class _IdlePanelState extends State<_IdlePanel> {
     );
     if (time == null) return;
     setState(() {
-      _start = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _start = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -1162,20 +1130,14 @@ class _IdlePanelState extends State<_IdlePanel> {
               const SizedBox(height: 7),
               SizedBox(
                 width: 350,
-                child: _DateTimeField(
-                  value: _start,
-                  onTap: _pick,
-                ),
+                child: _DateTimeField(value: _start, onTap: _pick),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             '按「起点 + 7天1分」计算达成时刻；若角色早已下线，请调整为实际下线时间。',
-            style: TgType.tag.copyWith(
-              color: tg.t3,
-              height: 1.7,
-            ),
+            style: TgType.tag.copyWith(color: tg.t3, height: 1.7),
           ),
           const SizedBox(height: 14),
           _PrimaryButton(
@@ -1238,11 +1200,7 @@ class _RunPanelState extends State<_RunPanel> {
           const SizedBox(height: 16),
           Text(
             '距回归任务开启还剩',
-            style: TextStyle(
-              fontSize: 12,
-              color: tg.t3,
-              letterSpacing: 1.5,
-            ),
+            style: TextStyle(fontSize: 12, color: tg.t3, letterSpacing: 1.5),
           ),
           const SizedBox(height: 8),
           // 倒计时 4 宫格
@@ -1340,9 +1298,7 @@ class _RunPanelState extends State<_RunPanel> {
                             color: tg.tagRed,
                           ),
                         ),
-                        const TextSpan(
-                          text: '——一旦上线，回归周期将重新计算，前功尽弃。',
-                        ),
+                        const TextSpan(text: '——一旦上线，回归周期将重新计算，前功尽弃。'),
                       ],
                     ),
                   ),
@@ -1397,11 +1353,7 @@ class _RunPanelState extends State<_RunPanel> {
 
 /// 倒计时单元格。
 class _CdCell extends StatelessWidget {
-  const _CdCell({
-    required this.width,
-    required this.num,
-    required this.label,
-  });
+  const _CdCell({required this.width, required this.num, required this.label});
 
   final double width;
   final String num;
@@ -1434,11 +1386,7 @@ class _CdCell extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 10.5,
-              color: tg.t3,
-              letterSpacing: 3,
-            ),
+            style: TextStyle(fontSize: 10.5, color: tg.t3, letterSpacing: 3),
           ),
         ],
       ),
@@ -1507,10 +1455,7 @@ class _DonePanel extends StatelessWidget {
                   style: TgType.body14.copyWith(color: tg.t2),
                 ),
                 const SizedBox(height: 16),
-                _PrimaryButton(
-                  label: '确认上线领奖 · 开启下一轮',
-                  onTap: onClaim,
-                ),
+                _PrimaryButton(label: '确认上线领奖 · 开启下一轮', onTap: onClaim),
                 const SizedBox(height: 12),
                 Text(
                   '若暂不上线可继续挂机，状态保持「已达成」。',
@@ -1558,7 +1503,10 @@ class _RunHistory extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('第 ${i + 1} 轮', style: TgType.body14.copyWith(color: tg.t1)),
+                Text(
+                  '第 ${i + 1} 轮',
+                  style: TgType.body14.copyWith(color: tg.t1),
+                ),
                 Text(
                   '${regFmt(runs[i].startMs)} → ${regFmt(runs[i].endMs)}',
                   style: TgType.body14.copyWith(color: tg.t3),
@@ -1582,11 +1530,7 @@ class _RunHistory extends StatelessWidget {
 
 /// 金渐变主按钮（开始回归计时 / 确认领奖）。
 class _PrimaryButton extends StatefulWidget {
-  const _PrimaryButton({
-    required this.label,
-    required this.onTap,
-    this.icon,
-  });
+  const _PrimaryButton({required this.label, required this.onTap, this.icon});
 
   final String label;
   final VoidCallback onTap;
@@ -1727,9 +1671,7 @@ class _AccountModalState extends State<_AccountModal> {
   void initState() {
     super.initState();
     _name = TextEditingController(text: widget.account?.name ?? '');
-    _lv = TextEditingController(
-      text: (widget.account?.lv ?? 89).toString(),
-    );
+    _lv = TextEditingController(text: (widget.account?.lv ?? 89).toString());
     _sect = widget.sectKey;
   }
 
@@ -1785,17 +1727,12 @@ class _AccountModalState extends State<_AccountModal> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    '回归计时 · 账号维护',
-                    style: TgType.tag.copyWith(color: tg.t3),
-                  ),
+                  Text('回归计时 · 账号维护', style: TgType.tag.copyWith(color: tg.t3)),
                 ],
               ),
             ),
             const SizedBox(width: 10),
-            TgModalCloseButton(
-              onTap: () => Navigator.of(context).pop(),
-            ),
+            TgModalCloseButton(onTap: () => Navigator.of(context).pop()),
           ],
         ),
         const SizedBox(height: 16),
@@ -1840,10 +1777,7 @@ class _AccountModalState extends State<_AccountModal> {
         // 保存
         SizedBox(
           width: double.infinity,
-          child: _PrimaryButton(
-            label: '保存账号',
-            onTap: _save,
-          ),
+          child: _PrimaryButton(label: '保存账号', onTap: _save),
         ),
       ],
     );
@@ -1860,10 +1794,7 @@ class _FieldLabel extends StatelessWidget {
     final tg = context.tg;
     return Text(
       text,
-      style: TgType.label.copyWith(
-        color: tg.t3,
-        letterSpacing: 1,
-      ),
+      style: TgType.label.copyWith(color: tg.t3, letterSpacing: 1),
     );
   }
 }

@@ -79,8 +79,9 @@ class MiscAccountDetailRoute extends GoRouteData with $MiscAccountDetailRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    final acc =
-        state.extra is AccountListing ? state.extra! as AccountListing : null;
+    final acc = state.extra is AccountListing
+        ? state.extra! as AccountListing
+        : null;
     return AccountDetailPage(account: acc);
   }
 }

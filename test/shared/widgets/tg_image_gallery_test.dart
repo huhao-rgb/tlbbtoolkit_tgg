@@ -39,11 +39,7 @@ void main() {
                 sourceRect: sourceRect,
                 title: '图片预览',
               ),
-              child: const SizedBox(
-                key: triggerKey,
-                width: 64,
-                height: 64,
-              ),
+              child: const SizedBox(key: triggerKey, width: 64, height: 64),
             ),
           ),
         ),
