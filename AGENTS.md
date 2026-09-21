@@ -23,12 +23,16 @@
 | 代码生成（一次性） | `fvm dart run build_runner build` |
 | 代码生成（监听，推荐边改边生成） | `fvm dart run build_runner watch` |
 | 静态检查 | `fvm flutter analyze` |
+| 格式检查（不改文件，不适则非 0 退出） | `fvm dart format --output=none --set-exit-if-changed lib test` |
+| 格式化写回 | `fvm dart format lib test` |
 | 全量测试 | `fvm flutter test` |
 | 单文件测试 | `fvm flutter test test/features/job/job_wudao_page_test.dart` |
 | 运行 App | `fvm flutter run` |
 | Release APK | `fvm flutter build apk --release`（约 60s） |
 
 **改完代码的标准验证序列**：`fvm dart run build_runner build` → `fvm flutter analyze` → `fvm flutter test`。
+
+VS Code 里已预置同名 task：「Dart: 格式检查（不改文件）」/「Dart: 格式化写回」。
 
 ---
 
@@ -87,6 +91,7 @@ presentation ──► domain ◄── data
 | **紧凑断点 560** | 大量表格在 `< 560` 宽度隐藏次要列（如 灵/悟、区服），改表格时注意保持无溢出。 |
 | **清理 `build` / `.dart_tool` 后** | 必须重新 `fvm flutter pub get`。 |
 | **`.fvmrc` 是 YAML 陷阱** | FVM 4.x 只读 `fvm_config.json`（JSON）。`.fvmrc` 若存在会被当 JSON 解析导致 `FormatException`。 |
+| **数据表靠 `dart format off` 保命** | `job_skill` / `job_wudao` / `job_artifact` / `job_sect_info` 四个 domain 文件的人工紧凑数据表（一行一个门派 / 一条记录，最长单行 3000+ 字符）由 `// dart format off` … `// dart format on` 豁免。**不要删这两行注释**，否则一跑格式化会被展开成上千行（实测 1024 行 → 5418 行）。 |
 
 ---
 
