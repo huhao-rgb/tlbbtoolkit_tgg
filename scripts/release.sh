@@ -46,7 +46,7 @@ fi
 
 # ---------- 版本号校验 ----------
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\+[0-9]+)?$ ]]; then
-  error "版本号格式错误: $VERSION（应为 主.次.修订[+构建号]，如 1.0.4 或 1.0.4+5）"
+  error "版本号格式错误: ${VERSION}（应为 主.次.修订[+构建号]，如 1.0.4 或 1.0.4+5）"
   exit 1
 fi
 
@@ -57,9 +57,9 @@ TAG="v${VERSION%%+*}"
 BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || true)
 if [ "$BRANCH" != "main" ]; then
   if [ "$DRY_RUN" -eq 1 ]; then
-    warn "当前分支为 $BRANCH（发版建议在 main 分支，--dry-run 仅预览不阻止）"
+    warn "当前分支为 ${BRANCH}（发版建议在 main 分支，--dry-run 仅预览不阻止）"
   else
-    error "当前分支为 $BRANCH，发版应在 main 分支进行"
+    error "当前分支为 ${BRANCH}，发版应在 main 分支进行"
     exit 1
   fi
 fi
@@ -76,7 +76,7 @@ if [ -z "$CUR_VERSION" ]; then
   exit 1
 fi
 if [ "$VERSION" = "$CUR_VERSION" ]; then
-  error "新版本与当前版本相同（$CUR_VERSION），请递增版本号"
+  error "新版本与当前版本相同（${CUR_VERSION}），请递增版本号"
   exit 1
 fi
 
