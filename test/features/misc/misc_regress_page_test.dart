@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
+import 'package:tlbbtoolkit/features/misc/data/reg_repository.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_regress_page.dart';
 
 /// 以完整主题 + ProviderScope（注入 mock prefs）泵入卡回归页。
@@ -114,5 +117,49 @@ void main() {
     // 消化删除确认的 2.6s 复位 Timer，避免 dispose 时仍 pending。
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('长按拖拽：拖动账号卡换位并持久化排序', (tester) async {
+    await pumpPage(tester);
+
+    Future<void> addAccount(String name) async {
+      await tester.tap(find.text('添加账号'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, name);
+      await tester.tap(find.text('保存账号'));
+      await tester.pumpAndSettle();
+    }
+
+    await addAccount('逍遥生');
+    await addAccount('武当山长');
+
+    // 两张账号卡（选中面板头部也会出现名称，取树序第一个 = 网格卡）。
+    // 名称左对齐 + 固定内边距，用左上角 x 精确比较卡片位置。
+    final first = tester.getTopLeft(find.text('逍遥生').first);
+    final second = tester.getTopLeft(find.text('武当山长').first);
+
+    // 长按第一张卡（超过 400ms 阈值），拖到第二张卡处松手。
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('逍遥生').first),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    await gesture.moveTo(tester.getCenter(find.text('武当山长').first));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    // 顺序互换：逍遥生卡现在应位于第二张卡原位置（同一行，比较 dx）。
+    final moved = tester.getTopLeft(find.text('逍遥生').first);
+    expect((moved.dx - second.dx).abs(), lessThan(2));
+
+    // 已持久化：本地 JSON 中 accts 顺序互换。
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(RegRepository.key);
+    expect(raw, isNotNull);
+    final json = jsonDecode(raw!) as Map<String, dynamic>;
+    final names = [
+      for (final a in json['accts'] as List) (a as Map)['name'] as String,
+    ];
+    expect(names, ['武当山长', '逍遥生']);
   });
 }

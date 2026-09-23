@@ -25,6 +25,7 @@ import 'package:tlbbtoolkit/features/misc/domain/reg_account.dart';
 ///
 /// - 「我的账号」卡片：账号网格（门派字徽 + 名称/Lv + 门派定位 + 状态点），
 ///   点选账号后于下方面板查看与操作；支持添加/编辑/删除账号；
+///   长按账号卡片可拖拽调整排序（顺序随列表持久化）；
 /// - 选中账号面板三态：空闲可开始回归计时、计时中倒计时、已达成可领奖；
 /// - 底部面板同时展示该账号的回归历史记录；
 /// - 账号与计时状态持久化到本地（原型 `localStorage[tgg-reg-v1]`）。
@@ -123,6 +124,23 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
     setState(() => _selId = id);
     _persist();
   }
+
+  // ---- 长按拖拽排序 ----
+
+  /// 拖拽悬停目标：把被拖账号实时换位到目标账号位置（不落盘，松手统一保存）。
+  void _handleHoverTarget(String draggedId, String targetId) {
+    if (draggedId == targetId) return;
+    final from = _accts.indexWhere((a) => a.id == draggedId);
+    final to = _accts.indexWhere((a) => a.id == targetId);
+    if (from < 0 || to < 0 || from == to) return;
+    setState(() {
+      final a = _accts.removeAt(from);
+      _accts.insert(to, a);
+    });
+  }
+
+  /// 拖拽结束：把调整后的顺序落盘一次（避免悬停换位时频繁写存储）。
+  void _onReorderDragEnd() => _persist();
 
   // ---- 导入 / 导出（原型 `regExport` / `regImportFile`）----
 
@@ -402,6 +420,10 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           header,
+          if (_accts.length >= 2) ...[
+            const SizedBox(height: 10),
+            Text('长按账号卡片可拖动排序', style: TgType.tag.copyWith(color: tg.t3)),
+          ],
           const SizedBox(height: 14),
           // 账号网格（原型 auto-fill minmax(238px,1fr)，gap 12）
           LayoutBuilder(
@@ -427,15 +449,15 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
                 runSpacing: gap,
                 children: [
                   for (final a in _accts)
-                    SizedBox(
-                      width: tileW,
-                      child: _AccountCard(
-                        account: a,
-                        selected: a.id == _selId,
-                        onTap: () => _select(a.id),
-                        onEdit: () => _addOrEdit(edit: a),
-                        onDelete: () => _delete(a),
-                      ),
+                    _DragReorderTile(
+                      account: a,
+                      tileW: tileW,
+                      selected: a.id == _selId,
+                      onTap: () => _select(a.id),
+                      onEdit: () => _addOrEdit(edit: a),
+                      onDelete: () => _delete(a),
+                      onHoverTarget: _handleHoverTarget,
+                      onDragEnd: _onReorderDragEnd,
                     ),
                 ],
               );
@@ -701,6 +723,7 @@ class _AccountCard extends StatefulWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    this.dragHover = false,
   });
 
   final RegAccount account;
@@ -708,6 +731,9 @@ class _AccountCard extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+
+  /// 拖拽排序时被当作放置目标（悬停高亮）。
+  final bool dragHover;
 
   @override
   State<_AccountCard> createState() => _AccountCardState();
@@ -744,12 +770,16 @@ class _AccountCardState extends State<_AccountCard> {
           child: Ink(
             padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
             decoration: BoxDecoration(
-              color: widget.selected ? tg.card2 : tg.card,
+              color: widget.selected
+                  ? tg.card2
+                  : (widget.dragHover ? tg.goldTint(.08) : tg.card),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: widget.selected
                     ? tg.goldTint(.55)
-                    : (_hover ? tg.borderHi : tg.border),
+                    : (widget.dragHover
+                          ? tg.goldTint(.75)
+                          : (_hover ? tg.borderHi : tg.border)),
                 width: 1,
               ),
               boxShadow: widget.selected
@@ -761,7 +791,15 @@ class _AccountCardState extends State<_AccountCard> {
                         offset: const Offset(0, 0),
                       ),
                     ]
-                  : null,
+                  : (widget.dragHover
+                        ? [
+                            BoxShadow(
+                              color: tg.goldTint(.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null),
             ),
             child: Row(
               children: [
@@ -865,6 +903,103 @@ class _AccountCardState extends State<_AccountCard> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 长按拖拽进入拖动的长按阈值。
+const Duration _kReorderDragDelay = Duration(milliseconds: 400);
+
+/// 可长按拖拽排序的账号卡。
+///
+/// 长按卡片（[_kReorderDragDelay]）进入拖动：悬浮副本跟随指针、原槽半透明；
+/// 悬停到其他卡片时实时换位（经 [onHoverTarget] 交由页面更新列表），
+/// 目标卡片由 DragTarget 的候选态高亮；松手后由 [onDragEnd] 统一落盘。
+class _DragReorderTile extends StatelessWidget {
+  const _DragReorderTile({
+    required this.account,
+    required this.tileW,
+    required this.selected,
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onHoverTarget,
+    required this.onDragEnd,
+  });
+
+  final RegAccount account;
+  final double tileW;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  /// 拖拽指针悬停在本卡片上（参数：被拖账号 id、本卡片账号 id）。
+  final void Function(String draggedId, String targetId) onHoverTarget;
+
+  /// 拖拽结束（含取消），用于落盘排序结果。
+  final VoidCallback onDragEnd;
+
+  Widget _card(BuildContext context, {bool dragHover = false}) {
+    return _AccountCard(
+      account: account,
+      selected: selected,
+      dragHover: dragHover,
+      onTap: onTap,
+      onEdit: onEdit,
+      onDelete: onDelete,
+    );
+  }
+
+  Widget _feedback(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Transform.scale(
+        scale: 1.04,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .25),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: SizedBox(width: tileW, child: _card(context)),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DragTarget<String>(
+      // 悬停本卡片：实时换位到本卡片位置，并接受为候选以高亮放置位。
+      // 返回 false 表示自身不是放置目标，避免拖动起点自我高亮。
+      onWillAcceptWithDetails: (details) {
+        final dragged = details.data;
+        if (dragged != account.id) onHoverTarget(dragged, account.id);
+        return dragged != account.id;
+      },
+      builder: (context, candidates, rejected) {
+        final hovered = candidates.isNotEmpty;
+        return LongPressDraggable<String>(
+          data: account.id,
+          delay: _kReorderDragDelay,
+          onDragEnd: (_) => onDragEnd(),
+          feedback: _feedback(context),
+          childWhenDragging: Opacity(
+            opacity: .35,
+            child: SizedBox(width: tileW, child: _card(context)),
+          ),
+          child: SizedBox(
+            width: tileW,
+            child: _card(context, dragHover: hovered),
+          ),
+        );
+      },
     );
   }
 }
