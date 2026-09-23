@@ -194,6 +194,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/trash.svg
   String get trash => 'assets/icons/trash.svg';
 
+  /// File path: assets/icons/up.svg
+  String get up => 'assets/icons/up.svg';
+
   /// File path: assets/icons/upload.svg
   String get upload => 'assets/icons/upload.svg';
 
@@ -239,6 +242,7 @@ class $AssetsIconsGen {
     sun,
     sword,
     trash,
+    up,
     upload,
     user,
     x,

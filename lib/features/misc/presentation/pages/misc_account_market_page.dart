@@ -10,6 +10,7 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_image_gallery.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_select.dart';
 import 'package:tlbbtoolkit/features/misc/data/account_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart'
@@ -56,6 +57,9 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
   _FetchState _fetch = _FetchState.loading;
   String _fetchMsg = '';
 
+  /// 整页唯一滚动体的控制器（「回到顶部」悬浮按钮共用）。
+  final ScrollController _scroll = ScrollController();
+
   AccountMarketFilter get _filter =>
       AccountMarketFilter(area: _area, server: _server, band: _band);
 
@@ -86,6 +90,12 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
       _area = v;
       _server = ''; // 大区变化重置服务器
     });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   /// 打开账号详情（独立嵌套子路由：push 到列表之上，返回后列表滚动位置
@@ -272,32 +282,44 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
           right: basePad.right + extra,
         );
         return TgPageEntrance(
-          child: CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: pad,
-                sliver: SliverMainAxisGroup(
+          child: Stack(
+            children: [
+              // 整页唯一滚动体（头部区块 + 在售明细表）：控制器供回到顶部按钮共用。
+              Positioned.fill(
+                child: CustomScrollView(
+                  controller: _scroll,
                   slivers: [
-                    SliverList(delegate: SliverChildListDelegate(blocks)),
-                    // 在售明细整表（表头 + 行列表）并入同一个 CustomScrollView：
-                    // 行由 SliverList 惰性构建，但不再需要内层纵向 ListView 与
-                    // 横向滚动容器，也就不必再手动转交越界滚动。
-                    if (data.isNotEmpty)
-                      _DetailTableSliver(
-                        key: const ValueKey('acc-detail-table'),
-                        data: data,
-                        filter: _filter,
-                        onDetail: _openDetail,
-                      ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: TgSpacing.s34),
-                        child: const _PageFoot(),
+                    SliverPadding(
+                      padding: pad,
+                      sliver: SliverMainAxisGroup(
+                        slivers: [
+                          SliverList(delegate: SliverChildListDelegate(blocks)),
+                          // 在售明细整表（表头 + 行列表）并入同一个 CustomScrollView：
+                          // 行由 SliverList 惰性构建，但不再需要内层纵向 ListView 与
+                          // 横向滚动容器，也就不必再手动转交越界滚动。
+                          if (data.isNotEmpty)
+                            _DetailTableSliver(
+                              key: const ValueKey('acc-detail-table'),
+                              data: data,
+                              filter: _filter,
+                              onDetail: _openDetail,
+                            ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: TgSpacing.s34,
+                              ),
+                              child: const _PageFoot(),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
+              // 「回到顶部」悬浮按钮（原型 #backTop）：滚动过阈值后淡入。
+              TgScrollTopButton(controller: _scroll),
             ],
           ),
         );

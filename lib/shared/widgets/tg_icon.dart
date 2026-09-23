@@ -44,6 +44,7 @@ class TgIcon extends StatelessWidget {
     'sun': Assets.icons.sun,
     'sword': Assets.icons.sword,
     'trash': Assets.icons.trash,
+    'up': Assets.icons.up,
     'upload': Assets.icons.upload,
     'user': Assets.icons.user,
     'x': Assets.icons.x,

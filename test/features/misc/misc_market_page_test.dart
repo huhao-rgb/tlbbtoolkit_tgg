@@ -7,6 +7,7 @@ import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_snapshot.dart';
 import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_market_page.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 
 /// 默认 mock：注入 176 条快照数据（页面进入即自动拉取，模拟接口成功）。
@@ -578,5 +579,58 @@ void main() {
       findsNothing,
       reason: '明细表不应再有内层 ListView',
     );
+  });
+
+  testWidgets('回到顶部：滚动超过 420px 后浮现，点击平滑回到页首', (tester) async {
+    final big = List<PetListing>.generate(500, (i) {
+      final g = _good(title: '测试珍兽 ${i + 1}', price: 100 + i, sn: 'BBT$i');
+      return PetListing.fromJson(g);
+    });
+    await pumpPage(
+      tester,
+      size: const Size(1180, 900),
+      fetch: () async => PetMarketFetchResult(raw: big.length, parsed: big),
+    );
+
+    final button = find.byKey(TgScrollTopButton.buttonKey);
+    final fade = find.ancestor(
+      of: button,
+      matching: find.byType(AnimatedOpacity),
+    );
+    double opacity() => tester.widget<AnimatedOpacity>(fade.first).opacity;
+    final scrollable = find.byType(Scrollable).first;
+    final pos = tester.state<ScrollableState>(scrollable).position;
+
+    // 页首（offset < 420）：按钮不可见且不拦截指针。
+    expect(pos.pixels, 0);
+    expect(opacity(), 0);
+    expect(
+      tester
+          .widget<IgnorePointer>(
+            find
+                .ancestor(of: button, matching: find.byType(IgnorePointer))
+                .first,
+          )
+          .ignoring,
+      isTrue,
+    );
+
+    // 下拖 600px：超过阈值后淡入，并停在右下角（桌面：右 20 / 下 24）。
+    await tester.drag(scrollable, const Offset(0, -600));
+    await tester.pumpAndSettle();
+    expect(pos.pixels, greaterThan(420));
+    expect(opacity(), 1);
+    final rect = tester.getRect(button);
+    expect(rect.width, 42);
+    expect(rect.height, 42);
+    expect(rect.right, moreOrLessEquals(1180 - 20, epsilon: 0.5));
+    expect(rect.bottom, moreOrLessEquals(900 - 24, epsilon: 0.5));
+    expect(tester.takeException(), isNull);
+
+    // 点击 → 平滑滚回页首，按钮随之隐去。
+    await tester.tapAt(tester.getCenter(button));
+    await tester.pumpAndSettle();
+    expect(pos.pixels, 0);
+    expect(opacity(), 0);
   });
 }
