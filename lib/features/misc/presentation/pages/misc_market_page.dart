@@ -8,7 +8,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
-import 'package:tlbbtoolkit/shared/widgets/chainable_scroll_physics.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_image_gallery.dart';
@@ -230,8 +229,9 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
         final data = _items;
-        // 页面主体（行情列表）作为垂直区块序列，交由整页 CustomScrollView
-        // 统一滚动（单滚动体：明细随页滚动，惯性/缓动原生）。
+        // 页面头部区块（头 + 筛选 + 状态 + 统计/分布/画像/推荐）作为垂直序列，
+        // 在下方拼进同一个 CustomScrollView；在售明细整表也是它的 sliver，
+        // 因此全页只有一个纵向滚动体（明细随页滚动，惯性/缓动原生）。
         final blocks = <Widget>[
           _MarketHead(
             onCrumbTap: () =>
@@ -271,17 +271,7 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
               onDetail: _openDetail,
             ),
             const SizedBox(height: 14),
-            _ListCard(
-              data: data,
-              filter: _filter,
-              kw: _kw,
-              onKw: _onKw,
-              onClearKw: _clearKw,
-              onDetail: _openDetail,
-            ),
           ],
-          const SizedBox(height: TgSpacing.s34),
-          const _PageFoot(),
         ];
         // 页面内边距（compact / 桌面两套）。
         final basePad = compact
@@ -312,7 +302,30 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
             slivers: [
               SliverPadding(
                 padding: pad,
-                sliver: SliverList(delegate: SliverChildListDelegate(blocks)),
+                sliver: SliverMainAxisGroup(
+                  slivers: [
+                    SliverList(delegate: SliverChildListDelegate(blocks)),
+                    // 在售明细整表（表头 + 行列表）并入同一个 CustomScrollView：
+                    // 行由 SliverList 惰性构建，但不再需要内层纵向 ListView 与
+                    // 横向滚动容器，也就不必再手动转交越界滚动。
+                    if (data.isNotEmpty)
+                      _DetailTableSliver(
+                        key: const ValueKey('pet-detail-table'),
+                        data: data,
+                        filter: _filter,
+                        kw: _kw,
+                        onKw: _onKw,
+                        onClearKw: _clearKw,
+                        onDetail: _openDetail,
+                      ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: TgSpacing.s34),
+                        child: const _PageFoot(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1487,8 +1500,96 @@ class _EmptyTip extends StatelessWidget {
 
 /* ============================== 在售明细 ============================== */
 
-class _ListCard extends StatelessWidget {
-  const _ListCard({
+/// 明细表布局档位（按可用宽度降级）。
+///
+/// 去掉横向滚动后所有列都必须落在可用宽度内，因此按宽度下钻：
+/// - [wide]（≥900）：表头/行显示全部列（含 灵/悟、区服）；
+/// - [mid]（560~900）：收起 灵/悟、区服 两列，信息折叠为标题下的副行；
+/// - [card]（<560）：整行降级为堆叠卡片，与同页「性价比推荐」窄屏行一致。
+enum _DetailLayout { wide, mid, card }
+
+/// 由可用宽度推导明细表布局档位。
+_DetailLayout _detailLayoutOf(double width) {
+  if (width < 560) return _DetailLayout.card;
+  return width < 900 ? _DetailLayout.mid : _DetailLayout.wide;
+}
+
+/// 明细表列（顺序即渲染顺序；表头与数据行共用同一列模型，天然对齐）。
+enum _DetailCol { thumb, title, price, carry, ling, area, feature, op }
+
+/// 指定布局下可见的列（[card] 档整行是卡片，不渲染表格列）。
+List<_DetailCol> _detailCols(_DetailLayout layout) {
+  if (layout == _DetailLayout.card) return const [];
+  return [
+    _DetailCol.thumb,
+    _DetailCol.title,
+    _DetailCol.price,
+    _DetailCol.carry,
+    if (layout == _DetailLayout.wide) ...[_DetailCol.ling, _DetailCol.area],
+    _DetailCol.feature,
+    _DetailCol.op,
+  ];
+}
+
+/// 固定列宽（含左右各 10px 单元格内距）。
+double _detailColWidth(_DetailCol col) => switch (col) {
+  _DetailCol.thumb => 84, // 64 缩略图 + 两侧 10 内距
+  _DetailCol.price => 76,
+  _DetailCol.carry => 78, // 携带档位文本（如「其他等级」）
+  _DetailCol.ling => 70,
+  _DetailCol.area => 116, // 区服两行
+  _DetailCol.op => 84,
+  _DetailCol.title || _DetailCol.feature => 0, // 弹性列，见 _detailColFlex
+};
+
+/// 弹性列权重（固定列返回 0，表示按 [_detailColWidth] 定宽）。
+int _detailColFlex(_DetailCol col) => switch (col) {
+  _DetailCol.title => 3,
+  _DetailCol.feature => 4,
+  _ => 0,
+};
+
+/// 表头文案。
+String _detailColLabel(_DetailCol col) => switch (col) {
+  _DetailCol.thumb => '图',
+  _DetailCol.title => '标题',
+  _DetailCol.price => '价格',
+  _DetailCol.carry => '携带',
+  _DetailCol.ling => '灵/悟',
+  _DetailCol.area => '区服',
+  _DetailCol.feature => '特征',
+  _DetailCol.op => '操作',
+};
+
+/// 按列模型套壳：弹性列用 `Expanded`，固定列用 `SizedBox`。
+Widget _detailColBox(_DetailCol col, Widget child) {
+  final flex = _detailColFlex(col);
+  if (flex > 0) return Expanded(flex: flex, child: child);
+  return SizedBox(width: _detailColWidth(col), child: child);
+}
+
+/// 明细行副行文案（区服 · 灵/悟 [· 携带]），空项自动跳过。
+String _detailSubLine(PetListing t, {required bool includeCarry}) {
+  final parts = <String>[
+    if (t.area.isNotEmpty) '${t.area}-${t.server}',
+    if (t.ling != '0' || t.wu != '0')
+      '灵${t.ling != '0' ? t.ling : '—'} / 悟${t.wu != '0' ? t.wu : '—'}',
+    if (includeCarry && t.carryText.isNotEmpty) t.carryText,
+  ];
+  return parts.isEmpty ? '—' : parts.join(' · ');
+}
+
+/// 在售明细整表（表头 + 行列表），以 sliver 形式并入页面唯一的滚动体。
+///
+/// - 卡片外观：用 `DecoratedSliver`（底色 / 圆角 / 1px 描边）包住内部两个
+///   sliver，等价于原来的 `_BlockCard` 外壳，但不引入任何滚动容器；
+/// - 行列表：`SliverList.builder` 惰性构建，只 inflate 可视区（含
+///   cacheExtent）附近的行，缩略图随之按需加载，避免上千行 widget +
+///   上千个 `Image.network` 同时创建；
+/// - 横向：不再使用横向滚动容器，列按可用宽度自适应（见 [_DetailLayout]）。
+class _DetailTableSliver extends StatelessWidget {
+  const _DetailTableSliver({
+    super.key,
     required this.data,
     required this.filter,
     required this.kw,
@@ -1508,32 +1609,98 @@ class _ListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final rows = pmDetailRows(data, filter, kw);
-    return _BlockCard(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SecHead(
-            title: '在售明细 · 按价格排序',
-            titleExpanded: false,
-            trailing: Text(
-              '共 ${rows.length} 条',
-              style: TextStyle(
-                fontFamily: TgFonts.sans,
-                fontSize: 11.5,
-                color: tg.t3,
-              ),
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final layout = _detailLayoutOf(constraints.crossAxisExtent);
+        final cols = _detailCols(layout);
+        // 窄屏（移动端）收窄卡片左右内边距（与 _BlockCard 同规则）。
+        final h = constraints.crossAxisExtent < 640
+            ? math.min(TgSpacing.cardPaddingMobileH, 18.0)
+            : 18.0;
+        Widget th(_DetailCol col) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Text(
+            _detailColLabel(col),
+            style: TextStyle(
+              fontSize: 11,
+              color: tg.t3,
+              letterSpacing: 1,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
-          _SearchBox(kw: kw, onKw: onKw, onClear: onClearKw),
-          const SizedBox(height: 6),
-          if (rows.isEmpty)
-            const _EmptyTip('当前筛选无数据')
-          else
-            _DetailTable(rows: rows, onDetail: onDetail),
-        ],
-      ),
+        );
+        return DecoratedSliver(
+          decoration: BoxDecoration(
+            color: tg.card,
+            borderRadius: TgRadius.card,
+            border: Border.all(color: tg.border, width: 1),
+          ),
+          sliver: SliverPadding(
+            padding: EdgeInsets.fromLTRB(h, 18, h, 18),
+            sliver: SliverMainAxisGroup(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SecHead(
+                        title: '在售明细 · 按价格排序',
+                        titleExpanded: false,
+                        trailing: Text(
+                          '共 ${rows.length} 条',
+                          style: TextStyle(
+                            fontFamily: TgFonts.sans,
+                            fontSize: 11.5,
+                            color: tg.t3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _SearchBox(kw: kw, onKw: onKw, onClear: onClearKw),
+                      const SizedBox(height: 6),
+                      if (rows.isNotEmpty && cols.isNotEmpty)
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: tg.border, width: 1),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              for (final col in cols)
+                                _detailColBox(col, th(col)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (rows.isEmpty)
+                  const SliverToBoxAdapter(child: _EmptyTip('当前筛选无数据'))
+                else
+                  SliverList.builder(
+                    itemCount: rows.length,
+                    itemBuilder: (context, i) {
+                      final t = rows[i];
+                      // 整行可点击：点击行内任意位置直接进入该条详情。行内
+                      // 自带的交互（缩略图预览大图、「详情」按钮）在命中区
+                      // 优先，互不冲突。
+                      return _TappableRow(
+                        onTap: () => onDetail(t),
+                        child: _DetailRow(
+                          pet: t,
+                          layout: layout,
+                          last: i == rows.length - 1,
+                          onDetail: () => onDetail(t),
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -1592,29 +1759,24 @@ class _SearchBoxState extends State<_SearchBox> {
   }
 }
 
-/// 明细表（`pm-table`）：图 / 价格 / 携带 / 灵·悟 / 特征 / 区服 / 标题 / 操作。
-class _DetailTable extends StatelessWidget {
-  const _DetailTable({required this.rows, required this.onDetail});
+/// 明细行：宽/中档为表格行（列模型与表头一致），窄屏为堆叠卡片。
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.pet,
+    required this.layout,
+    required this.last,
+    required this.onDetail,
+  });
 
-  final List<PetListing> rows;
-  final ValueChanged<PetListing> onDetail;
+  final PetListing pet;
+  final _DetailLayout layout;
+  final bool last;
+  final VoidCallback onDetail;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    Widget th(String t) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Text(
-        t,
-        style: TextStyle(
-          fontSize: 11,
-          color: tg.t3,
-          letterSpacing: 1,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-    Widget tr({required List<Widget> cells, bool last = false}) => Container(
+    return Container(
       decoration: BoxDecoration(
         border: Border(
           bottom: last
@@ -1622,196 +1784,155 @@ class _DetailTable extends StatelessWidget {
               : BorderSide(color: tg.border, width: 1),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: cells,
-      ),
-    );
-    Widget cell(Widget child) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-      child: child,
-    );
-    return LayoutBuilder(
-      builder: (context, c) {
-        final compact = c.maxWidth < 560;
-        // 列宽：紧凑隐藏 灵/悟 与 区服 列（hide-m）。
-        // 图列：64×64 方形缩略图 + 两侧 10px 单元格内距 = 84 列宽。
-        final thumbW = 84.0;
-        final priceW = 76.0;
-        final carryW = 78.0; // 携带档位文本（如“其他等级”）
-        final lingW = 70.0;
-        final areaW = 116.0; // 区服两行
-        final titleW = compact ? 148.0 : 248.0;
-        final opW = 84.0;
-        // 最小表宽：紧凑仍需容纳特征列少量标签；桌面留足剩余给特征。
-        final minTable = compact ? 660.0 : 900.0;
-        final tableW = math.max(c.maxWidth, minTable);
-
-        final header = tr(
-          cells: [
-            SizedBox(width: thumbW, child: th('图')),
-            SizedBox(width: titleW, child: th('标题')),
-            SizedBox(width: priceW, child: th('价格')),
-            SizedBox(width: carryW, child: th('携带')),
-            if (!compact) ...[
-              SizedBox(width: lingW, child: th('灵/悟')),
-              SizedBox(width: areaW, child: th('区服')),
-            ],
-            Expanded(child: th('特征')),
-            SizedBox(width: opW, child: th('操作')),
-          ],
-        );
-        // 大数据量虚拟化：明细行不再一次性全部铺进 Column，而是放进固定行高的
-        // ListView（SliverFixedExtentList）按需惰性构建。行数超过可视高度上限时
-        // 表体改为区内滚动，缩略图随之按需加载，避免上千行 widget + 上千个
-        // Image.network 同时创建导致的卡顿；未超限时禁用内滚，保持「随页滚动」。
-        // 行高取 84：64 缩略图 + 上下 9px 单元格内距，可容纳特征标签两行。
-        final rowExtent = 84.0;
-        final maxTableH = math.min(
-          560.0,
-          MediaQuery.sizeOf(context).height * .75,
-        );
-        final overflow = rows.length * rowExtent > maxTableH;
-        final bodyH = math.min(rows.length * rowExtent, maxTableH);
-        // 整行可点击：点击行内任意位置直接进入该条详情。行内自带的交互
-        // （缩略图预览大图、「详情」按钮）在命中区优先，互不冲突。
-        Widget rowItem(int i) {
-          final t = rows[i];
-          return _TappableRow(
-            onTap: () => onDetail(t),
-            child: tr(
-              last: i == rows.length - 1,
-              cells: _rowCells(
-                context,
-                t,
-                compact: compact,
-                cell: cell,
-                thumbW: thumbW,
-                priceW: priceW,
-                carryW: carryW,
-                lingW: lingW,
-                areaW: areaW,
-                titleW: titleW,
-                opW: opW,
-              ),
-            ),
-          );
-        }
-
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: tableW,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: layout == _DetailLayout.card
+          ? _DetailCardRow(pet: pet, onDetail: onDetail)
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                header,
-                SizedBox(
-                  height: bodyH,
-                  child: ListView.builder(
-                    key: const ValueKey('pet-detail-list'),
-                    padding: EdgeInsets.zero,
-                    itemCount: rows.length,
-                    itemExtent: rowExtent,
-                    // 表体未超出可视上限时禁用内滚，避免遮蔽外层整页滚动；
-                    // 超出后启用惰性构建 + 区内滚动，且滚到顶/底时把越界位移
-                    // 转交外层整页，使页面能继续滚动（见 ChainableScrollPhysics）。
-                    physics: overflow
-                        ? ChainableScrollPhysics(
-                            outer:
-                                Scrollable.maybeOf(context)?.position
-                                    as ScrollPositionWithSingleContext?,
-                          )
-                        : const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, i) => rowItem(i),
-                  ),
-                ),
+                for (final col in _detailCols(layout))
+                  _detailColBox(col, _cell(context, col)),
               ],
             ),
-          ),
-        );
-      },
     );
   }
 
-  List<Widget> _rowCells(
-    BuildContext context,
-    PetListing t, {
-    required bool compact,
-    required Widget Function(Widget) cell,
-    required double thumbW,
-    required double priceW,
-    required double carryW,
-    required double lingW,
-    required double areaW,
-    required double titleW,
-    required double opW,
-  }) {
+  /// 单元格内距（与表头一致）。
+  Widget _cell(BuildContext context, _DetailCol col) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+    child: _cellChild(context, col),
+  );
+
+  Widget _cellChild(BuildContext context, _DetailCol col) {
     final tg = context.tg;
-    return [
-      SizedBox(
-        width: thumbW,
-        child: cell(_Thumb(pet: t)),
-      ),
-      SizedBox(
-        width: titleW,
-        child: cell(
-          Text(
-            t.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: tg.t1),
-          ),
-        ),
-      ),
-      SizedBox(
-        width: priceW,
-        child: cell(
-          Text(
-            _p(t.price),
-            style: TextStyle(
-              fontSize: 12,
-              color: tg.gold2,
-              fontWeight: FontWeight.w600,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-      ),
-      SizedBox(
-        width: carryW,
-        child: cell(
-          Text(t.carryText, style: TextStyle(fontSize: 12, color: tg.t2)),
-        ),
-      ),
-      if (!compact) ...[
-        SizedBox(
-          width: lingW,
-          child: cell(
+    switch (col) {
+      case _DetailCol.thumb:
+        return _Thumb(pet: pet);
+      case _DetailCol.title:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              '${t.ling != '0' ? t.ling : '—'} / ${t.wu != '0' ? t.wu : '—'}',
-              style: TextStyle(fontSize: 12, color: tg.t2),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: areaW,
-          child: cell(
-            Text(
-              t.area.isEmpty ? '—' : '${t.area}-${t.server}',
+              pet.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: tg.t2, height: 1.35),
+              style: TextStyle(fontSize: 12, color: tg.t1),
             ),
+            // 中档布局已收起 灵/悟、区服 列，信息折叠到标题下的副行。
+            if (layout == _DetailLayout.mid) ...[
+              const SizedBox(height: 3),
+              Text(
+                _detailSubLine(pet, includeCarry: false),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11, color: tg.t3, height: 1.3),
+              ),
+            ],
+          ],
+        );
+      case _DetailCol.price:
+        return Text(
+          _p(pet.price),
+          style: TextStyle(
+            fontSize: 12,
+            color: tg.gold2,
+            fontWeight: FontWeight.w600,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
-        ),
-      ],
-      Expanded(child: cell(_FeatureCell(pet: t))),
-      SizedBox(
-        width: opW,
-        child: cell(Center(child: _DetailBtn(onTap: () => onDetail(t)))),
+        );
+      case _DetailCol.carry:
+        return Text(
+          pet.carryText,
+          style: TextStyle(fontSize: 12, color: tg.t2),
+        );
+      case _DetailCol.ling:
+        return Text(
+          '${pet.ling != '0' ? pet.ling : '—'} / ${pet.wu != '0' ? pet.wu : '—'}',
+          style: TextStyle(fontSize: 12, color: tg.t2),
+        );
+      case _DetailCol.area:
+        return Text(
+          pet.area.isEmpty ? '—' : '${pet.area}-${pet.server}',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 12, color: tg.t2, height: 1.35),
+        );
+      case _DetailCol.feature:
+        // 宽档布局已有 灵/悟 列，标签里不再重复「灵N」。
+        return _FeatureCell(pet: pet, showLing: layout == _DetailLayout.wide);
+      case _DetailCol.op:
+        return Center(child: _DetailBtn(onTap: onDetail));
+    }
+  }
+}
+
+/// 窄屏（<560）明细行：堆叠卡片（标题 + 副行 / 特征标签 + 详情），
+/// 与同页「性价比推荐」窄屏行同款，避免出现横向滚动表格。
+class _DetailCardRow extends StatelessWidget {
+  const _DetailCardRow({required this.pet, required this.onDetail});
+
+  final PetListing pet;
+  final VoidCallback onDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Thumb(pet: pet),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pet.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: tg.t1,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _detailSubLine(pet, includeCarry: true),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: tg.t3, height: 1.3),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _p(pet.price),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: tg.gold2,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 9),
+          Row(
+            children: [
+              Expanded(child: _FeatureCell(pet: pet, showLing: false)),
+              const SizedBox(width: 8),
+              _DetailBtn(onTap: onDetail),
+            ],
+          ),
+        ],
       ),
-    ];
+    );
   }
 }
 
@@ -1933,9 +2054,13 @@ class _ThumbState extends State<_Thumb> {
 
 /// 特征 tag 组合（对应 `pmTag(t)`）。
 class _FeatureCell extends StatelessWidget {
-  const _FeatureCell({required this.pet});
+  const _FeatureCell({required this.pet, this.showLing = true});
 
   final PetListing pet;
+
+  /// 是否在标签里展示「灵N」；宽表格已有 灵/悟 列、中/窄布局的副行已含灵悟，
+  /// 这两种情况下传 false 避免重复。
+  final bool showLing;
 
   @override
   Widget build(BuildContext context) {
@@ -1946,7 +2071,7 @@ class _FeatureCell extends StatelessWidget {
       if (t.ch != null) (t.ch!, false),
       if (t.skill != null && t.skill! > 0) ('技能全${t.skill}', false),
       if (t.pet.isNotEmpty && t.pet != '其他') (t.pet, true),
-      if (t.ling != '0') ('灵${t.ling}', false),
+      if (showLing && t.ling != '0') ('灵${t.ling}', false),
     ];
     if (tags.isEmpty) {
       return Text('—', style: TextStyle(fontSize: 12, color: tgOf(context).t2));

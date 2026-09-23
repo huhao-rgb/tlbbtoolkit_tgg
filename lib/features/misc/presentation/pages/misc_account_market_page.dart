@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
-import 'package:tlbbtoolkit/shared/widgets/chainable_scroll_physics.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_image_gallery.dart';
@@ -207,9 +206,9 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
         final data = _items;
-        // 页面主体（行情列表）作为垂直区块序列，交由整页 CustomScrollView
-        // 统一滚动；明细表行数超出可视上限时在表体内独立滚动 + 惰性构建
-        // （见 _DetailTable），避免大数据量下一次性构建全部行导致卡顿。
+        // 页面头部区块（头 + 筛选 + 状态 + 统计/分布/画像/推荐）作为垂直序列，
+        // 在下方拼进同一个 CustomScrollView；在售明细整表也是它的 sliver，
+        // 因此全页只有一个纵向滚动体（明细行依旧惰性构建，见 _DetailTableSliver）。
         final blocks = <Widget>[
           _MarketHead(
             onCrumbTap: () =>
@@ -246,10 +245,7 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
             const SizedBox(height: 14),
             _BestCard(filtered: amFiltered(data, _filter)),
             const SizedBox(height: 14),
-            _ListCard(data: data, filter: _filter, onDetail: _openDetail),
           ],
-          const SizedBox(height: TgSpacing.s34),
-          const _PageFoot(),
         ];
         // 页面内边距（compact / 桌面两套）。
         final basePad = compact
@@ -280,7 +276,27 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
             slivers: [
               SliverPadding(
                 padding: pad,
-                sliver: SliverList(delegate: SliverChildListDelegate(blocks)),
+                sliver: SliverMainAxisGroup(
+                  slivers: [
+                    SliverList(delegate: SliverChildListDelegate(blocks)),
+                    // 在售明细整表（表头 + 行列表）并入同一个 CustomScrollView：
+                    // 行由 SliverList 惰性构建，但不再需要内层纵向 ListView 与
+                    // 横向滚动容器，也就不必再手动转交越界滚动。
+                    if (data.isNotEmpty)
+                      _DetailTableSliver(
+                        key: const ValueKey('acc-detail-table'),
+                        data: data,
+                        filter: _filter,
+                        onDetail: _openDetail,
+                      ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: TgSpacing.s34),
+                        child: const _PageFoot(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1472,8 +1488,91 @@ class _EmptyTip extends StatelessWidget {
 
 /* ============================== 在售明细 ============================== */
 
-class _ListCard extends StatelessWidget {
-  const _ListCard({
+/// 明细表布局档位（按可用宽度降级）。
+///
+/// 去掉横向滚动后所有列都必须落在可用宽度内，因此按宽度下钻：
+/// - [wide]（≥900）：表头/行显示全部列（含 职业、区服）；
+/// - [mid]（560~900）：收起 职业、区服 两列，信息折叠为标题下的副行；
+/// - [card]（<560）：整行降级为堆叠卡片，与同页「性价比推荐」窄屏行一致。
+enum _AccLayout { wide, mid, card }
+
+/// 由可用宽度推导明细表布局档位。
+_AccLayout _accLayoutOf(double width) {
+  if (width < 560) return _AccLayout.card;
+  return width < 900 ? _AccLayout.mid : _AccLayout.wide;
+}
+
+/// 明细表列（顺序即渲染顺序；表头与数据行共用同一列模型，天然对齐）。
+enum _AccCol { thumb, title, price, lv, job, area, attr, op }
+
+/// 指定布局下可见的列（[card] 档整行是卡片，不渲染表格列）。
+List<_AccCol> _accCols(_AccLayout layout) {
+  if (layout == _AccLayout.card) return const [];
+  return [
+    _AccCol.thumb,
+    _AccCol.title,
+    _AccCol.price,
+    _AccCol.lv,
+    if (layout == _AccLayout.wide) ...[_AccCol.job, _AccCol.area],
+    _AccCol.attr,
+    _AccCol.op,
+  ];
+}
+
+/// 固定列宽（含左右各 10px 单元格内距）。
+double _accColWidth(_AccCol col) => switch (col) {
+  _AccCol.thumb => 84, // 64 缩略图 + 两侧 10 内距
+  _AccCol.price => 92,
+  _AccCol.lv => 56,
+  _AccCol.job => 84,
+  _AccCol.area => 116, // 区服两行
+  _AccCol.attr => 128, // 主属性 · 攻
+  _AccCol.op => 76,
+  _AccCol.title => 0, // 弹性列，见 _accColFlex
+};
+
+/// 弹性列权重（固定列返回 0，表示按 [_accColWidth] 定宽）。
+int _accColFlex(_AccCol col) => col == _AccCol.title ? 1 : 0;
+
+/// 表头文案。
+String _accColLabel(_AccCol col) => switch (col) {
+  _AccCol.thumb => '图',
+  _AccCol.title => '标题',
+  _AccCol.price => '价格',
+  _AccCol.lv => '等级',
+  _AccCol.job => '职业',
+  _AccCol.area => '区服',
+  _AccCol.attr => '主属性·攻',
+  _AccCol.op => '操作',
+};
+
+/// 按列模型套壳：弹性列用 `Expanded`，固定列用 `SizedBox`。
+Widget _accColBox(_AccCol col, Widget child) {
+  final flex = _accColFlex(col);
+  if (flex > 0) return Expanded(flex: flex, child: child);
+  return SizedBox(width: _accColWidth(col), child: child);
+}
+
+/// 明细行副行文案（职业 · 区服），空项自动跳过。
+String _accSubLine(AccountListing t) {
+  final parts = <String>[
+    if (t.job.isNotEmpty) t.job,
+    if (t.area.isNotEmpty) '${t.area}-${t.server}',
+  ];
+  return parts.isEmpty ? '—' : parts.join(' · ');
+}
+
+/// 在售明细整表（表头 + 行列表），以 sliver 形式并入页面唯一的滚动体。
+///
+/// - 卡片外观：用 `DecoratedSliver`（底色 / 圆角 / 1px 描边）包住内部两个
+///   sliver，等价于原来的 `_BlockCard` 外壳，但不引入任何滚动容器；
+/// - 行列表：`SliverList.builder` 惰性构建，只 inflate 可视区（含
+///   cacheExtent）附近的行，缩略图随之按需加载，避免上千行 widget +
+///   上千个 `Image.network` 同时创建；
+/// - 横向：不再使用横向滚动容器，列按可用宽度自适应（见 [_AccLayout]）。
+class _DetailTableSliver extends StatelessWidget {
+  const _DetailTableSliver({
+    super.key,
     required this.data,
     required this.filter,
     required this.onDetail,
@@ -1487,167 +1586,90 @@ class _ListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final rows = amDetailRows(data, filter);
-    return _BlockCard(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SecHead(
-            title: '在售明细 · 按价格排序',
-            titleExpanded: false,
-            trailing: Text(
-              '共 ${rows.length} 条',
-              style: TextStyle(
-                fontFamily: TgFonts.sans,
-                fontSize: 11.5,
-                color: tg.t3,
-              ),
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final layout = _accLayoutOf(constraints.crossAxisExtent);
+        final cols = _accCols(layout);
+        // 窄屏（移动端）收窄卡片左右内边距（与 _BlockCard 同规则）。
+        final h = constraints.crossAxisExtent < 640
+            ? math.min(TgSpacing.cardPaddingMobileH, 18.0)
+            : 18.0;
+        Widget th(_AccCol col) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Text(
+            _accColLabel(col),
+            style: TextStyle(
+              fontSize: 11,
+              color: tg.t3,
+              letterSpacing: 1,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 12),
-          if (rows.isEmpty)
-            const _EmptyTip('当前筛选无数据')
-          else
-            _DetailTable(rows: rows, onDetail: onDetail),
-        ],
-      ),
-    );
-  }
-}
-
-/// 明细表（`amTable`）：图 / 价格 / 等级 / 职业 / 区服 / 主属性·攻 / 标题 / 操作。
-class _DetailTable extends StatelessWidget {
-  const _DetailTable({required this.rows, required this.onDetail});
-
-  final List<AccountListing> rows;
-  final ValueChanged<AccountListing> onDetail;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    Widget th(String t) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Text(
-        t,
-        style: TextStyle(
-          fontSize: 11,
-          color: tg.t3,
-          letterSpacing: 1,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-    Widget tr({required List<Widget> cells, bool last = false}) => Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: last
-              ? BorderSide.none
-              : BorderSide(color: tg.border, width: 1),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: cells,
-      ),
-    );
-    Widget cell(Widget child) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-      child: child,
-    );
-    return LayoutBuilder(
-      builder: (context, c) {
-        final compact = c.maxWidth < 640;
-        // 图列：64×64 方形缩略图 + 两侧 10px 单元格内距 = 84 列宽。
-        final thumbW = 84.0;
-        final priceW = 92.0;
-        final lvW = 56.0;
-        final jobW = 84.0;
-        final areaW = 116.0;
-        final attrW = 128.0;
-        final titleW = compact ? 180.0 : 300.0;
-        final opW = 76.0;
-        final minTable = compact ? 660.0 : 900.0;
-        final tableW = math.max(c.maxWidth, minTable);
-        final header = tr(
-          cells: [
-            SizedBox(width: thumbW, child: th('图')),
-            Expanded(child: th('标题')),
-            SizedBox(width: priceW, child: th('价格')),
-            SizedBox(width: lvW, child: th('等级')),
-            if (!compact) ...[
-              SizedBox(width: jobW, child: th('职业')),
-              SizedBox(width: areaW, child: th('区服')),
-            ],
-            SizedBox(width: attrW, child: th('主属性·攻')),
-            SizedBox(width: opW, child: th('操作')),
-          ],
         );
-        // 大数据量虚拟化：明细行不再一次性全部铺进 Column，而是放进固定行高的
-        // ListView（SliverFixedExtentList）按需惰性构建。行数超过可视高度上限时
-        // 表体改为区内滚动，缩略图随之按需加载，避免上千行 widget + 上千个
-        // Image.network 同时创建导致的卡顿；未超限时禁用内滚，保持「随页滚动」。
-        // 行高取 84：64 缩略图 + 上下 9px 单元格内距，可容纳标题/区服两行文案。
-        final rowExtent = 84.0;
-        final maxTableH = math.min(
-          560.0,
-          MediaQuery.sizeOf(context).height * .75,
-        );
-        final overflow = rows.length * rowExtent > maxTableH;
-        final bodyH = math.min(rows.length * rowExtent, maxTableH);
-        // 整行可点击：点击行内任意位置直接进入该条详情。行内自带的交互
-        // （缩略图预览大图、「详情」按钮）在命中区优先，互不冲突。
-        Widget rowItem(int i) {
-          final t = rows[i];
-          return _TappableRow(
-            onTap: () => onDetail(t),
-            child: tr(
-              last: i == rows.length - 1,
-              cells: _rowCells(
-                context,
-                t,
-                compact: compact,
-                cell: cell,
-                thumbW: thumbW,
-                priceW: priceW,
-                lvW: lvW,
-                jobW: jobW,
-                areaW: areaW,
-                attrW: attrW,
-                titleW: titleW,
-                opW: opW,
-              ),
-            ),
-          );
-        }
-
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: tableW,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                header,
-                SizedBox(
-                  height: bodyH,
-                  child: ListView.builder(
-                    key: const ValueKey('acc-detail-list'),
-                    padding: EdgeInsets.zero,
-                    itemCount: rows.length,
-                    itemExtent: rowExtent,
-                    // 表体未超出可视上限时禁用内滚，避免遮蔽外层整页滚动；
-                    // 超出后启用惰性构建 + 区内滚动，且滚到顶/底时把越界位移
-                    // 转交外层整页，使页面能继续滚动（见 ChainableScrollPhysics）。
-                    physics: overflow
-                        ? ChainableScrollPhysics(
-                            outer:
-                                Scrollable.maybeOf(context)?.position
-                                    as ScrollPositionWithSingleContext?,
-                          )
-                        : const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, i) => rowItem(i),
+        return DecoratedSliver(
+          decoration: BoxDecoration(
+            color: tg.card,
+            borderRadius: TgRadius.card,
+            border: Border.all(color: tg.border, width: 1),
+          ),
+          sliver: SliverPadding(
+            padding: EdgeInsets.fromLTRB(h, 18, h, 18),
+            sliver: SliverMainAxisGroup(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SecHead(
+                        title: '在售明细 · 按价格排序',
+                        titleExpanded: false,
+                        trailing: Text(
+                          '共 ${rows.length} 条',
+                          style: TextStyle(
+                            fontFamily: TgFonts.sans,
+                            fontSize: 11.5,
+                            color: tg.t3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (rows.isNotEmpty && cols.isNotEmpty)
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: tg.border, width: 1),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              for (final col in cols) _accColBox(col, th(col)),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+                if (rows.isEmpty)
+                  const SliverToBoxAdapter(child: _EmptyTip('当前筛选无数据'))
+                else
+                  SliverList.builder(
+                    itemCount: rows.length,
+                    itemBuilder: (context, i) {
+                      final t = rows[i];
+                      // 整行可点击：点击行内任意位置直接进入该条详情。行内
+                      // 自带的交互（缩略图预览大图、「详情」按钮）在命中区
+                      // 优先，互不冲突。
+                      return _TappableRow(
+                        onTap: () => onDetail(t),
+                        child: _DetailRow(
+                          acc: t,
+                          layout: layout,
+                          last: i == rows.length - 1,
+                          onDetail: () => onDetail(t),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
           ),
@@ -1655,98 +1677,201 @@ class _DetailTable extends StatelessWidget {
       },
     );
   }
+}
 
-  List<Widget> _rowCells(
-    BuildContext context,
-    AccountListing t, {
-    required bool compact,
-    required Widget Function(Widget) cell,
-    required double thumbW,
-    required double priceW,
-    required double lvW,
-    required double jobW,
-    required double areaW,
-    required double attrW,
-    required double titleW,
-    required double opW,
-  }) {
+/// 明细行：宽/中档为表格行（列模型与表头一致），窄屏为堆叠卡片。
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.acc,
+    required this.layout,
+    required this.last,
+    required this.onDetail,
+  });
+
+  final AccountListing acc;
+  final _AccLayout layout;
+  final bool last;
+  final VoidCallback onDetail;
+
+  @override
+  Widget build(BuildContext context) {
     final tg = context.tg;
-    return [
-      SizedBox(
-        width: thumbW,
-        child: cell(_Thumb(account: t)),
-      ),
-      Expanded(
-        child: cell(
-          Text(
-            t.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: tg.t1),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: last
+              ? BorderSide.none
+              : BorderSide(color: tg.border, width: 1),
         ),
       ),
-      SizedBox(
-        width: priceW,
-        child: cell(
-          Text(
-            _p(t.price),
-            style: TextStyle(
-              fontSize: 12,
-              color: tg.gold2,
-              fontWeight: FontWeight.w600,
-              fontFeatures: const [FontFeature.tabularFigures()],
+      child: layout == _AccLayout.card
+          ? _DetailCardRow(acc: acc, onDetail: onDetail)
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                for (final col in _accCols(layout))
+                  _accColBox(col, _cell(context, col)),
+              ],
             ),
-          ),
-        ),
-      ),
-      SizedBox(
-        width: lvW,
-        child: cell(
-          Text(
-            t.lv > 0 ? '${t.lv}' : '—',
-            style: TextStyle(fontSize: 12, color: tg.t2),
-          ),
-        ),
-      ),
-      if (!compact) ...[
-        SizedBox(
-          width: jobW,
-          child: cell(
+    );
+  }
+
+  /// 单元格内距（与表头一致）。
+  Widget _cell(BuildContext context, _AccCol col) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+    child: _cellChild(context, col),
+  );
+
+  Widget _cellChild(BuildContext context, _AccCol col) {
+    final tg = context.tg;
+    switch (col) {
+      case _AccCol.thumb:
+        return _Thumb(account: acc);
+      case _AccCol.title:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              t.job.isEmpty ? '—' : t.job,
-              style: TextStyle(fontSize: 12, color: tg.t2),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: areaW,
-          child: cell(
-            Text(
-              t.area.isEmpty ? '—' : '${t.area}-${t.server}',
+              acc.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: tg.t2, height: 1.35),
+              style: TextStyle(fontSize: 12, color: tg.t1),
             ),
+            // 中档布局已收起 职业、区服 列，信息折叠到标题下的副行。
+            if (layout == _AccLayout.mid) ...[
+              const SizedBox(height: 3),
+              Text(
+                _accSubLine(acc),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11, color: tg.t3, height: 1.3),
+              ),
+            ],
+          ],
+        );
+      case _AccCol.price:
+        return Text(
+          _p(acc.price),
+          style: TextStyle(
+            fontSize: 12,
+            color: tg.gold2,
+            fontWeight: FontWeight.w600,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
+        );
+      case _AccCol.lv:
+        return Text(
+          acc.lv > 0 ? '${acc.lv}' : '—',
+          style: TextStyle(fontSize: 12, color: tg.t2),
+        );
+      case _AccCol.job:
+        return Text(
+          acc.job.isEmpty ? '—' : acc.job,
+          style: TextStyle(fontSize: 12, color: tg.t2),
+        );
+      case _AccCol.area:
+        return Text(
+          acc.area.isEmpty ? '—' : '${acc.area}-${acc.server}',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 12, color: tg.t2, height: 1.35),
+        );
+      case _AccCol.attr:
+        return Text(
+          acc.attr > 0
+              ? '${amFmt(acc.attr)}${acc.atk.isNotEmpty ? ' · ${acc.atkShort}' : ''}'
+              : '—',
+          style: TextStyle(fontSize: 12, color: tg.t2),
+        );
+      case _AccCol.op:
+        return Center(child: _DetailBtn(onTap: onDetail));
+    }
+  }
+}
+
+/// 窄屏（<560）明细行：堆叠卡片（标题 + 副行 / 等级·主属性标签 + 详情），
+/// 与同页「性价比推荐」窄屏行同款，避免出现横向滚动表格。
+class _DetailCardRow extends StatelessWidget {
+  const _DetailCardRow({required this.acc, required this.onDetail});
+
+  final AccountListing acc;
+  final VoidCallback onDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final tags = <Widget>[
+      if (acc.lv > 0) _PmTag(text: '等级 ${acc.lv}', gold: false),
+      if (acc.attr > 0)
+        _PmTag(
+          text:
+              '主属性 ${amFmt(acc.attr)}'
+              '${acc.atk.isNotEmpty ? ' · ${acc.atkShort}' : ''}',
+          gold: true,
         ),
-      ],
-      SizedBox(
-        width: attrW,
-        child: cell(
-          Text(
-            t.attr > 0
-                ? '${amFmt(t.attr)}${t.atk.isNotEmpty ? ' · ${t.atkShort}' : ''}'
-                : '—',
-            style: TextStyle(fontSize: 12, color: tg.t2),
-          ),
-        ),
-      ),
-      SizedBox(
-        width: opW,
-        child: cell(Center(child: _DetailBtn(onTap: () => onDetail(t)))),
-      ),
     ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Thumb(account: acc),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      acc.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: tg.t1,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _accSubLine(acc),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: tg.t3, height: 1.3),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _p(acc.price),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: tg.gold2,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+          if (tags.isNotEmpty) ...[
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                // 标签多时自行换行，避免窄屏溢出。
+                Expanded(
+                  child: Wrap(spacing: 6, runSpacing: 4, children: tags),
+                ),
+                const SizedBox(width: 8),
+                _DetailBtn(onTap: onDetail),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

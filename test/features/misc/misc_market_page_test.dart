@@ -457,28 +457,48 @@ void main() {
     expect(find.text('返回行情列表'), findsOneWidget);
   });
 
-  testWidgets('大数据量（500 条）：明细表惰性构建，无异常且表内行可进入详情', (tester) async {
+  testWidgets('大数据量（500 条）：明细行惰性构建，无异常且行内可进入详情', (tester) async {
     final big = List<PetListing>.generate(500, (i) {
       final g = _good(title: '测试珍兽 ${i + 1}', price: 100 + i, sn: 'BBG$i');
       return PetListing.fromJson(g);
     });
+    // 常规视口（900 高）：整页只有一个纵向滚动体，明细行由 SliverList 惰性构建。
     await pumpPage(
       tester,
+      size: const Size(1180, 900),
       fetch: () async => PetMarketFetchResult(raw: big.length, parsed: big),
     );
 
     expect(tester.takeException(), isNull);
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('在售明细 · 按价格排序'),
+      400,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
     expect(find.text('共 500 条'), findsOneWidget);
-    // 表体区独立滚动且惰性构建：页面上只构建可视区附近的行，而非全部 500 行。
-    expect(find.text('操作'), findsOneWidget); // 表头固定在表体上方
-    final list = find.byKey(const ValueKey('pet-detail-list'));
-    expect(list, findsOneWidget);
+    expect(find.text('操作'), findsOneWidget); // 表头在明细表顶部
+
+    // 单一滚动体：明细表内不再有嵌套的纵向 ListView / 横向滚动容器。
+    final table = find.byKey(const ValueKey('pet-detail-table'));
+    expect(table, findsOneWidget);
+    expect(
+      find.descendant(of: table, matching: find.byType(ListView)),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: table, matching: find.byType(SingleChildScrollView)),
+      findsNothing,
+    );
+
+    // 惰性构建：只 inflate 可视区附近的行，而非全部 500 行。
     final detailCount = find.text('详情').evaluate().length;
     expect(detailCount, greaterThan(0));
     expect(detailCount, lessThan(100));
 
     // 明细表内首行「详情」仍可进入商品详情页。
-    final tableDetail = find.descendant(of: list, matching: find.text('详情'));
+    final tableDetail = find.descendant(of: table, matching: find.text('详情'));
     await tester.ensureVisible(tableDetail.first);
     await tester.pumpAndSettle();
     await tester.tap(tableDetail.first);
@@ -486,7 +506,47 @@ void main() {
     expect(find.text('珍兽详情'), findsOneWidget);
   });
 
-  testWidgets('在售明细滚到顶/底后，越界滚动转交外层整页', (tester) async {
+  testWidgets('明细表列随宽度降级：宽档全列 / 中档折叠为副行 / 窄屏堆叠卡片', (tester) async {
+    // 宽档（内容宽 ≥900）：8 列表头齐全（含 灵/悟、区服）。
+    await pumpPage(tester, size: const Size(1280, 900));
+    await tester.scrollUntilVisible(
+      find.text('在售明细 · 按价格排序'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    for (final h in ['图', '标题', '价格', '携带', '灵/悟', '区服', '特征', '操作']) {
+      expect(find.text(h), findsOneWidget, reason: '宽档表头 $h');
+    }
+
+    // 中档（560~900）：收起 灵/悟、区服 列，信息折叠到标题下的副行。
+    await pumpPage(tester, size: const Size(800, 900));
+    await tester.scrollUntilVisible(
+      find.text('在售明细 · 按价格排序'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('灵/悟'), findsNothing);
+    expect(find.text('区服'), findsNothing);
+    expect(find.text('图'), findsOneWidget);
+    expect(find.textContaining(' / 悟'), findsWidgets, reason: '灵悟折叠为副行文案');
+
+    // 窄屏（<560）：整行堆叠卡片，不渲染表头列。
+    await pumpPage(tester, size: const Size(480, 900));
+    await tester.scrollUntilVisible(
+      find.text('在售明细 · 按价格排序'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('图'), findsNothing);
+    expect(find.text('价格'), findsNothing);
+    expect(find.text('详情'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('在售明细并入整页单一滚动体：一路下拖可直达页尾', (tester) async {
     final big = List<PetListing>.generate(500, (i) {
       final g = _good(title: '测试珍兽 ${i + 1}', price: 100 + i, sn: 'BBH$i');
       return PetListing.fromJson(g);
@@ -497,57 +557,26 @@ void main() {
       fetch: () async => PetMarketFetchResult(raw: big.length, parsed: big),
     );
 
-    final list = find.byKey(const ValueKey('pet-detail-list'));
     final scrollable = find.byType(Scrollable).first;
-    final outerScrollable = tester.state<ScrollableState>(scrollable);
-    // 惰性 sliver：分多次下拖直到页尾的在售明细表被构建（不依赖估算的 max）。
+    final pos = tester.state<ScrollableState>(scrollable).position;
+    final foot = find.textContaining('行情数据仅供交易参考');
+    // 500 行明细之后仍能继续滚动到页尾：不存在内层滚动把内容「卡住」。
     var guard = 0;
-    while (list.evaluate().isEmpty && guard < 80) {
+    while (foot.evaluate().isEmpty && guard < 400) {
       await tester.drag(scrollable, const Offset(0, -600));
       await tester.pump();
       guard++;
     }
     await tester.pumpAndSettle();
-    expect(list, findsOneWidget);
-    // 确保内层回到顶部（场景 A 的前置状态）。
-    final innerScrollable = tester.state<ScrollableState>(
-      find.descendant(of: list, matching: find.byType(Scrollable)).first,
-    );
-    innerScrollable.position.jumpTo(0);
-    await tester.pumpAndSettle();
-    Future<void> centerList() async {
-      final rect = tester.getRect(list);
-      final target = (outerScrollable.position.pixels + rect.center.dy - 450)
-          .clamp(0.0, outerScrollable.position.maxScrollExtent);
-      outerScrollable.position.jumpTo(target);
-      await tester.pumpAndSettle();
-    }
-
-    await centerList();
-
-    final outerBottom = outerScrollable.position.pixels;
-    expect(outerBottom, greaterThan(0));
-
-    // 场景 A：内层在顶部，手指下移 → 内层不动，越界位移转交外层 → 整页向上滚动。
-    await tester.drag(list, const Offset(0, 600));
-    await tester.pumpAndSettle();
-    expect(outerScrollable.position.pixels, lessThan(outerBottom));
-
-    // 场景 B：把内层直接滚到自身底部；整页上移 200px 留出下方余量（表体仍可见）；
-    // 再上滑 → 内层已到底，越界位移转交外层 → 整页向下滚动。
-    await centerList();
-    innerScrollable.position.jumpTo(innerScrollable.position.maxScrollExtent);
-    await tester.pumpAndSettle();
-    outerScrollable.position.jumpTo(
-      (outerScrollable.position.pixels - 200).clamp(
-        0.0,
-        outerScrollable.position.maxScrollExtent,
+    expect(foot, findsOneWidget, reason: '明细表之后仍应能滚到页尾');
+    expect(pos.pixels, greaterThan(0));
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('pet-detail-table')),
+        matching: find.byType(ListView),
       ),
+      findsNothing,
+      reason: '明细表不应再有内层 ListView',
     );
-    await tester.pumpAndSettle();
-    final beforeDown = outerScrollable.position.pixels;
-    await tester.drag(list, const Offset(0, -2000));
-    await tester.pumpAndSettle();
-    expect(outerScrollable.position.pixels, greaterThan(beforeDown));
   });
 }
