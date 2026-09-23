@@ -111,3 +111,26 @@ mobile（<900）                    desktop（≥900）
 5. 在 feature 根部创建 `<name>_routes.dart` 用 `@TypedGoRoute` 定义路由（一级 tab 用根路径，二级页面用嵌套 `routes:`）；
 6. 到 `lib/app/router/app_router.dart` 把该 feature 生成的 `$appRoutes` 作为一个 `StatefulShellBranch` 追加；
 7. 运行 `fvm dart run build_runner build` 生成全部代码。
+
+## 发版流程
+
+版本号、tag 与 GitHub Release 由脚本 + GitHub Actions 自动完成。
+
+```sh
+# 交互式：自动生成 CHANGELOG 草稿 → 确认后改版本号、提交、打 tag 并推送
+./scripts/release.sh 1.0.4+5
+
+# 跳过确认（CI / 信任流程）
+./scripts/release.sh 1.0.4+5 --yes
+
+# 只预览将要执行的操作，不修改任何文件
+./scripts/release.sh 1.0.4 --dry-run
+```
+
+脚本会：更新 `pubspec.yaml` 版本号 → 在 `CHANGELOG.md` 顶部插入新版本条目（由
+自上一个 tag 以来的提交自动生成草稿，确认前可手动整理）→ 提交（`chore: 修改版本号…`）
+→ 打 `v1.0.4` 形式的 tag（去掉 `+构建号`）→ 推送 `main` 与 tag。
+
+推送 `v*` tag 后，[`.github/workflows/release.yml`](.github/workflows/release.yml) 会自动
+构建 Release APK（`build/app/outputs/flutter-apk/app-release.apk`）并创建 GitHub Release，
+发行说明取自 `CHANGELOG.md` 中对应版本小节，无需手动操作。

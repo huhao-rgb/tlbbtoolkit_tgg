@@ -1,0 +1,55 @@
+name: Release
+
+# 推送 v* 开头的 tag 时触发（由 scripts/release.sh 创建）
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write # 创建 Release 需要
+
+jobs:
+  build-and-release:
+    name: 构建 Release APK 并发布
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # 与 fvm_config.json 锁定的版本保持一致
+          flutter-version: '3.47.0'
+          cache: true
+
+      - name: 拉取依赖
+        run: flutter pub get
+
+      - name: 代码生成（安全校验，产物应与入库文件一致）
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: 构建 Release APK
+        run: flutter build apk --release
+
+      - name: 提取本次版本更新日志
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          # 匹配 "## [1.0.4" 或 "## [1.0.4+5" 开头的小节，输出到下一个版本小节为止
+          awk -v ver="$VER" '
+            /^## \[/ { in_section = ($0 ~ "^## \\[" ver "(\\+|\\])"); if (in_section) print }
+            in_section && !/^## \[/ { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "# ${GITHUB_REF_NAME}" > RELEASE_NOTES.md
+          fi
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+          fail_on_unmatched_files: true
