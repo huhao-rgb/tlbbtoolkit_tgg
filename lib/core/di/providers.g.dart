@@ -171,3 +171,68 @@ final class LocalStorageProvider
 }
 
 String _$localStorageHash() => r'5c3fbac58b511e27789874d27914836b4215318d';
+
+/// 应用包信息（应用名 / 版本号 / 构建号），运行时由 `package_info_plus`
+/// 从平台侧读取。
+///
+/// 版本号的唯一事实源是 `pubspec.yaml` 的 `version:` 字段（如 `1.0.3+4`），
+/// 由构建产物带到各平台，**代码里不要再写死版本号**。
+///
+/// 读取是异步的，且可能失败（如单元测试环境没有插件实现），
+/// 调用方需按 `AsyncValue` 处理 loading / error。
+
+@ProviderFor(packageInfo)
+final packageInfoProvider = PackageInfoProvider._();
+
+/// 应用包信息（应用名 / 版本号 / 构建号），运行时由 `package_info_plus`
+/// 从平台侧读取。
+///
+/// 版本号的唯一事实源是 `pubspec.yaml` 的 `version:` 字段（如 `1.0.3+4`），
+/// 由构建产物带到各平台，**代码里不要再写死版本号**。
+///
+/// 读取是异步的，且可能失败（如单元测试环境没有插件实现），
+/// 调用方需按 `AsyncValue` 处理 loading / error。
+
+final class PackageInfoProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<PackageInfo>,
+          PackageInfo,
+          FutureOr<PackageInfo>
+        >
+    with $FutureModifier<PackageInfo>, $FutureProvider<PackageInfo> {
+  /// 应用包信息（应用名 / 版本号 / 构建号），运行时由 `package_info_plus`
+  /// 从平台侧读取。
+  ///
+  /// 版本号的唯一事实源是 `pubspec.yaml` 的 `version:` 字段（如 `1.0.3+4`），
+  /// 由构建产物带到各平台，**代码里不要再写死版本号**。
+  ///
+  /// 读取是异步的，且可能失败（如单元测试环境没有插件实现），
+  /// 调用方需按 `AsyncValue` 处理 loading / error。
+  PackageInfoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'packageInfoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$packageInfoHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<PackageInfo> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<PackageInfo> create(Ref ref) {
+    return packageInfo(ref);
+  }
+}
+
+String _$packageInfoHash() => r'f1c17d5174896e536210506ee5ade32f9766a6b9';

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/constants/app_constants.dart';
+import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
@@ -35,6 +36,8 @@ class SettingsPage extends ConsumerWidget {
     final settings = ref.watch(appSettingsControllerProvider);
     final themeMode = ref.watch(themeModeProvider);
     final notifier = ref.read(appSettingsControllerProvider.notifier);
+    // 版本号运行时读取（来源 pubspec.yaml）；未就绪 / 读取失败时不展示版本段。
+    final version = ref.watch(packageInfoProvider).value?.version;
     final tg = context.tg;
 
     return LayoutBuilder(
@@ -99,13 +102,18 @@ class SettingsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: TgSpacing.md),
                     // 关于卡
-                    const _SectionCard(
+                    _SectionCard(
                       children: [
                         _SectionRow(
                           icon: 'info',
                           title: '关于',
-                          subtitle:
-                              '${AppConstants.appName} v1.0.0 · 玩家自制工具，与官方无关',
+                          subtitle: [
+                            if (version != null)
+                              '${AppConstants.appName} v$version'
+                            else
+                              AppConstants.appName,
+                            '玩家自制工具，与官方无关',
+                          ].join(' · '),
                         ),
                       ],
                     ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tlbbtoolkit/app/app.dart';
@@ -413,6 +414,32 @@ void main() {
       prefs.getString('app_settings'),
       contains('"enableNotifications":false'),
     );
+  });
+
+  testWidgets('设置：关于卡版本号来自运行时包信息', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          packageInfoProvider.overrideWith(
+            (ref) async => PackageInfo(
+              appName: 'tlbbtoolkit',
+              packageName: 'com.example.tlbbtoolkit',
+              version: '9.9.9',
+              buildNumber: '42',
+            ),
+          ),
+        ],
+        child: const TlbbApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('v9.9.9'), findsOneWidget);
   });
 
   testWidgets('移动端设置页：窄屏 390 不溢出，且为悬浮栏预留空间', (tester) async {
