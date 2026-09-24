@@ -8,6 +8,7 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_artifact.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
 import 'package:tlbbtoolkit/features/job/presentation/widgets/job_common.dart';
@@ -253,7 +254,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                       text: '神器每 20 级一档（42 / 62 / 82 / 102），重铸继承强化与词条；数值为参考基准，实际以游戏内为准。',
                     ),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(text: '天工阁 · 玩家自制工具集合，与畅游官方无关'),
                   ],
                 ),
               ),
@@ -390,29 +391,6 @@ class _HowStep extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// 页脚（与其它二级页保持一致）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-        ],
-      ),
     );
   }
 }

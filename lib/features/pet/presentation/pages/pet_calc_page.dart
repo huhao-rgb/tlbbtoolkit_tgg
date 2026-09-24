@@ -6,9 +6,10 @@ import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
-import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_switch.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 import 'package:tlbbtoolkit/features/pet/domain/pet_calc.dart';
@@ -197,7 +198,10 @@ class _PetCalcPageState extends State<PetCalcPage> {
                         ],
                       ),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(
+                      text: '天工阁 · 玩家自制工具集合，与畅游官方无关',
+                      sub: '界面数据均为演示样例，正式版接入实战回归数值',
+                    ),
                   ],
                 ),
               ),
@@ -827,65 +831,16 @@ class _FormulaNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TgSpacing.s13,
-        vertical: TgSpacing.s11,
-      ),
-      decoration: BoxDecoration(
-        color: tg.inset,
-        borderRadius: BorderRadius.circular(TgRadius.lg),
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TgIcon('info', size: 15, color: tg.goldDp),
-          const SizedBox(width: TgSpacing.s9),
-          Expanded(
-            child: Text(
-              '官方系数表公式（畅游「珍兽养成」）：裸资 = 当前资质÷(1+当前悟性%)÷(1+当前灵性%)；'
-              '目标资质 = 裸资×(1+目标悟性%)×(1+目标灵性%)（灵性在悟性之后叠加）。'
-              '悟性：4级+3%、5级+8%、8级+23.5%、10级+39.3%。'
-              '灵性加成按「计算悟性后的资质」分档且超灵更高 —— '
-              '普通：＜1800 时10级+10%、1800~2199 时+23%、≥2200 时+31%；'
-              '超灵对应为 +12% / +25% / +34%。'
-              '成长率与资质相互独立，不影响本计算。',
-              style: TgType.note.copyWith(color: tg.t3, letterSpacing: 0),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 页脚（对应原型 `.page-foot`）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '界面数据均为演示样例，正式版接入实战回归数值',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-        ],
-      ),
+    return const TgNoteBar(
+      accent: TgNoteAccent.plain,
+      text:
+          '官方系数表公式（畅游「珍兽养成」）：裸资 = 当前资质÷(1+当前悟性%)÷(1+当前灵性%)；'
+          '目标资质 = 裸资×(1+目标悟性%)×(1+目标灵性%)（灵性在悟性之后叠加）。'
+          '悟性：4级+3%、5级+8%、8级+23.5%、10级+39.3%。'
+          '灵性加成按「计算悟性后的资质」分档且超灵更高 —— '
+          '普通：＜1800 时10级+10%、1800~2199 时+23%、≥2200 时+31%；'
+          '超灵对应为 +12% / +25% / +34%。'
+          '成长率与资质相互独立，不影响本计算。',
     );
   }
 }

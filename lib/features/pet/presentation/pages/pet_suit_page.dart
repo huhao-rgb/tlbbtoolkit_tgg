@@ -9,6 +9,7 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_segmented.dart';
 import 'package:tlbbtoolkit/features/pet/domain/pet_suit.dart';
 
@@ -137,7 +138,10 @@ class _PetSuitPageState extends State<PetSuitPage> {
                             setState(() => _withExchange = v),
                       ),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(
+                      text: '天工阁 · 玩家自制工具集合，与畅游官方无关',
+                      sub: '套装与圣兽鳞数据按怀旧服（经典版宝宝套）公开资料整理，如与游戏内不符以官方为准',
+                    ),
                   ],
                 ),
               ),
@@ -1134,35 +1138,6 @@ class _StarLine extends StatelessWidget {
               '每件 ×${row.perPiece} 个　·　5 件 ×${row.setTotal} 个',
               style: TgType.caption.copyWith(color: tg.t2, height: 1.5),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 页脚（对应原型 `.page-foot`）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '套装与圣兽鳞数据按怀旧服（经典版宝宝套）公开资料整理，如与游戏内不符以官方为准',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
           ),
         ],
       ),

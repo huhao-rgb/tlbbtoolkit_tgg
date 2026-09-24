@@ -16,7 +16,9 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 import 'package:tlbbtoolkit/features/misc/data/reg_repository.dart';
 import 'package:tlbbtoolkit/features/misc/domain/reg_account.dart';
@@ -332,7 +334,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
                       subtitle: ToolCatalog.miscRegress.pageSubtitle,
                     ),
                     // 规则 note
-                    _RegRuleNote(),
+                    const _RegRuleNote(),
                     const SizedBox(height: 16),
                     // 我的账号卡
                     _buildAccountsCard(compact: compact),
@@ -340,7 +342,10 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
                     // 选中账号面板
                     _buildPanel(),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(
+                      text: '天工阁 · 玩家自制工具集合，与畅游官方无关',
+                      sub: '回归周期与奖励为玩家经验整理，正式版接入实战数据',
+                    ),
                   ],
                 ),
               ),
@@ -514,62 +519,42 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
   }
 }
 
+/* ============================== 注意 ============================== */
+
 /// 规则 note（`.note`：info 图标 + 文本；7 天金色加粗）。
 class _RegRuleNote extends StatelessWidget {
+  const _RegRuleNote();
+
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-      decoration: BoxDecoration(
-        color: tg.goldTint(.05),
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: tg.goldTint(.2), width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1.5),
-            child: TgIcon('info', size: 15, color: tg.gold2),
+    return TgNoteBar(
+      child: Text.rich(
+        TextSpan(
+          style: TgType.row13.copyWith(
+            color: tg.t2,
+            fontSize: 12.5,
+            height: 1.7,
           ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text.rich(
-              TextSpan(
-                style: TgType.row13.copyWith(
-                  color: tg.t2,
-                  fontSize: 12.5,
-                  height: 1.7,
-                ),
-                children: [
-                  const TextSpan(text: '规则：账号连续 '),
-                  TextSpan(
-                    text: '7 天',
-                    style: TextStyle(
-                      color: tg.gold2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const TextSpan(text: ' 不登录，第 '),
-                  TextSpan(
-                    text: '7 天',
-                    style: TextStyle(
-                      color: tg.gold2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const TextSpan(
-                    text:
-                        ' 开启回归任务。例：周一 10:00 下线后不再登录，'
-                        '到下周一 10:01 再上线即完成一个回归周期'
-                        '（工具按「起点 + 7天1分」计算达成时刻）。',
-                  ),
-                ],
-              ),
+          children: [
+            const TextSpan(text: '规则：账号连续 '),
+            TextSpan(
+              text: '7 天',
+              style: TextStyle(color: tg.gold2, fontWeight: FontWeight.w600),
             ),
-          ),
-        ],
+            const TextSpan(text: ' 不登录，第 '),
+            TextSpan(
+              text: '7 天',
+              style: TextStyle(color: tg.gold2, fontWeight: FontWeight.w600),
+            ),
+            const TextSpan(
+              text:
+                  ' 开启回归任务。例：周一 10:00 下线后不再登录，'
+                  '到下周一 10:01 再上线即完成一个回归周期'
+                  '（工具按「起点 + 7天1分」计算达成时刻）。',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1401,44 +1386,27 @@ class _RunPanelState extends State<_RunPanel> {
           ),
           const SizedBox(height: 16),
           // 警示
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-            decoration: BoxDecoration(
-              color: tg.tintOf(tg.red, .08),
-              borderRadius: BorderRadius.circular(11),
-              border: Border.all(color: tg.tintOf(tg.red, .3), width: 1),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: TgIcon('info', size: 15, color: tg.red),
+          TgNoteBar(
+            accent: TgNoteAccent.danger,
+            child: Text.rich(
+              TextSpan(
+                style: TextStyle(
+                  fontSize: 12.5,
+                  height: 1.7,
+                  color: tg.tintOf(tg.t1, .95),
                 ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.7,
-                        color: tg.tintOf(tg.t1, .95),
-                      ),
-                      children: [
-                        const TextSpan(text: '计时期间'),
-                        TextSpan(
-                          text: '请勿登录该账号',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: tg.tagRed,
-                          ),
-                        ),
-                        const TextSpan(text: '——一旦上线，回归周期将重新计算，前功尽弃。'),
-                      ],
+                children: [
+                  const TextSpan(text: '计时期间'),
+                  TextSpan(
+                    text: '请勿登录该账号',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: tg.tagRed,
                     ),
                   ),
-                ),
-              ],
+                  const TextSpan(text: '——一旦上线，回归周期将重新计算，前功尽弃。'),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -1985,32 +1953,7 @@ class _SectPill extends StatelessWidget {
   }
 }
 
-/// 页脚（对应原型 `.page-foot`）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Column(
-      children: [
-        Container(width: 64, height: 1, color: tg.border),
-        const SizedBox(height: TgSpacing.sm),
-        Text(
-          '天工阁 · 玩家自制工具集合，与畅游官方无关',
-          textAlign: TextAlign.center,
-          style: TgType.tag.copyWith(color: tg.t3),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          '回归周期与奖励为玩家经验整理，正式版接入实战数据',
-          textAlign: TextAlign.center,
-          style: TgType.tag.copyWith(color: tg.t3),
-        ),
-      ],
-    );
-  }
-}
+/// 页脚（天工阁通用两行文案）已改用 shared 的 [TgPageFoot]。
 
 /// 两位补零（用于时间 / 倒计时文本）。
 String _pad2(int n) => n.toString().padLeft(2, '0');

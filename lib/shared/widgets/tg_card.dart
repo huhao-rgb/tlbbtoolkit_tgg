@@ -39,12 +39,14 @@ class TgCardPadding extends StatelessWidget {
 /// [basePadding] 原值。
 ///
 /// 用法：把卡片 `Container(padding: X, decoration: D, child: C)` 替换为
-/// `TgCard(basePadding: X, decoration: D, child: C)`。
+/// `TgCard(basePadding: X, decoration: D, child: C)`；若卡片就是全项目最通用的
+/// 外观（`tg.card` 底 + [TgRadius.card] 圆角 + 1px `tg.border` 描边），
+/// 直接省略 `decoration` 即可。
 class TgCard extends StatelessWidget {
   const TgCard({
     super.key,
     required this.basePadding,
-    required this.decoration,
+    this.decoration,
     this.width,
     this.clipBehavior = Clip.none,
     required this.child,
@@ -53,7 +55,9 @@ class TgCard extends StatelessWidget {
   /// 基础内边距（桌面 / 宽屏下原样使用）。
   final EdgeInsets basePadding;
 
-  final BoxDecoration decoration;
+  /// 卡片装饰；null 时使用通用卡片外观（`tg.card` 底 + [TgRadius.card]
+  /// 圆角 + 1px `tg.border` 描边）。
+  final BoxDecoration? decoration;
 
   /// 卡片宽度；null = 不限制（随父级约束 / 内容尺寸，与原 Container 一致）。
   final double? width;
@@ -64,6 +68,7 @@ class TgCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tg = context.tg;
     return LayoutBuilder(
       builder: (context, c) {
         final h = c.maxWidth < 640
@@ -78,7 +83,13 @@ class TgCard extends StatelessWidget {
             basePadding.bottom,
           ),
           clipBehavior: clipBehavior,
-          decoration: decoration,
+          decoration:
+              decoration ??
+              BoxDecoration(
+                color: tg.card,
+                borderRadius: TgRadius.card,
+                border: Border.all(color: tg.border, width: 1),
+              ),
           child: child,
         );
       },

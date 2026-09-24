@@ -5,9 +5,11 @@ import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_bar_row.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_point.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_sect_info.dart';
@@ -117,7 +119,7 @@ class _JobSectIntroPageState extends State<JobSectIntroPage> {
                     const SizedBox(height: 14),
                     const JobNote(text: '门派背景为原创演绎，属性倾向为参考建议；实际表现请以游戏内为准。'),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(text: '天工阁 · 玩家自制工具集合，与畅游官方无关'),
                   ],
                 ),
               ),
@@ -306,47 +308,25 @@ class _WeightRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Row(
-      children: [
-        SizedBox(
-          width: 36,
-          child: Text(label, style: TextStyle(fontSize: 12.5, color: tg.t2)),
+    return TgBarRow(
+      label: label,
+      widthFactor: pct / 100,
+      labelWidth: 36,
+      labelAlign: TextAlign.left,
+      labelStyle: TextStyle(fontSize: 12.5, color: tg.t2),
+      gradient: gradient,
+      bottom: 0,
+      trailingWidth: 38,
+      trailing: Text(
+        '$pct%',
+        textAlign: TextAlign.right,
+        style: TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: tg.gold2,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Container(
-            height: 6,
-            decoration: BoxDecoration(
-              color: tg.inset,
-              borderRadius: BorderRadius.circular(99),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: pct / 100,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        SizedBox(
-          width: 38,
-          child: Text(
-            '$pct%',
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              color: tg.gold2,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -527,29 +507,6 @@ class _ExploreCardState extends State<_ExploreCard> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// 页脚（与其它二级页保持一致）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-        ],
       ),
     );
   }

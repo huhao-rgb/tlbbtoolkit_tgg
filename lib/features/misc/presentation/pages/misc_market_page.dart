@@ -9,15 +9,19 @@ import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
-import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
-import 'package:tlbbtoolkit/shared/widgets/tg_image_gallery.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_bar_row.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_select.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
 import 'package:tlbbtoolkit/features/misc/domain/pet_market_stats.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_common.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_detail_widgets.dart';
 
 /// 珍兽行情分析（对应原型 `v-pet-market` + `v-pet-detail`）。
 ///
@@ -254,16 +258,20 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
           ),
           const SizedBox(height: 12),
           if (_fetch == _FetchState.ok)
-            _StatusOk(message: _fetchMsg)
+            MiscStatusOk(message: _fetchMsg)
           else if (_fetch == _FetchState.warn && _items.isEmpty)
-            _StatusWarn(message: _fetchMsg),
+            MiscStatusWarn(message: _fetchMsg),
           const SizedBox(height: 4),
           const _MarketNote(),
           const SizedBox(height: 14),
           if (_items.isEmpty && _fetch == _FetchState.loading)
-            const _LoadingPanel()
+            const MiscLoadingPanel(text: '正在从神仙代售获取实时行情…')
           else if (_items.isEmpty)
-            const _EmptyDataTip()
+            const MiscEmptyPanel(
+              icon: 'paw',
+              title: '暂无在售数据',
+              hint: '可点击上方「一键获取最新数据」重试，或稍后再进入页面自动刷新。',
+            )
           else ...[
             _StatsRow(filtered: pmFiltered(data, _filter)),
             const SizedBox(height: 12),
@@ -333,7 +341,9 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
                               padding: const EdgeInsets.only(
                                 top: TgSpacing.s34,
                               ),
-                              child: const _PageFoot(),
+                              child: const TgPageFoot(
+                                text: '行情数据仅供交易参考 · 天工阁与神仙代售平台无隶属关系',
+                              ),
                             ),
                           ),
                         ],
@@ -485,7 +495,7 @@ class _FilterBar extends StatelessWidget {
                   children: [
                     Wrap(spacing: gap, runSpacing: 12, children: selects),
                     const SizedBox(height: 14),
-                    _FetchButton(fetching: fetching, onTap: onFetch),
+                    MiscFetchButton(fetching: fetching, onTap: onFetch),
                   ],
                 );
               }
@@ -498,7 +508,7 @@ class _FilterBar extends StatelessWidget {
                     selects[i],
                   ],
                   const Spacer(),
-                  _FetchButton(fetching: fetching, onTap: onFetch),
+                  MiscFetchButton(fetching: fetching, onTap: onFetch),
                 ],
               );
             },
@@ -511,162 +521,6 @@ class _FilterBar extends StatelessWidget {
 
 /* ============================== 筛选条 ============================== */
 
-/// 「一键获取最新数据」主按钮（`.btn btn-primary pm-fetch`）。
-///
-/// 金渐变 · 墨字 · 常态辉光（0 5 20 rgba(198,152,86,.3)）·
-/// hover 上浮 1px 并提亮（brightness 1.08）；[fetching] 时禁用为灰金底。
-class _FetchButton extends StatefulWidget {
-  const _FetchButton({required this.fetching, required this.onTap});
-
-  final bool fetching;
-  final VoidCallback onTap;
-
-  @override
-  State<_FetchButton> createState() => _FetchButtonState();
-}
-
-class _FetchButtonState extends State<_FetchButton> {
-  bool _hover = false;
-
-  // hover 提亮渐变（≈ 原型 brightness(1.08)）。
-  static const _hoverGradient = LinearGradient(
-    colors: [Color(0xFFF8E1AF), Color(0xFFE0B27A)],
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final fetching = widget.fetching;
-    final on = !fetching;
-    // hover 增强辉光（≈ 原型 filter:brightness(1.08) 使辉光一并提亮）。
-    final glow = _hover && on
-        ? const [
-            BoxShadow(
-              offset: Offset(0, 6),
-              blurRadius: 26,
-              color: Color(0x59C69856),
-            ),
-          ]
-        : TgShadows.primaryButton;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: on ? SystemMouseCursors.click : SystemMouseCursors.basic,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _hover && on ? -1 : 0, 0),
-        decoration: BoxDecoration(
-          gradient: on ? tg.gradGold : null,
-          color: on ? null : tg.goldTint(.14),
-          borderRadius: BorderRadius.circular(11),
-          boxShadow: on ? glow : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(11),
-          child: InkWell(
-            onTap: on ? widget.onTap : null,
-            borderRadius: BorderRadius.circular(11),
-            hoverColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            splashColor: Colors.transparent,
-            child: Ink(
-              height: 41,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(11),
-                // hover 提亮叠加（放 Ink 上，随辉光一同呈现）
-                gradient: on && _hover ? _hoverGradient : null,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TgIcon(
-                    'spark',
-                    size: 15,
-                    color: on ? TgTokens.btnInk : tg.gold2,
-                  ),
-                  const SizedBox(width: 7),
-                  Text(
-                    fetching ? '正在获取…' : '一键获取最新数据',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: on ? TgTokens.btnInk : tg.gold2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 获取成功提示（`pm-status.ok` 绿）。
-class _StatusOk extends StatelessWidget {
-  const _StatusOk({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return _StatusBar(color: const Color(0xFF7FC88F), message: message);
-  }
-}
-
-/// CORS / 网络失败提示（`pm-status.warn` 琥珀）。
-class _StatusWarn extends StatelessWidget {
-  const _StatusWarn({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return _StatusBar(color: const Color(0xFFE0B25C), message: message);
-  }
-}
-
-/// 状态条外壳（ok 绿 / warn 琥珀共用），message 含标题段（首个「：」前加粗）。
-class _StatusBar extends StatelessWidget {
-  const _StatusBar({required this.color, required this.message});
-
-  final Color color;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final idx = message.indexOf('：');
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .08),
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: color.withValues(alpha: .28), width: 1),
-      ),
-      child: Text.rich(
-        TextSpan(
-          style: TextStyle(fontSize: 12, color: color, height: 1.6),
-          children: [
-            if (idx > 0) ...[
-              TextSpan(
-                text: message.substring(0, idx + 1),
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              TextSpan(text: message.substring(idx + 1)),
-            ] else
-              TextSpan(text: message),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// 数据说明 note（`note`）。
 class _MarketNote extends StatelessWidget {
   const _MarketNote();
@@ -674,118 +528,30 @@ class _MarketNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-      decoration: BoxDecoration(
-        color: tg.goldTint(.05),
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: tg.goldTint(.2), width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1.5),
-            child: TgIcon('info', size: 15, color: tg.gold2),
+    return TgNoteBar(
+      child: Text.rich(
+        TextSpan(
+          style: TextStyle(
+            fontSize: 12.5,
+            color: tg.t2,
+            height: 1.7,
+            letterSpacing: .2,
           ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text.rich(
-              TextSpan(
-                style: TextStyle(
-                  fontSize: 12.5,
-                  color: tg.t2,
-                  height: 1.7,
-                  letterSpacing: .2,
-                ),
-                children: [
-                  const TextSpan(text: '数据抓取自 '),
-                  TextSpan(
-                    text: '神仙代售 sxds.com',
-                    style: TextStyle(
-                      color: tg.gold2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const TextSpan(
-                    text:
-                        ' 怀旧原始服宝宝类目公开在售列表（实时接口，进入页面'
-                        '自动拉取最新数据）。筛选条件联动全部统计模块；点击'
-                        '缩略图查看大图，「详情」进入商品详情页，「一键获取」'
-                        '可手动刷新。',
-                  ),
-                ],
-              ),
+          children: [
+            const TextSpan(text: '数据抓取自 '),
+            TextSpan(
+              text: '神仙代售 sxds.com',
+              style: TextStyle(color: tg.gold2, fontWeight: FontWeight.w600),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 首次拉取 loading 占位。
-class _LoadingPanel extends StatelessWidget {
-  const _LoadingPanel();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 48),
-      decoration: BoxDecoration(
-        color: tg.card,
-        borderRadius: TgRadius.card,
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.2,
-              color: tg.gold2,
-              backgroundColor: tg.goldTint(.15),
+            const TextSpan(
+              text:
+                  ' 怀旧原始服宝宝类目公开在售列表（实时接口，进入页面'
+                  '自动拉取最新数据）。筛选条件联动全部统计模块；点击'
+                  '缩略图查看大图，「详情」进入商品详情页，「一键获取」'
+                  '可手动刷新。',
             ),
-          ),
-          const SizedBox(height: 14),
-          Text('正在从神仙代售获取实时行情…', style: TextStyle(fontSize: 13, color: tg.t3)),
-        ],
-      ),
-    );
-  }
-}
-
-/// 无数据空态（接口失败或返回空时）。
-class _EmptyDataTip extends StatelessWidget {
-  const _EmptyDataTip();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 44),
-      decoration: BoxDecoration(
-        color: tg.card,
-        borderRadius: TgRadius.card,
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Column(
-        children: [
-          TgIcon('paw', size: 26, color: tg.t3),
-          const SizedBox(height: 12),
-          Text('暂无在售数据', style: TextStyle(fontSize: 14, color: tg.t2)),
-          const SizedBox(height: 6),
-          Text(
-            '可点击上方「一键获取最新数据」重试，'
-            '或稍后再进入页面自动刷新。',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: tg.t3, height: 1.6),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -801,154 +567,18 @@ class _StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = pmComputeStats(filtered);
-    final items = <(String, String)>[
-      ('在售样本', '${s.count} 条'),
-      ('价格区间', s.rangeText),
-      ('中位价', s.medianText),
-      ('均价', s.meanText),
-    ];
-    return LayoutBuilder(
-      builder: (context, c) {
-        final cols = c.maxWidth < 600 ? 2 : 4;
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            for (var i = 0; i < items.length; i++)
-              SizedBox(
-                width: (c.maxWidth - 12 * (cols - 1)) / cols,
-                child: _StatCell(label: items[i].$1, value: items[i].$2),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _StatCell extends StatelessWidget {
-  const _StatCell({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: BoxDecoration(
-        color: tg.card,
-        borderRadius: TgRadius.card,
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 11.5, color: tg.t3, letterSpacing: 1),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: TgFonts.serif,
-              fontSize: 22,
-              color: tg.gold2,
-              letterSpacing: 1,
-              height: 1.2,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/* ============================== 通用区块卡 ============================== */
-
-/// 区块标题（`pm-sec h4`：金条 + serif 标题）。
-class _SecHead extends StatelessWidget {
-  const _SecHead({
-    required this.title,
-    this.trailing,
-    this.titleExpanded = true,
-  });
-
-  final String title;
-  final Widget? trailing;
-
-  /// 标题是否占满整行；false 时标题按自然宽度排布，
-  /// 使 [trailing]（如「共 N 条」小字）紧跟标题文字（原型 h4 + 行内小字）。
-  final bool titleExpanded;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final titleWidget = Text(
-      title,
-      style: TextStyle(
-        fontFamily: TgFonts.serif,
-        fontSize: 15,
-        color: tg.t1,
-        letterSpacing: 1,
-        height: 1.3,
-      ),
-    );
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 3,
-          height: 14,
-          decoration: BoxDecoration(
-            gradient: tg.gradGold,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        if (titleExpanded)
-          Expanded(child: titleWidget)
-        else
-          Flexible(child: titleWidget),
-        if (trailing != null) ...[const SizedBox(width: 6), trailing!],
+    return MiscStatGrid(
+      items: [
+        ('在售样本', '${s.count} 条'),
+        ('价格区间', s.rangeText),
+        ('中位价', s.medianText),
+        ('均价', s.meanText),
       ],
     );
   }
 }
 
-/// 卡片外壳。
-class _BlockCard extends StatelessWidget {
-  const _BlockCard({required this.padding, required this.child});
-
-  final EdgeInsets padding;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return LayoutBuilder(
-      builder: (context, c) {
-        // 窄屏（移动端）收窄卡片左右内边距，提升横向内容容纳；桌面保持原值。
-        final h = c.maxWidth < 640
-            ? math.min(TgSpacing.cardPaddingMobileH, padding.horizontal)
-            : padding.horizontal;
-        return Container(
-          width: double.infinity,
-          padding: EdgeInsets.fromLTRB(h, padding.top, h, padding.bottom),
-          decoration: BoxDecoration(
-            color: tg.card,
-            borderRadius: TgRadius.card,
-            border: Border.all(color: tg.border, width: 1),
-          ),
-          child: child,
-        );
-      },
-    );
-  }
-}
+/* ============================== 通用区块卡 ============================== */
 
 /* ============================== 价位分布 ============================== */
 
@@ -960,15 +590,16 @@ class _DistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final segs = pmDistSegs(filtered);
-    return _BlockCard(
-      padding: const EdgeInsets.all(18),
+    return TgCard(
+      basePadding: const EdgeInsets.all(18),
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SecHead(title: '价位分布 · 在售数量'),
+          const MiscSectionHead(title: '价位分布 · 在售数量'),
           const SizedBox(height: 14),
           if (filtered.isEmpty)
-            const _EmptyTip('当前筛选无数据')
+            const MiscEmptyTip(text: '当前筛选无数据')
           else
             for (final r in segs) _DistRow(seg: r, total: filtered.length),
         ],
@@ -989,71 +620,36 @@ class _DistRow extends StatelessWidget {
     final width = seg.maxCount == 0 ? 0.0 : seg.count / seg.maxCount;
     final pct = total == 0 ? 0 : (seg.count / total * 100).round();
     final hasApt = seg.avgApt > 0;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 9),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(
-              seg.label,
-              textAlign: TextAlign.right,
-              style: TextStyle(fontSize: 12, color: tg.t2, letterSpacing: .5),
-            ),
+    return TgBarRow(
+      label: seg.label,
+      widthFactor: width,
+      labelWidth: 110,
+      trailingWidth: 150,
+      trailing: Text.rich(
+        TextSpan(
+          style: TextStyle(
+            fontSize: 11,
+            color: tg.t3,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: Container(
-                height: 6,
-                color: tg.inset,
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: width.clamp(0, 1),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFC9995A), Color(0xFFF2D49B)],
-                      ),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                  ),
-                ),
+          children: [
+            TextSpan(
+              text: '${seg.count} 条',
+              style: TextStyle(
+                fontSize: 12.5,
+                color: tg.gold2,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 150,
-            child: Text.rich(
-              TextSpan(
-                style: TextStyle(
-                  fontSize: 11,
-                  color: tg.t3,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-                children: [
-                  TextSpan(
-                    text: '${seg.count} 条',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: tg.gold2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextSpan(
-                    text:
-                        ' $pct% · 均价${_p(seg.avg)}'
-                        '${hasApt ? ' · 均资质${seg.avgApt}' : ''}',
-                  ),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            TextSpan(
+              text:
+                  ' $pct% · 均价${_p(seg.avg)}'
+                  '${hasApt ? ' · 均资质${seg.avgApt}' : ''}',
             ),
-          ),
-        ],
+          ],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -1069,12 +665,13 @@ class _SegCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final segs = pmSegProfiles(pmDistSegs(filtered));
-    return _BlockCard(
-      padding: const EdgeInsets.all(18),
+    return TgCard(
+      basePadding: const EdgeInsets.all(18),
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SecHead(title: '价位段画像'),
+          const MiscSectionHead(title: '价位段画像'),
           const SizedBox(height: 12),
           _SegTable(rows: segs),
         ],
@@ -1201,8 +798,7 @@ class _SegTable extends StatelessWidget {
                                 spacing: 6,
                                 runSpacing: 4,
                                 children: [
-                                  for (final f in r.features)
-                                    _PmTag(text: f, gold: false),
+                                  for (final f in r.features) MiscTag(text: f),
                                 ],
                               ),
                       ),
@@ -1217,33 +813,6 @@ class _SegTable extends StatelessWidget {
   }
 }
 
-/// `pm-tag` 标签。
-class _PmTag extends StatelessWidget {
-  const _PmTag({required this.text, required this.gold});
-
-  final String text;
-  final bool gold;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: gold ? tg.goldTint(.4) : tg.borderHi,
-          width: 1,
-        ),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 10, color: gold ? tg.gold2 : tg.t3),
-      ),
-    );
-  }
-}
-
 /* ============================== 性价比推荐 ============================== */
 
 class _BestCard extends StatelessWidget {
@@ -1254,12 +823,13 @@ class _BestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _BlockCard(
-      padding: const EdgeInsets.all(18),
+    return TgCard(
+      basePadding: const EdgeInsets.all(18),
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SecHead(title: '性价比推荐 · 资质 / 千元价（资质 ≥3800）'),
+          const MiscSectionHead(title: '性价比推荐 · 资质 / 千元价（资质 ≥3800）'),
           const SizedBox(height: 12),
           _BestList(filtered: filtered, onDetail: onDetail),
         ],
@@ -1280,7 +850,7 @@ class _BestList extends StatelessWidget {
   Widget build(BuildContext context) {
     final best = pmBestItems(filtered);
     if (best.isEmpty) {
-      return const _EmptyTip('当前筛选无高资质样本');
+      return const MiscEmptyTip(text: '当前筛选无高资质样本');
     }
     return Column(
       children: [
@@ -1349,7 +919,14 @@ class _BestRow extends StatelessWidget {
         ),
       ),
     );
-    Widget goBtn() => _BestGoBtn(label: '详情', onTap: () => onDetail(t));
+    Widget goBtn() => MiscMiniButton(
+      label: '详情',
+      onTap: () => onDetail(t),
+      height: 22,
+      radius: 7,
+      fontSize: 11,
+      horizontalPadding: 9,
+    );
     final outer = BoxDecoration(
       color: tg.inset,
       borderRadius: BorderRadius.circular(11),
@@ -1384,7 +961,7 @@ class _BestRow extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _PmTag(text: '资质 ${t.apt}', gold: true),
+                    MiscTag(text: '资质 ${t.apt}', gold: true),
                     const SizedBox(width: 10),
                     Text(
                       _p(t.price),
@@ -1423,7 +1000,7 @@ class _BestRow extends StatelessWidget {
                 ),
               ],
               const SizedBox(width: 8),
-              _PmTag(text: '资质 ${t.apt}', gold: true),
+              MiscTag(text: '资质 ${t.apt}', gold: true),
               const SizedBox(width: 10),
               Text(
                 _p(t.price),
@@ -1442,75 +1019,6 @@ class _BestRow extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// 性价比行的小按钮（描边小药丸，避免与明细「详情」文案撞车）。
-class _BestGoBtn extends StatefulWidget {
-  const _BestGoBtn({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  State<_BestGoBtn> createState() => _BestGoBtnState();
-}
-
-class _BestGoBtnState extends State<_BestGoBtn> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(7),
-        hoverColor: Colors.transparent,
-        child: Container(
-          height: 22,
-          padding: const EdgeInsets.symmetric(horizontal: 9),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(
-              color: _hover ? tg.goldTint(.45) : tg.borderHi,
-              width: 1,
-            ),
-            color: _hover ? tg.goldTint(.06) : Colors.transparent,
-          ),
-          child: Text(
-            widget.label,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: _hover ? tg.gold2 : tg.t2),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/* ============================== 空态 ============================== */
-
-class _EmptyTip extends StatelessWidget {
-  const _EmptyTip(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 22),
-      alignment: Alignment.center,
-      child: Text(text, style: TextStyle(fontSize: 13, color: tg.t3)),
     );
   }
 }
@@ -1599,7 +1107,7 @@ String _detailSubLine(PetListing t, {required bool includeCarry}) {
 /// 在售明细整表（表头 + 行列表），以 sliver 形式并入页面唯一的滚动体。
 ///
 /// - 卡片外观：用 `DecoratedSliver`（底色 / 圆角 / 1px 描边）包住内部两个
-///   sliver，等价于原来的 `_BlockCard` 外壳，但不引入任何滚动容器；
+///   sliver，等价于「卡片壳 + 内部两个 sliver」的写法，但不引入任何滚动容器；
 /// - 行列表：`SliverList.builder` 惰性构建，只 inflate 可视区（含
 ///   cacheExtent）附近的行，缩略图随之按需加载，避免上千行 widget +
 ///   上千个 `Image.network` 同时创建；
@@ -1630,7 +1138,7 @@ class _DetailTableSliver extends StatelessWidget {
       builder: (context, constraints) {
         final layout = _detailLayoutOf(constraints.crossAxisExtent);
         final cols = _detailCols(layout);
-        // 窄屏（移动端）收窄卡片左右内边距（与 _BlockCard 同规则）。
+        // 窄屏（移动端）收窄卡片左右内边距（与 TgCard 同规则）。
         final h = constraints.crossAxisExtent < 640
             ? math.min(TgSpacing.cardPaddingMobileH, 18.0)
             : 18.0;
@@ -1660,7 +1168,7 @@ class _DetailTableSliver extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _SecHead(
+                      MiscSectionHead(
                         title: '在售明细 · 按价格排序',
                         titleExpanded: false,
                         trailing: Text(
@@ -1693,7 +1201,7 @@ class _DetailTableSliver extends StatelessWidget {
                   ),
                 ),
                 if (rows.isEmpty)
-                  const SliverToBoxAdapter(child: _EmptyTip('当前筛选无数据'))
+                  const SliverToBoxAdapter(child: MiscEmptyTip(text: '当前筛选无数据'))
                 else
                   SliverList.builder(
                     itemCount: rows.length,
@@ -1702,7 +1210,7 @@ class _DetailTableSliver extends StatelessWidget {
                       // 整行可点击：点击行内任意位置直接进入该条详情。行内
                       // 自带的交互（缩略图预览大图、「详情」按钮）在命中区
                       // 优先，互不冲突。
-                      return _TappableRow(
+                      return MiscTappableRow(
                         onTap: () => onDetail(t),
                         child: _DetailRow(
                           pet: t,
@@ -1823,7 +1331,7 @@ class _DetailRow extends StatelessWidget {
     final tg = context.tg;
     switch (col) {
       case _DetailCol.thumb:
-        return _Thumb(pet: pet);
+        return MiscThumb(url: pet.img, caption: pet.title, fallbackIcon: 'paw');
       case _DetailCol.title:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1877,7 +1385,9 @@ class _DetailRow extends StatelessWidget {
         // 宽档布局已有 灵/悟 列，标签里不再重复「灵N」。
         return _FeatureCell(pet: pet, showLing: layout == _DetailLayout.wide);
       case _DetailCol.op:
-        return Center(child: _DetailBtn(onTap: onDetail));
+        return Center(
+          child: MiscMiniButton(label: '详情', onTap: onDetail),
+        );
     }
   }
 }
@@ -1901,7 +1411,7 @@ class _DetailCardRow extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Thumb(pet: pet),
+              MiscThumb(url: pet.img, caption: pet.title, fallbackIcon: 'paw'),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -1944,126 +1454,10 @@ class _DetailCardRow extends StatelessWidget {
             children: [
               Expanded(child: _FeatureCell(pet: pet, showLing: false)),
               const SizedBox(width: 8),
-              _DetailBtn(onTap: onDetail),
+              MiscMiniButton(label: '详情', onTap: onDetail),
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// 明细行可点击外壳：整行点击进入详情；hover 显示点击光标 + 金色高亮底。
-///
-/// 行内子控件（缩略图预览、「详情」按钮）自身注册的点击在命中区优先，
-/// 外层整行点击只负责其余空白区域的跳转。
-class _TappableRow extends StatefulWidget {
-  const _TappableRow({required this.onTap, required this.child});
-
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  State<_TappableRow> createState() => _TappableRowState();
-}
-
-class _TappableRowState extends State<_TappableRow> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          color: _hover ? tg.goldTint(.05) : Colors.transparent,
-          child: widget.child,
-        ),
-      ),
-    );
-  }
-}
-
-/// 缩略图：方形裁切（42×42，对应 `.pm-thumb`）；有图时可点击预览大图。
-class _Thumb extends StatefulWidget {
-  const _Thumb({required this.pet});
-
-  final PetListing pet;
-
-  @override
-  State<_Thumb> createState() => _ThumbState();
-}
-
-class _ThumbState extends State<_Thumb> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final url = widget.pet.img;
-    final hasImg = url != null && url.isNotEmpty;
-    final hot = _hover && hasImg; // 无可点图时不进入可点 hover 态
-    Widget inner() {
-      if (!hasImg) {
-        return TgIcon('paw', size: 28, color: hot ? tg.gold2 : tg.t3);
-      }
-      return Image.network(
-        url,
-        width: 64,
-        height: 64,
-        fit: BoxFit.cover,
-        cacheWidth: 192, // 64×64 显示，解码上限到 @3x，避免原图全尺寸解码
-        filterQuality: FilterQuality.medium,
-        gaplessPlayback: true,
-        errorBuilder: (_, _, _) =>
-            TgIcon('paw', size: 28, color: hot ? tg.gold2 : tg.t3),
-        loadingBuilder: (_, child, progress) =>
-            progress == null ? child : TgIcon('paw', size: 28, color: tg.t3),
-      );
-    }
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: hasImg ? SystemMouseCursors.click : MouseCursor.defer,
-      child: GestureDetector(
-        onTap: hasImg
-            ? () => showTgImageGallery(
-                context,
-                images: [
-                  TgGalleryImage(
-                    url: url,
-                    caption: widget.pet.title,
-                    errorIcon: 'paw',
-                  ),
-                ],
-                sourceRect: _widgetRect(context),
-                title: '商品图片预览',
-              )
-            : null,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: tg.inset,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: hot ? tg.goldTint(.5) : tg.border,
-                width: 1,
-              ),
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: inner(),
-          ),
-        ),
       ),
     );
   }
@@ -2097,308 +1491,13 @@ class _FeatureCell extends StatelessWidget {
       spacing: 6,
       runSpacing: 4,
       children: [
-        for (final (text, gold) in tags) _PmTag(text: text, gold: gold),
+        for (final (text, gold) in tags) MiscTag(text: text, gold: gold),
       ],
     );
   }
 }
 
-/// 「详情」小按钮（`.pm-detail-btn`）。
-class _DetailBtn extends StatefulWidget {
-  const _DetailBtn({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  State<_DetailBtn> createState() => _DetailBtnState();
-}
-
-class _DetailBtnState extends State<_DetailBtn> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(8),
-        hoverColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: _hover ? tg.goldTint(.45) : tg.borderHi,
-              width: 1,
-            ),
-            color: _hover ? tg.goldTint(.06) : Colors.transparent,
-          ),
-          child: Text(
-            '详情',
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11.5, color: _hover ? tg.gold2 : tg.t2),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/* ============================== 详情子视图 ============================== */
-
-class _DetailHead extends StatelessWidget {
-  const _DetailHead({
-    required this.pet,
-    required this.onHub,
-    required this.onBack,
-  });
-
-  final PetListing pet;
-  final VoidCallback onHub;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: TgSpacing.s22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _CrumbLink('实用', onTap: onHub),
-              Text(
-                ' / 珍兽行情 / 商品详情',
-                style: TgType.caption.copyWith(color: tg.t2, letterSpacing: 1),
-              ),
-            ],
-          ),
-          const SizedBox(height: TgSpacing.sm),
-          Row(
-            children: [
-              Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(
-                  color: tg.gold,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: TgSpacing.s10),
-              Flexible(
-                child: Text(
-                  '珍兽详情',
-                  style: TgType.pageH1.copyWith(color: tg.t1),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: TgSpacing.s10),
-          Text(
-            '${pet.area.isEmpty ? '' : '${pet.area} · ${pet.server}'}'
-            ' · 编号 ${pet.sn}',
-            style: TgType.body14.copyWith(color: tg.t2),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CrumbLink extends StatelessWidget {
-  const _CrumbLink(this.text, {required this.onTap});
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: TgRadius.pillShape,
-      hoverColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      splashColor: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Text(
-          text,
-          style: TgType.caption.copyWith(color: tg.gold, letterSpacing: 1),
-        ),
-      ),
-    );
-  }
-}
-
-/// 详情主体（`pd-wrap`）。
-class _DetailBody extends StatelessWidget {
-  const _DetailBody({required this.pet, required this.onBack});
-
-  final PetListing pet;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, c) {
-        final stack = c.maxWidth >= 700;
-        return _BlockCard(
-          padding: const EdgeInsets.all(22),
-          child: stack
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(width: 320, child: _DetailImg(pet: pet)),
-                    const SizedBox(width: 22),
-                    Expanded(
-                      child: _DetailInfo(pet: pet, onBack: onBack),
-                    ),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 紧凑布局：限制到约 320 方形（居中），避免撑满整行过高。
-                    Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 320),
-                        child: _DetailImg(pet: pet),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _DetailInfo(pet: pet, onBack: onBack),
-                  ],
-                ),
-        );
-      },
-    );
-  }
-}
-
-/// 详情大图（真实远程商品图，加载失败回退 paw 占位；点击放大）。
-class _DetailImg extends StatefulWidget {
-  const _DetailImg({required this.pet});
-
-  final PetListing pet;
-
-  @override
-  State<_DetailImg> createState() => _DetailImgState();
-}
-
-class _DetailImgState extends State<_DetailImg> {
-  bool _hover = false;
-
-  Widget _placeholder(double size, Color color) {
-    return TgIcon('paw', size: size, color: color);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final url = widget.pet.img;
-    final hasImg = url != null && url.isNotEmpty;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: hasImg ? SystemMouseCursors.click : MouseCursor.defer,
-      child: GestureDetector(
-        onTap: () {
-          if (!hasImg) return;
-          showTgImageGallery(
-            context,
-            images: [
-              TgGalleryImage(
-                url: url,
-                caption: widget.pet.title,
-                errorIcon: 'paw',
-              ),
-            ],
-            sourceRect: _widgetRect(context),
-            title: '商品图片预览',
-          );
-        },
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: tg.inset,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: _hover ? tg.goldTint(.5) : tg.border,
-                width: 1,
-              ),
-            ),
-            child: url == null || url.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _placeholder(52, _hover ? tg.gold2 : tg.t3),
-                        const SizedBox(height: 10),
-                        Text(
-                          '商品图暂不可用',
-                          style: TextStyle(fontSize: 11, color: tg.t3),
-                        ),
-                      ],
-                    ),
-                  )
-                : Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    cacheWidth: 960, // 详情方形图约 320-400 宽，解码上限 @2x-@3x
-                    filterQuality: FilterQuality.medium,
-                    gaplessPlayback: true,
-                    loadingBuilder: (_, child, progress) => progress == null
-                        ? child
-                        : Center(
-                            child: SizedBox(
-                              width: 26,
-                              height: 26,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: tg.gold2,
-                                backgroundColor: tg.goldTint(.15),
-                              ),
-                            ),
-                          ),
-                    errorBuilder: (_, _, _) => Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _placeholder(52, tg.t3),
-                          const SizedBox(height: 10),
-                          Text(
-                            '商品图暂不可用',
-                            style: TextStyle(fontSize: 11, color: tg.t3),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 计算调用方小图在全局坐标系中的矩形（供画廊 Hero 动画定位）。
-Rect? _widgetRect(BuildContext context) {
-  final box = context.findRenderObject();
-  if (box is! RenderBox || !box.attached) return null;
-  return box.localToGlobal(Offset.zero) & box.size;
-}
+/* ============================== 详情主体 ============================== */
 
 /// 详情右侧信息（`pd-name/price/grid/tags/act/src`）。
 class _DetailInfo extends StatelessWidget {
@@ -2459,22 +1558,26 @@ class _DetailInfo extends StatelessWidget {
               spacing: gap,
               runSpacing: gap,
               children: [
-                _PdCell(
+                MiscInfoCell(
                   label: '资质',
                   value: t.apt?.toString() ?? '未标注',
                   gold: true,
                   width: cellW,
                 ),
-                _PdCell(label: '可携带等级', value: t.carryText, width: cellW),
-                _PdCell(
+                MiscInfoCell(label: '可携带等级', value: t.carryText, width: cellW),
+                MiscInfoCell(
                   label: '灵性 / 悟性',
                   value:
                       '${t.ling != '0' ? t.ling : '—'} / ${t.wu != '0' ? t.wu : '—'}',
                   width: cellW,
                 ),
-                _PdCell(label: '上架时间', value: '—', width: cellW),
-                _PdCell(label: '浏览量', value: _thousands(t.views), width: cellW),
-                _PdCell(
+                MiscInfoCell(label: '上架时间', value: '—', width: cellW),
+                MiscInfoCell(
+                  label: '浏览量',
+                  value: _thousands(t.views),
+                  width: cellW,
+                ),
+                MiscInfoCell(
                   label: '大区 · 服务器',
                   value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',
                   width: cellW,
@@ -2488,21 +1591,20 @@ class _DetailInfo extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
-            if (t.ding) const _PmTag(text: '顶变', gold: true),
-            if (t.ss) const _PmTag(text: '双十', gold: true),
-            if (t.ch != null) _PmTag(text: t.ch!, gold: false),
-            if (t.skill != null && t.skill! > 0)
-              _PmTag(text: '技能全${t.skill}', gold: false),
+            if (t.ding) const MiscTag(text: '顶变', gold: true),
+            if (t.ss) const MiscTag(text: '双十', gold: true),
+            if (t.ch != null) MiscTag(text: t.ch!),
+            if (t.skill != null && t.skill! > 0) MiscTag(text: '技能全${t.skill}'),
             if (t.pet.isNotEmpty && t.pet != '其他')
-              _PmTag(text: t.pet, gold: true),
-            if (t.ling != '0') _PmTag(text: '灵${t.ling}', gold: false),
+              MiscTag(text: t.pet, gold: true),
+            if (t.ling != '0') MiscTag(text: '灵${t.ling}'),
             if (t.ding == false &&
                 t.ss == false &&
                 t.ch == null &&
                 t.skill == null &&
                 (t.pet.isEmpty || t.pet == '其他') &&
                 t.ling == '0')
-              const _PmTag(text: '无附加标签', gold: false),
+              const MiscTag(text: '无附加标签'),
           ],
         ),
         const SizedBox(height: 18),
@@ -2510,12 +1612,12 @@ class _DetailInfo extends StatelessWidget {
           spacing: 10,
           runSpacing: 10,
           children: [
-            _GoldButton(
+            MiscPrimaryButton(
               label: '在神仙代售查看原帖',
               icon: 'spark',
               onTap: () => _openSourcePage(context, t.sn),
             ),
-            _LineButton(label: '返回行情列表', onTap: onBack),
+            MiscLineButton(label: '返回行情列表', onTap: onBack),
           ],
         ),
         const SizedBox(height: 14),
@@ -2561,209 +1663,6 @@ Future<void> _openSourcePage(BuildContext context, String sn) async {
   }
 }
 
-/// `pd-cell` 信息格。
-class _PdCell extends StatelessWidget {
-  const _PdCell({
-    required this.label,
-    required this.value,
-    this.gold = false,
-    this.width = 168,
-  });
-
-  final String label;
-  final String value;
-  final bool gold;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      width: width,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: tg.inset,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 10.5, color: tg.t3, letterSpacing: 1),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13.5,
-              color: gold ? tg.gold2 : tg.t1,
-              fontWeight: FontWeight.w500,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 金色主按钮（对应 `.btn btn-primary`）。
-class _GoldButton extends StatefulWidget {
-  const _GoldButton({required this.label, required this.onTap, this.icon});
-
-  final String label;
-  final VoidCallback onTap;
-  final String? icon;
-
-  @override
-  State<_GoldButton> createState() => _GoldButtonState();
-}
-
-class _GoldButtonState extends State<_GoldButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(9),
-          hoverColor: Colors.transparent,
-          child: Ink(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              gradient: _hover
-                  ? const LinearGradient(
-                      colors: [Color(0xFFF6DCA8), Color(0xFFD4A86A)],
-                    )
-                  : tg.gradGold,
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.icon != null) ...[
-                  TgIcon(widget.icon!, size: 15, color: TgTokens.btnInk),
-                  const SizedBox(width: 7),
-                ],
-                Text(
-                  widget.label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: TgTokens.btnInk,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 描边按钮（对应 `.btn btn-line`）。
-class _LineButton extends StatefulWidget {
-  const _LineButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  State<_LineButton> createState() => _LineButtonState();
-}
-
-class _LineButtonState extends State<_LineButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(9),
-        hoverColor: Colors.transparent,
-        child: Container(
-          height: 34,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(9),
-            border: Border.all(
-              color: _hover ? tg.goldTint(.45) : tg.borderHi,
-              width: 1,
-            ),
-          ),
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: _hover ? tg.t1 : tg.t2,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/* ============================== 页脚 ============================== */
-
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Column(
-      children: [
-        Container(width: 64, height: 1, color: tg.border),
-        const SizedBox(height: TgSpacing.sm),
-        Text(
-          '行情数据仅供交易参考 · 天工阁与神仙代售平台无隶属关系',
-          textAlign: TextAlign.center,
-          style: TgType.tag.copyWith(color: tg.t3),
-        ),
-      ],
-    );
-  }
-}
-
-class _DetailFoot extends StatelessWidget {
-  const _DetailFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Column(
-      children: [
-        Container(width: 64, height: 1, color: tg.border),
-        const SizedBox(height: TgSpacing.sm),
-        Text(
-          '点击商品图片可放大查看',
-          textAlign: TextAlign.center,
-          style: TgType.tag.copyWith(color: tg.t3),
-        ),
-      ],
-    );
-  }
-}
-
 /* ============================== 商品详情独立页 ============================== */
 
 /// 商品详情页（独立嵌套子路由 `/misc/market/detail`）。
@@ -2785,16 +1684,32 @@ class PetDetailPage extends StatelessWidget {
         final p = pet;
         final blocks = <Widget>[
           if (p == null)
-            _DetailMissing(onBack: () => context.pop())
-          else ...[
-            _DetailHead(
-              pet: p,
-              onHub: () => context.go(ToolCatalog.miscMarket.group.hubLocation),
+            MiscDetailMissing(
+              icon: 'paw',
+              title: '商品数据缺失',
+              hint: '未获取到该商品的行情数据，请从行情列表重新进入。',
               onBack: () => context.pop(),
+            )
+          else ...[
+            MiscDetailHead(
+              title: '珍兽详情',
+              subtitle:
+                  '${p.area.isEmpty ? '' : '${p.area} · ${p.server}'}'
+                  ' · 编号 ${p.sn}',
+              crumbTail: ' / 珍兽行情 / 商品详情',
+              onCrumbTap: () =>
+                  context.go(ToolCatalog.miscMarket.group.hubLocation),
             ),
-            _DetailBody(pet: p, onBack: () => context.pop()),
+            MiscDetailBody(
+              image: MiscDetailImage(
+                url: p.img,
+                caption: p.title,
+                fallbackIcon: 'paw',
+              ),
+              info: _DetailInfo(pet: p, onBack: () => context.pop()),
+            ),
             const SizedBox(height: TgSpacing.s34),
-            const _DetailFoot(),
+            const TgPageFoot(text: '点击商品图片可放大查看'),
           ],
         ];
         // 与行情列表一致的内边距 / 限宽 1180 居中换算。
@@ -2831,36 +1746,6 @@ class PetDetailPage extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// 直接深链且无 extra 商品数据时的兜底提示。
-class _DetailMissing extends StatelessWidget {
-  const _DetailMissing({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return _BlockCard(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          TgIcon('paw', size: 26, color: tg.t3),
-          const SizedBox(height: 12),
-          Text('商品数据缺失', style: TextStyle(fontSize: 14, color: tg.t2)),
-          const SizedBox(height: 6),
-          Text(
-            '未获取到该商品的行情数据，请从行情列表重新进入。',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: tg.t3, height: 1.6),
-          ),
-          const SizedBox(height: 16),
-          _LineButton(label: '返回行情列表', onTap: onBack),
-        ],
-      ),
     );
   }
 }

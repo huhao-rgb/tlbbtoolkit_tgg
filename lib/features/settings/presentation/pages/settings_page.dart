@@ -11,6 +11,7 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_segmented.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_switch.dart';
 import 'package:tlbbtoolkit/features/settings/presentation/providers/settings_providers.dart';
@@ -38,7 +39,6 @@ class SettingsPage extends ConsumerWidget {
     final notifier = ref.read(appSettingsControllerProvider.notifier);
     // 版本号运行时读取（来源 pubspec.yaml）；未就绪 / 读取失败时不展示版本段。
     final version = ref.watch(packageInfoProvider).value?.version;
-    final tg = context.tg;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -119,30 +119,9 @@ class SettingsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: TgSpacing.s18),
                     // 页脚注（`.note`：inset 底 + info 图标）
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 13,
-                        vertical: 11,
-                      ),
-                      decoration: BoxDecoration(
-                        color: tg.inset,
-                        borderRadius: BorderRadius.circular(TgRadius.lg),
-                        border: Border.all(color: tg.border, width: 1),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TgIcon('info', size: 15, color: tg.goldDp),
-                          const SizedBox(width: TgSpacing.s9),
-                          Expanded(
-                            child: Text(
-                              '设置保存在本机，不会上传任何数据。',
-                              style: TgType.note.copyWith(color: tg.t3),
-                            ),
-                          ),
-                        ],
-                      ),
+                    const TgNoteBar(
+                      accent: TgNoteAccent.plain,
+                      text: '设置保存在本机，不会上传任何数据。',
                     ),
                     const SizedBox(height: TgSpacing.s34),
                   ],

@@ -183,6 +183,20 @@ class HomeItems extends _$HomeItems {
 > `go_router 18` 引入了 `material_ui` 传递依赖，其 1.1.0 在 Flutter 3.47 下编译失败
 > 会导致 `flutter test` 挂起。升级 Flutter 到能编译 `material_ui` 的版本后再升 go_router。
 
+## UI 组件分层（widgets）
+
+组件分三层放置，**新增组件前先确认是否已有同层实现**（避免同一形态在多个页面各写一份）：
+
+| 层 | 位置 | 放什么 |
+| --- | --- | --- |
+| 全局共享 | `lib/shared/widgets/` | 与业务无关、跨 feature 复用的原子组件：`TgCard` / `TgCardPadding`（响应式卡片壳，`decoration` 可省 = 通用卡片外观）、`TgPageFoot`（页脚：64×1 分隔线 + 居中说明文案，可两行）、`TgNoteBar`（说明条：`gold` / `plain` / `danger` 三配色，纯文本或富文本）、`TgBarRow`（占比条行：label + 6px 轨道 + 金渐变 + 尾部值）、`TgPageHead` / `TgSelect` / `TgTextField` / `TgSwitch` / `TgSegmented` / `TgIcon` / `TgModalShell` / `TgImageGallery` / `TgScrollTopButton` / `AppAsyncView` |
+| 模块内共享 | `lib/features/<feature>/presentation/widgets/` | 只在本 feature 多个页面成型、且带业务语义的组件（job 的 `job_common.dart` / `job_mini_button.dart`；misc 的 `misc_common.dart` / `misc_detail_widgets.dart`） |
+| 页面私有 | 页面文件内 `_Xxx` | 绑定该页数据模型、只此一处使用的组件 |
+
+判断口径：**能被 ≥2 个 feature 用上**（或已在多处重复）→ 上提 `shared/`；
+只在本 feature 内多个页面成型 → 放本 feature `presentation/widgets/`；
+只服务单页 → 留在页面文件内。
+
 ## 代码生成
 
 build_runner 统一驱动四类生成器：

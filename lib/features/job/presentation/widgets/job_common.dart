@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
-import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
 
 /// soul-fx 强调块（`<b>` 标题 + 说明，左侧竖条着色）。
 enum JobSoulAccent { gold, blue, green }
@@ -211,28 +211,6 @@ class JobNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-      decoration: BoxDecoration(
-        color: tg.inset,
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TgIcon('info', size: 15, color: tg.goldDp),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 11.5, color: tg.t3, height: 1.7),
-            ),
-          ),
-        ],
-      ),
-    );
+    return TgNoteBar(text: text, accent: TgNoteAccent.plain);
   }
 }

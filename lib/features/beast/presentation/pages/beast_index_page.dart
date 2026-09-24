@@ -8,6 +8,7 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/features/beast/domain/beast_spirit.dart';
 
 /// 兽灵图鉴（对应原型 `v-beast-index`）。
@@ -117,7 +118,7 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
                       },
                     ),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(text: '天工阁 · 玩家自制工具集合，与畅游官方无关'),
                   ],
                 ),
               ),
@@ -890,29 +891,6 @@ class _SpSectionTitle extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(child: Container(height: 1, color: tg.borderHi)),
       ],
-    );
-  }
-}
-
-/// 页脚。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-        ],
-      ),
     );
   }
 }

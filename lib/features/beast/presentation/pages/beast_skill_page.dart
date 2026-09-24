@@ -8,6 +8,7 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/features/beast/domain/beast_skill.dart';
 
 /// 兽灵技能效果（对应原型 `v-beast-skill`）。
@@ -70,7 +71,7 @@ class _BeastSkillPageState extends State<BeastSkillPage> {
                       ],
                     ),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(text: '天工阁 · 玩家自制工具集合，与畅游官方无关'),
                   ],
                 ),
               ),
@@ -327,29 +328,6 @@ class _KindTag extends StatelessWidget {
       child: Text(
         kind.label,
         style: TextStyle(fontSize: 11, height: 1.7, color: text),
-      ),
-    );
-  }
-}
-
-/// 页脚（与其它二级页保持一致）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-        ],
       ),
     );
   }

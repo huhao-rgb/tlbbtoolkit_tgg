@@ -4,6 +4,7 @@ import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 import 'package:tlbbtoolkit/shared/widgets/tool_card.dart';
 
@@ -78,7 +79,10 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: TgSpacing.s22),
                     _ToolGrid(tools: _visibleTools),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(
+                      text: '天工阁 · 玩家自制工具集合，与畅游官方无关',
+                      sub: '界面数据均为演示样例，正式版接入实战回归数值',
+                    ),
                   ],
                 ),
               ),
@@ -474,35 +478,6 @@ class _ToolGrid extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-/// 页脚（对应原型 `.page-foot`）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '界面数据均为演示样例，正式版接入实战回归数值',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-        ],
-      ),
     );
   }
 }

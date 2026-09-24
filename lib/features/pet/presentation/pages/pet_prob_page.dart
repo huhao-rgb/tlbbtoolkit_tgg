@@ -9,7 +9,9 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/features/pet/domain/pet_prob.dart';
 
 /// 宝宝技能释放概率（对应原型 `v-pet-prob`）。
@@ -125,7 +127,10 @@ class _PetProbPageState extends State<PetProbPage> {
                     const SizedBox(height: TgSpacing.s14),
                     const _FormulaNote(),
                     const SizedBox(height: TgSpacing.s34),
-                    const _PageFoot(),
+                    const TgPageFoot(
+                      text: '天工阁 · 玩家自制工具集合，与畅游官方无关',
+                      sub: '界面数据均为演示样例，正式版接入实战回归数值',
+                    ),
                   ],
                 ),
               ),
@@ -521,60 +526,9 @@ class _FormulaNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: TgSpacing.s13,
-        vertical: TgSpacing.s11,
-      ),
-      decoration: BoxDecoration(
-        color: tg.inset,
-        borderRadius: BorderRadius.circular(TgRadius.lg),
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TgIcon('info', size: 15, color: tg.goldDp),
-          const SizedBox(width: TgSpacing.s9),
-          Expanded(
-            child: Text(
-              '概率 = 实测基准值 × 性格修正系数（上限 100%），实际还受悟性与技能等级影响。',
-              style: TgType.note.copyWith(color: tg.t3, letterSpacing: 0),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 页脚（对应原型 `.page-foot`）。
-class _PageFoot extends StatelessWidget {
-  const _PageFoot();
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Center(
-      child: Column(
-        children: [
-          Container(width: 64, height: 1, color: tg.border),
-          const SizedBox(height: TgSpacing.sm),
-          Text(
-            '天工阁 · 玩家自制工具集合，与畅游官方无关',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '界面数据均为演示样例，正式版接入实战回归数值',
-            textAlign: TextAlign.center,
-            style: TgType.tag.copyWith(color: tg.t3),
-          ),
-        ],
-      ),
+    return const TgNoteBar(
+      accent: TgNoteAccent.plain,
+      text: '概率 = 实测基准值 × 性格修正系数（上限 100%），实际还受悟性与技能等级影响。',
     );
   }
 }
