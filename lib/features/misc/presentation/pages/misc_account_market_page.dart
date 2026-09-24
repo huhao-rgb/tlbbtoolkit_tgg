@@ -253,7 +253,10 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
             const SizedBox(height: 14),
             _SegCard(filtered: amFiltered(data, _filter)),
             const SizedBox(height: 14),
-            _BestCard(filtered: amFiltered(data, _filter)),
+            _BestCard(
+              filtered: amFiltered(data, _filter),
+              onDetail: _openDetail,
+            ),
             const SizedBox(height: 14),
           ],
         ];
@@ -1319,9 +1322,10 @@ TgColors tgOf(BuildContext context) => context.tg;
 /* ============================== 性价比推荐 ============================== */
 
 class _BestCard extends StatelessWidget {
-  const _BestCard({required this.filtered});
+  const _BestCard({required this.filtered, required this.onDetail});
 
   final List<AccountListing> filtered;
+  final ValueChanged<AccountListing> onDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -1339,7 +1343,7 @@ class _BestCard extends StatelessWidget {
             for (var i = 0; i < best.length; i++)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: _BestRow(index: i, item: best[i]),
+                child: _BestRow(index: i, item: best[i], onDetail: onDetail),
               ),
         ],
       ),
@@ -1348,10 +1352,15 @@ class _BestCard extends StatelessWidget {
 }
 
 class _BestRow extends StatelessWidget {
-  const _BestRow({required this.index, required this.item});
+  const _BestRow({
+    required this.index,
+    required this.item,
+    required this.onDetail,
+  });
 
   final int index;
   final AmBestItem item;
+  final ValueChanged<AccountListing> onDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -1397,6 +1406,7 @@ class _BestRow extends StatelessWidget {
         ),
       ),
     );
+    Widget goBtn() => _BestGoBtn(label: '详情', onTap: () => onDetail(t));
     final outer = BoxDecoration(
       color: tg.inset,
       borderRadius: BorderRadius.circular(11),
@@ -1444,6 +1454,8 @@ class _BestRow extends StatelessWidget {
                     ),
                     const Spacer(),
                     ixText(),
+                    const SizedBox(width: 8),
+                    goBtn(),
                   ],
                 ),
               ],
@@ -1481,10 +1493,62 @@ class _BestRow extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               ixText(),
+              const SizedBox(width: 8),
+              goBtn(),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+/// 性价比行的小按钮（描边小药丸，与珍兽行情同款，避免与明细「详情」按钮撞车）。
+class _BestGoBtn extends StatefulWidget {
+  const _BestGoBtn({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_BestGoBtn> createState() => _BestGoBtnState();
+}
+
+class _BestGoBtnState extends State<_BestGoBtn> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(7),
+        hoverColor: Colors.transparent,
+        child: Container(
+          height: 22,
+          padding: const EdgeInsets.symmetric(horizontal: 9),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(
+              color: _hover ? tg.goldTint(.45) : tg.borderHi,
+              width: 1,
+            ),
+            color: _hover ? tg.goldTint(.06) : Colors.transparent,
+          ),
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11, color: _hover ? tg.gold2 : tg.t2),
+          ),
+        ),
+      ),
     );
   }
 }
