@@ -416,7 +416,7 @@ class _FilterBar extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, w) {
         // 窄屏（移动端）收窄筛选卡左右内边距，提升横向内容容纳；桌面保持 18。
-        final h = w.maxWidth < 640 ? TgSpacing.cardPaddingMobileH : 18.0;
+        final h = w.maxWidth < 640 ? TgSpacing.cardPaddingMobileH : TgSpacing.cardPaddingDeskH;
         return Container(
           padding: EdgeInsets.fromLTRB(h, 16, h, 16),
           decoration: BoxDecoration(
@@ -1151,8 +1151,8 @@ class _DetailTableSliver extends StatelessWidget {
         final cols = _accCols(layout);
         // 窄屏（移动端）收窄卡片左右内边距（与 _BlockCard 同规则）。
         final h = constraints.crossAxisExtent < 640
-            ? math.min(TgSpacing.cardPaddingMobileH, 18.0)
-            : 18.0;
+            ? math.min(TgSpacing.cardPaddingMobileH, TgSpacing.cardPaddingDeskH)
+            : TgSpacing.cardPaddingDeskH;
         Widget th(_AccCol col) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Text(
