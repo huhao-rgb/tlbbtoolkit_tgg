@@ -332,8 +332,10 @@ class _MiscFetchButtonState extends State<MiscFetchButton> {
 
 /// 描边小按钮（`pm-detail-btn` / 性价比行的「详情」）：hover 金描边 + 金字。
 ///
-/// 尺寸可配：明细行用默认（12/5 · 8 圆角 · 11.5），性价比行用
-/// `height: 22, radius: 7, fontSize: 11, horizontalPadding: 9`。
+/// 尺寸可配：明细行用默认（横向 12 / 纵向 5 · 8 圆角 · 11.5 字号），
+/// 性价比行用 `height: 22, radius: 7, fontSize: 11, horizontalPadding: 9`
+/// —— 传了 [height] 时纵向内距自动归零（高度由 [height] 决定），
+/// 否则「行高 + 垂直内距」会超出固定高度把文案裁掉。
 class MiscMiniButton extends StatefulWidget {
   const MiscMiniButton({
     super.key,
@@ -355,6 +357,8 @@ class MiscMiniButton extends StatefulWidget {
   final double radius;
   final double fontSize;
   final double horizontalPadding;
+
+  /// 纵向内距；[height] 非空时忽略（避免挤压文案）。
   final double verticalPadding;
 
   @override
@@ -379,7 +383,9 @@ class _MiscMiniButtonState extends State<MiscMiniButton> {
           height: widget.height,
           padding: EdgeInsets.symmetric(
             horizontal: widget.horizontalPadding,
-            vertical: widget.verticalPadding,
+            // 固定高度时纵向内距归零：否则「行高 + 内距」超出 height，
+            // 文案会被裁切并显得偏下（性价比行 22 高的「详情」曾如此）。
+            vertical: widget.height == null ? widget.verticalPadding : 0,
           ),
           alignment: Alignment.center,
           decoration: BoxDecoration(

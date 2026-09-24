@@ -140,6 +140,8 @@ void main() {
   testWidgets('详情：点第一行「详情」进入账号详情页并可返回', (tester) async {
     await pumpPage(tester);
 
+    // 首行「详情」来自「性价比推荐」卡（22 高紧凑规格），文案不得被压扁裁切。
+    expect(tester.getSize(find.text('详情').first).height, greaterThan(14));
     await tester.tap(find.text('详情').first);
     await tester.pumpAndSettle();
 

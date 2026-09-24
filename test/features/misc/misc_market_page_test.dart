@@ -448,6 +448,9 @@ void main() {
     // 性价比推荐卡位于明细表之前，其行尾的「详情」按钮是页面第一个「详情」。
     // （明细表同样使用「详情」文案，二者行为一致：push 独立商品详情页）
     final goBtn = find.text('详情').first;
+    // 该按钮是 22 高的紧凑规格：纵向内距必须归零，否则 11 号字的行高
+    //（≈15）会被 height-5×2=12 截掉（曾出现「文字偏下且被截断」）。
+    expect(tester.getSize(goBtn).height, greaterThan(14));
     await tester.ensureVisible(goBtn);
     await tester.pumpAndSettle();
     await tester.tap(goBtn);
