@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:tlbbtoolkit/features/music/data/music_file_picker.dart';
+import 'package:tlbbtoolkit/features/music/data/music_file_store.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
 import 'package:tlbbtoolkit/features/music/domain/music_engine.dart';
@@ -13,6 +14,14 @@ class FakeMusicEngine implements MusicEngine {
 
   final StreamController<void> _completions =
       StreamController<void>.broadcast();
+  final StreamController<Duration> _positions =
+      StreamController<Duration>.broadcast();
+  final StreamController<Duration> _durations =
+      StreamController<Duration>.broadcast();
+  final StreamController<Object> _errors = StreamController<Object>.broadcast();
+
+  /// [seek] 收到的目标位置（按调用顺序）。
+  final List<Duration> seeks = <Duration>[];
 
   /// 置 true 时 [play] 抛错（模拟文件被移动/删除，或桌面沙盒授权失效）。
   bool failOnPlay = false;
@@ -23,8 +32,26 @@ class FakeMusicEngine implements MusicEngine {
   /// 模拟当前曲目自然播放结束。
   void emitCompleted() => _completions.add(null);
 
+  /// 模拟引擎上报播放位置。
+  void emitPosition(Duration position) => _positions.add(position);
+
+  /// 模拟引擎上报音源总时长。
+  void emitDuration(Duration duration) => _durations.add(duration);
+
+  /// 模拟引擎上报播放错误（音源加载失败 / 无权读取）。
+  void emitError(Object error) => _errors.add(error);
+
   @override
   Stream<void> get onCompleted => _completions.stream;
+
+  @override
+  Stream<Object> get onError => _errors.stream;
+
+  @override
+  Stream<Duration> get onPositionChanged => _positions.stream;
+
+  @override
+  Stream<Duration> get onDurationChanged => _durations.stream;
 
   @override
   Future<void> play(
@@ -61,7 +88,18 @@ class FakeMusicEngine implements MusicEngine {
   }
 
   @override
-  void dispose() => _completions.close();
+  Future<void> seek(Duration position) async {
+    calls.add('seek');
+    seeks.add(position);
+  }
+
+  @override
+  void dispose() {
+    _completions.close();
+    _positions.close();
+    _durations.close();
+    _errors.close();
+  }
 }
 
 /// 假仓储：内存持有状态，并记录落盘次数。
@@ -89,4 +127,28 @@ class FakeMusicFilePicker extends MusicFilePicker {
 
   @override
   Future<List<MusicTrack>> pick() async => result;
+}
+
+/// 假落盘器：把外路径映射成「应用目录」下的同名路径，记录调用。
+class FakeMusicFileStore implements MusicFileStore {
+  final List<String> imported = <String>[];
+  final List<String> removed = <String>[];
+
+  /// 置 true 时模拟复制失败（回退原路径）。
+  bool failImport = false;
+
+  @override
+  Future<String> import(String sourcePath) async {
+    imported.add(sourcePath);
+    if (failImport) return sourcePath;
+    final name = sourcePath.split(RegExp(r'[/\\]')).last;
+    return '/app/music/$name';
+  }
+
+  @override
+  Future<bool> remove(String path) async {
+    removed.add(path);
+    // 真实的 MusicFileStore 只删应用目录内的副本，外部路径返回 false。
+    return path.startsWith('/app/music/');
+  }
 }

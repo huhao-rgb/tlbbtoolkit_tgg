@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
 import 'package:tlbbtoolkit/features/music/presentation/providers/music_player_providers.dart';
+import 'package:tlbbtoolkit/features/music/presentation/providers/music_progress_providers.dart';
 import 'package:tlbbtoolkit/features/music/presentation/widgets/music_eq_bars.dart';
 
 /// 弹层理想宽度（原型 `.bgm-pop{width:min(320px,94vw)}`）。
@@ -54,6 +56,7 @@ class MusicPanelContent extends ConsumerWidget {
             child: _TrackList(state: state),
           ),
         ),
+        const _ProgressBar(),
         const _Controls(),
       ],
     );
@@ -149,24 +152,67 @@ class _Head extends StatelessWidget {
 }
 
 /// 播放列表（原型 `.bgm-list`）；列表为空时展示引导文案。
-class _TrackList extends StatelessWidget {
+///
+/// 每行可**左滑删除**（原型没有删除入口，本次新增）：删除会同时移除
+/// 应用目录里的落盘副本（用户原始文件不动，见 `MusicFileStore.remove`）。
+class _TrackList extends ConsumerWidget {
   const _TrackList({required this.state});
 
   final MusicPlayerState state;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (state.isEmpty) return const _EmptyHint();
     return ListView.builder(
       shrinkWrap: true,
       padding: const EdgeInsets.all(6),
       itemCount: state.tracks.length,
-      itemBuilder: (context, index) => _TrackItem(
-        index: index,
-        track: state.tracks[index],
-        active: index == state.currentIndex,
-        playing: state.playing,
-        unavailable: state.unavailable.contains(state.tracks[index].path),
+      itemBuilder: (context, index) {
+        final track = state.tracks[index];
+        return Dismissible(
+          key: ValueKey(track.path),
+          // 左滑（从右往左）删除：与移动端习惯一致，避免误触右侧控件
+          direction: DismissDirection.endToStart,
+          background: const _DeleteBackground(),
+          onDismissed: (_) =>
+              ref.read(musicPlayerControllerProvider.notifier).removeAt(index),
+          child: _TrackItem(
+            index: index,
+            track: track,
+            active: index == state.currentIndex,
+            playing: state.playing,
+            unavailable: state.unavailable.contains(track.path),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// 左滑时露出的删除提示（圆角与列表行一致，用语义色而不引主题外的新色）。
+class _DeleteBackground extends StatelessWidget {
+  const _DeleteBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 14),
+      decoration: BoxDecoration(
+        color: tg.tintOf(tg.red, .14),
+        borderRadius: BorderRadius.circular(TgRadius.md),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.delete_outline_rounded, size: 15, color: tg.red),
+          const SizedBox(width: 5),
+          Text(
+            '删除',
+            style: TextStyle(fontSize: 11, letterSpacing: 1, color: tg.red),
+          ),
+        ],
       ),
     );
   }
@@ -300,6 +346,137 @@ class _TrackItemState extends ConsumerState<_TrackItem> {
       ),
     );
   }
+}
+
+/// 进度条（原型 `.bgm-prog`）：当前时间 + 可拖动进度 + 总时长。
+///
+/// 原型是 `<input type=range>` + 500ms 轮询；这里用 [Slider] 双向绑定：
+/// 拖动过程中以本地 [_dragFraction] 为准（否则引擎的位置回包会把滑块拽回去），
+/// 松手才真正 seek。时长未知（未选曲 / 还没加载完）时不可拖动。
+class _ProgressBar extends ConsumerStatefulWidget {
+  const _ProgressBar();
+
+  @override
+  ConsumerState<_ProgressBar> createState() => _ProgressBarState();
+}
+
+class _ProgressBarState extends ConsumerState<_ProgressBar> {
+  /// 拖动中的进度比例（0..1）；未拖动为 null，此时跟随引擎位置。
+  double? _dragFraction;
+
+  /// 松手：交回引擎并让它接管显示。
+  void _commit(double fraction) {
+    setState(() => _dragFraction = null);
+    unawaited(
+      ref
+          .read(musicProgressControllerProvider.notifier)
+          .seekToFraction(fraction),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = ref.watch(musicProgressControllerProvider);
+    final selected = ref.watch(
+      musicPlayerControllerProvider.select((s) => s.currentTrack != null),
+    );
+    final total = progress.duration;
+    final seekable = total != null && total > Duration.zero;
+    final drag = _dragFraction;
+    // 拖动中两侧时间跟随手指（原型在 input 事件里同步刷新）。
+    final position = drag != null && total != null
+        ? total * drag
+        : progress.position;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(13, 9, 13, 0),
+      child: Row(
+        children: [
+          _TimeLabel(text: _formatPosition(position)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: SliderTheme(
+              data: _trackSliderTheme(context, thumbRadius: 4.5),
+              child: SizedBox(
+                height: 20,
+                child: Slider(
+                  key: const Key('music-progress'),
+                  value: drag ?? progress.fraction,
+                  onChanged: seekable
+                      ? (value) => setState(() => _dragFraction = value)
+                      : null,
+                  onChangeEnd: seekable ? _commit : null,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // 已选曲但时长还没拿到 → `--:--`；列表为空 → `0:00`（同原型 tick）。
+          _TimeLabel(
+            text: total != null
+                ? _formatPosition(total)
+                : (selected ? '--:--' : '0:00'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 时间标签（原型 `.bgm-time`）：10px 弱色、等宽数字、定宽 30 居中。
+class _TimeLabel extends StatelessWidget {
+  const _TimeLabel({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return SizedBox(
+      width: 30,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 10,
+          letterSpacing: .5,
+          color: tg.t3,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
+    );
+  }
+}
+
+/// 时长格式化成 `m:ss`（原型 `fmt`）；负数归零。
+String _formatPosition(Duration position) {
+  final seconds = position.inSeconds < 0 ? 0 : position.inSeconds;
+  return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+}
+
+/// 细轨金色滑杆（原型 `#bgmVol` / `#bgmSeek` 的 `accent-color`）。
+///
+/// 禁用态沿用同一套配色：进度条在无音源时仍保持常态外观（同原型）。
+SliderThemeData _trackSliderTheme(
+  BuildContext context, {
+  double thumbRadius = 5.5,
+}) {
+  final tg = context.tg;
+  return SliderThemeData(
+    trackHeight: 3,
+    activeTrackColor: tg.gold,
+    inactiveTrackColor: tg.borderHi,
+    thumbColor: tg.gold,
+    overlayColor: tg.goldTint(.12),
+    disabledActiveTrackColor: tg.gold,
+    disabledInactiveTrackColor: tg.borderHi,
+    disabledThumbColor: tg.gold,
+    thumbShape: RoundSliderThumbShape(
+      enabledThumbRadius: thumbRadius,
+      disabledThumbRadius: thumbRadius,
+    ),
+    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+  );
 }
 
 /// 控制条（原型 `.bgm-foot`）：上一首 / 播放暂停 / 下一首 / 音量 / 循环 / 本地。
@@ -481,17 +658,8 @@ class _VolumeSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tg = context.tg;
     return SliderTheme(
-      data: SliderThemeData(
-        trackHeight: 3,
-        activeTrackColor: tg.gold,
-        inactiveTrackColor: tg.borderHi,
-        thumbColor: tg.gold,
-        overlayColor: tg.goldTint(.12),
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.5),
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-      ),
+      data: _trackSliderTheme(context),
       child: SizedBox(
         height: 24,
         child: Slider(value: volume, onChanged: onChanged),

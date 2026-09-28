@@ -56,6 +56,8 @@ dependencies:
   url_launcher: ^6.3.2
   # 本地音频播放（信息栏「怀旧音律」播放器）
   audioplayers: ^6.8.1
+  # 导入的音频落到应用私有目录（沙盒授权只活在一次进程内，不能依赖原路径）
+  path_provider: ^2.1.6
   package_info_plus: ^9.0.1
 
 dev_dependencies:

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tlbbtoolkit/features/music/data/audio/audioplayers_music_engine.dart';
 import 'package:tlbbtoolkit/features/music/data/music_file_picker.dart';
+import 'package:tlbbtoolkit/features/music/data/music_file_store.dart';
 import 'package:tlbbtoolkit/features/music/data/repositories/music_player_repository_impl.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
@@ -18,6 +19,7 @@ void main() {
   late FakeMusicEngine engine;
   late FakeMusicPlayerRepository repository;
   late FakeMusicFilePicker picker;
+  late FakeMusicFileStore store;
   late ProviderContainer container;
   late MusicPlayerController controller;
 
@@ -27,11 +29,13 @@ void main() {
       initial ?? const MusicPlayerState(tracks: [trackA, trackB, trackC]),
     );
     picker = FakeMusicFilePicker();
+    store = FakeMusicFileStore();
     container = ProviderContainer.test(
       overrides: [
         musicPlayerRepositoryProvider.overrideWithValue(repository),
         musicEngineProvider.overrideWithValue(engine),
         musicFilePickerProvider.overrideWithValue(picker),
+        musicFileStoreProvider.overrideWithValue(store),
       ],
     );
     controller = container.read(musicPlayerControllerProvider.notifier);
@@ -117,6 +121,34 @@ void main() {
       expect(controller.state.currentIndex, 0);
     });
 
+    test('引擎通过错误流上报起播失败（macOS setSource 不抛异常）时同样降级', () async {
+      // audioplayers 的 darwin 后端在 setSource 失败时不会让 play() 报错，
+      // 只往事件流塞一个 error → 只能靠 onError 感知，否则 UI 会卡在
+      // "正在播放但没声音"。
+      setUpContainer(initial: const MusicPlayerState(tracks: [trackA, trackB]));
+      await controller.playAt(0);
+      expect(controller.state.playing, isTrue);
+
+      engine.emitError(StateError('Failed to set playerItem'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.state.playing, isFalse);
+      expect(controller.state.unavailable, contains('/music/a.mp3'));
+      expect(repository.state.unavailable, contains('/music/a.mp3'));
+    });
+
+    test('暂停状态下收到引擎错误不误标不可用', () async {
+      setUpContainer(initial: const MusicPlayerState(tracks: [trackA]));
+      await controller.playAt(0);
+      await controller.toggle(); // 暂停
+
+      engine.emitError(StateError('迟到的错误'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.state.unavailable, isEmpty);
+      expect(controller.state.playing, isFalse);
+    });
+
     test('next / previous 在列表内环绕', () async {
       setUpContainer(initial: const MusicPlayerState(tracks: [trackA, trackB]));
       await controller.playAt(1);
@@ -199,14 +231,33 @@ void main() {
       expect(engine.loop, isTrue);
     });
 
-    test('addLocalFiles：追加曲目并忽略已在列表中的路径', () async {
-      setUpContainer(initial: const MusicPlayerState(tracks: [trackA]));
+    test('addLocalFiles：先落盘到应用目录，再按副本路径去重入列表', () async {
+      // 已导入过的曲目存的就是副本路径（`/app/music/a.mp3`）。
+      const importedA = MusicTrack(path: '/app/music/a.mp3', name: '大理城');
+      setUpContainer(initial: const MusicPlayerState(tracks: [importedA]));
       picker.result = const [trackA, trackB, trackB];
       final result = await controller.addLocalFiles();
 
       expect(result.picked, 3);
       expect(result.added, 1);
       expect(controller.state.tracks.map((t) => t.name), ['大理城', '苏州']);
+      // 列表存的是副本路径，而不是用户选中的外部路径
+      expect(controller.state.tracks.map((t) => t.path), [
+        '/app/music/a.mp3',
+        '/app/music/b.mp3',
+      ]);
+      // 每次选中都会尝试落盘（已导入过的会复用，不重复拷贝）
+      expect(store.imported, ['/music/a.mp3', '/music/b.mp3', '/music/b.mp3']);
+    });
+
+    test('addLocalFiles：落盘失败时退回原路径（至少本次会话可播）', () async {
+      setUpContainer(initial: const MusicPlayerState());
+      store.failImport = true;
+      picker.result = const [trackB];
+
+      await controller.addLocalFiles();
+
+      expect(controller.state.tracks.single.path, '/music/b.mp3');
     });
 
     test('addLocalFiles：用户取消时不做变更', () async {
@@ -215,6 +266,80 @@ void main() {
       final result = await controller.addLocalFiles();
       expect(result.added, 0);
       expect(controller.state.tracks.length, 1);
+    });
+
+    group('removeAt（左滑删除）', () {
+      test('删当前曲目之前的项：下标前移，不打断播放', () async {
+        setUpContainer(
+          initial: const MusicPlayerState(tracks: [trackA, trackB, trackC]),
+        );
+        await controller.playAt(2);
+        await controller.removeAt(0);
+
+        expect(controller.state.tracks.map((t) => t.path), [
+          '/music/b.mp3',
+          '/music/c.mp3',
+        ]);
+        expect(controller.state.currentIndex, 1);
+        expect(controller.state.playing, isTrue);
+        expect(engine.calls, isNot(contains('stop')));
+        expect(store.removed, ['/music/a.mp3']);
+        expect(repository.state.tracks.length, 2);
+      });
+
+      test('删当前曲目之后的项：下标不变', () async {
+        setUpContainer(
+          initial: const MusicPlayerState(tracks: [trackA, trackB, trackC]),
+        );
+        await controller.playAt(0);
+        await controller.removeAt(2);
+
+        expect(controller.state.currentIndex, 0);
+        expect(controller.state.playing, isTrue);
+      });
+
+      test('删正在播放的曲目：停表、回到未选中、清掉不可用标记', () async {
+        setUpContainer(
+          initial: const MusicPlayerState(
+            tracks: [trackA, trackB],
+            unavailable: {'/music/a.mp3'},
+          ),
+        );
+        await controller.playAt(0);
+        await controller.removeAt(0);
+
+        expect(controller.state.playing, isFalse);
+        expect(controller.state.currentIndex, -1);
+        expect(controller.state.currentTrack, isNull);
+        expect(controller.state.unavailable, isEmpty);
+        expect(engine.calls, contains('stop'));
+        expect(store.removed, ['/music/a.mp3']);
+      });
+
+      test('删到只剩空列表：状态清空并落盘', () async {
+        setUpContainer(initial: const MusicPlayerState(tracks: [trackA]));
+        await controller.removeAt(0);
+
+        expect(controller.state.tracks, isEmpty);
+        expect(controller.state.currentIndex, -1);
+        expect(repository.state.tracks, isEmpty);
+      });
+
+      test('下标越界 / 空列表时忽略', () async {
+        setUpContainer(initial: const MusicPlayerState());
+        await controller.removeAt(0);
+        await controller.removeAt(-1);
+
+        expect(controller.state.tracks, isEmpty);
+        expect(store.removed, isEmpty);
+      });
+
+      test('只导入没播过时不会为删除创建播放引擎', () async {
+        setUpContainer(initial: const MusicPlayerState(tracks: [trackA]));
+        await controller.removeAt(0);
+        // 未触碰引擎 → 不会有 stop 之类的调用（fake 只记录实际调用）
+        expect(engine.calls, isEmpty);
+      });
     });
 
     test('状态变更会落盘（列表 / 音量 / 循环 / 当前曲目）', () async {

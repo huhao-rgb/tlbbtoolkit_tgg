@@ -7,6 +7,7 @@ import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/features/music/data/audio/audioplayers_music_engine.dart';
 import 'package:tlbbtoolkit/features/music/data/music_file_picker.dart';
+import 'package:tlbbtoolkit/features/music/data/music_file_store.dart';
 import 'package:tlbbtoolkit/features/music/data/repositories/music_player_repository_impl.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_player_state.dart';
 import 'package:tlbbtoolkit/features/music/domain/entities/music_track.dart';
@@ -23,6 +24,7 @@ void main() {
   late FakeMusicEngine engine;
   late FakeMusicPlayerRepository repository;
   late FakeMusicFilePicker picker;
+  late FakeMusicFileStore store;
 
   setUp(() {
     engine = FakeMusicEngine();
@@ -30,6 +32,7 @@ void main() {
       const MusicPlayerState(tracks: [trackA, trackB], volume: .4),
     );
     picker = FakeMusicFilePicker();
+    store = FakeMusicFileStore();
   });
 
   /// 泵入按钮。[mobile] 为 true 时用手机尺寸（390×844，< 1024 断点），
@@ -47,6 +50,7 @@ void main() {
           musicPlayerRepositoryProvider.overrideWithValue(repository),
           musicEngineProvider.overrideWithValue(engine),
           musicFilePickerProvider.overrideWithValue(picker),
+          musicFileStoreProvider.overrideWithValue(store),
         ],
         child: MaterialApp(
           theme: TgTheme.dark,
@@ -74,6 +78,29 @@ void main() {
     find.descendant(of: find.byKey(Key(key)), matching: find.byType(Icon)),
   );
 
+  /// 弹层进度条（原型 `.bgm-prog` 里的 range）。
+  Slider progressSlider(WidgetTester tester) =>
+      tester.widget<Slider>(find.byKey(const Key('music-progress')));
+
+  /// 左滑 [finder] 所在的行（分步移动：首个 move 事件会被触点阈值吃掉）。
+  Future<void> swipeLeft(WidgetTester tester, Finder finder) async {
+    final gesture = await tester.startGesture(tester.getCenter(finder));
+    for (var step = 0; step < 10; step++) {
+      await gesture.moveBy(const Offset(-26, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+  }
+
+  /// 消化 Dismissible 的退场动画（位移 200ms + 收缩 300ms）。
+  ///
+  /// 不能用 `pumpAndSettle`：播放中列表项的 EQ 跳动条是无限动画。
+  Future<void> settleDismiss(WidgetTester tester) async {
+    for (var frame = 0; frame < 50; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+  }
+
   testWidgets('点击按钮弹出面板：标题 + 列表 + 控制条', (tester) async {
     await pumpButton(tester);
     expect(find.text('怀旧音律'), findsNothing);
@@ -93,6 +120,51 @@ void main() {
     expect(find.byKey(const Key('music-loop')), findsOneWidget);
     expect(find.byKey(const Key('music-add-local')), findsOneWidget);
     expect(find.text('本地'), findsOneWidget);
+    // 进度条：未选曲时为 0:00 / 0:00
+    expect(find.byKey(const Key('music-progress')), findsOneWidget);
+    expect(find.text('0:00'), findsNWidgets(2));
+  });
+
+  testWidgets('进度条：播放后显示引擎上报的位置/时长，拖动松手才 seek', (tester) async {
+    await pumpButton(tester);
+    await openPopover(tester);
+    await tester.tap(find.text('苏州'));
+    await tester.pump();
+    expect(engine.playedPaths, ['/music/b.mp3']);
+
+    // 引擎加载完成后上报时长，再周期性上报位置
+    engine.emitDuration(const Duration(seconds: 100));
+    await tester.pump();
+    expect(find.text('1:40'), findsOneWidget);
+    expect(find.text('0:00'), findsOneWidget);
+
+    engine.emitPosition(const Duration(seconds: 25));
+    await tester.pump();
+    expect(find.text('0:25'), findsOneWidget);
+    expect(progressSlider(tester).value, closeTo(.25, .001));
+
+    // 拖动：onChanged 只改本地显示，onChangeEnd 才落到引擎
+    final slider = progressSlider(tester);
+    slider.onChanged!(.8);
+    await tester.pump();
+    expect(find.text('1:20'), findsOneWidget, reason: '拖动中时间跟随手指');
+    expect(engine.seeks, isEmpty, reason: '未松手不应 seek');
+
+    slider.onChangeEnd!(.8);
+    await tester.pump();
+    expect(engine.seeks, [const Duration(seconds: 80)]);
+    expect(progressSlider(tester).value, closeTo(.8, .001));
+  });
+
+  testWidgets('进度条：已选曲但时长未知时显示 --:-- 且不可拖动', (tester) async {
+    repository = FakeMusicPlayerRepository(
+      const MusicPlayerState(tracks: [trackA, trackB], currentIndex: 1),
+    );
+    await pumpButton(tester);
+    await openPopover(tester);
+
+    expect(find.text('--:--'), findsOneWidget);
+    expect(progressSlider(tester).onChanged, isNull);
   });
 
   testWidgets('弹层内不允许出现 Tooltip（RenderFollowerLayer 下会崩布局）', (tester) async {
@@ -200,6 +272,42 @@ void main() {
     expect(find.byKey(const Key('music-next')), findsOneWidget);
     expect(find.text('本地'), findsOneWidget);
     // 窄屏下整宽贴底，不再有横向/纵向出屏
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('列表左滑删除：移除该曲目、停表并回收副本', (tester) async {
+    await pumpButton(tester);
+    await openPopover(tester);
+    // 先播放第二首，验证删除当前曲目会停表（而不是继续播别的）
+    await tester.tap(find.text('苏州'));
+    await tester.pump();
+    expect(engine.playedPaths, ['/music/b.mp3']);
+    expect(ctlIcon(tester, 'music-play-toggle').icon, Icons.pause_rounded);
+
+    await swipeLeft(tester, find.text('苏州'));
+    await settleDismiss(tester);
+
+    expect(store.removed, ['/music/b.mp3']);
+    expect(find.byKey(const ValueKey('/music/b.mp3')), findsNothing);
+    expect(find.byKey(const ValueKey('/music/a.mp3')), findsOneWidget);
+    expect(find.text('本地音乐 · 共 1 首'), findsOneWidget);
+    expect(engine.calls, contains('stop'));
+    expect(store.removed, ['/music/b.mp3']);
+    expect(ctlIcon(tester, 'music-play-toggle').icon, Icons.play_arrow_rounded);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('移动端：sheet 内同样可以左滑删除', (tester) async {
+    await pumpButton(tester, mobile: true);
+    await openPopover(tester);
+
+    await swipeLeft(tester, find.text('大理城'));
+    await settleDismiss(tester);
+
+    expect(store.removed, ['/music/a.mp3']);
+    expect(find.text('大理城'), findsNothing);
+    expect(find.text('本地音乐 · 共 1 首'), findsOneWidget);
+    expect(store.removed, ['/music/a.mp3']);
     expect(tester.takeException(), isNull);
   });
 
