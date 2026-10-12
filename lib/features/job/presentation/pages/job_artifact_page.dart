@@ -17,7 +17,7 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 /// 职业神器（对应原型 `v-class-artifact`）。
 ///
 /// 门派筛选 + 门派名/定位 tag；卡片内含「蓝色剑砖 + 神器名 + 等级 tag +
-/// 档位分段(42/62/82/102)」头部、神器简介、基础属性、神兵特性
+/// 档位分段(42~102 九档)」头部、神器简介、基础属性、神兵特性
 /// 与获取途径；点档位切换该门派该档神器详情。
 class JobArtifactPage extends StatefulWidget {
   const JobArtifactPage({super.key, this.initialSect});
@@ -35,7 +35,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
   /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
   late JobSect _sect;
 
-  /// 当前档位（0~3 → 42/62/82/102）。
+  /// 当前档位（0~8 → 42/52/62/72/82/86/92/96/102）。
   int _tier = 0;
 
   @override
@@ -144,7 +144,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                                 selected: _tier,
                                 onSelect: (i) => setState(() => _tier = i),
                               );
-                              final head = Row(
+                              final nameRow = Row(
                                 children: [
                                   // tile.class：蓝剑砖 44
                                   Container(
@@ -190,23 +190,29 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                                       ],
                                     ),
                                   ),
-                                  if (c.maxWidth >= 420) ...[
-                                    const SizedBox(width: 12),
-                                    seg,
-                                  ],
                                 ],
                               );
-                              if (c.maxWidth < 420) {
+                              // 九档分段约 325px，与神器名同排需 ≥ 560 宽；否则换行并可横向滚动。
+                              if (c.maxWidth < 560) {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    head,
+                                    nameRow,
                                     const SizedBox(height: 12),
-                                    seg,
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: seg,
+                                    ),
                                   ],
                                 );
                               }
-                              return head;
+                              return Row(
+                                children: [
+                                  Expanded(child: nameRow),
+                                  const SizedBox(width: 12),
+                                  seg,
+                                ],
+                              );
                             },
                           ),
                           // afIntro：神器简介（金 soul-fx）
@@ -223,11 +229,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                             compact: compact,
                             items: [
                               for (var i = 0; i < _t.stats.length; i++)
-                                JobMatItem(
-                                  label: _t.stats[i].name,
-                                  value: '+${_t.stats[i].value}',
-                                  badge: '${i + 1}',
-                                ),
+                                _statItem(_t.stats[i], i + 1),
                             ],
                           ),
                           // afExtra：神兵特性（蓝 soul-fx）
@@ -251,7 +253,10 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                     const SizedBox(height: 14),
                     // note
                     const JobNote(
-                      text: '神器每 20 级一档（42 / 62 / 82 / 102），重铸继承强化与词条；数值为参考基准，实际以游戏内为准。',
+                      text:
+                          '神器共九档（42/52/62/72/82/86/92/96/102）：42~92 级同名升阶（血浴神兵铸造，'
+                          '新莽神符 1~6 级 = 5/10/15/20 个，杀怪 1000 只），86/96 级由 82/92 级以神兵符 ×5「炼魂」'
+                          '进阶为门派专属神器，102 级为门派专属太古神器；重铸继承强化与词条；数值为参考基准，实际以游戏内为准。',
                     ),
                     const SizedBox(height: TgSpacing.s34),
                     const TgPageFoot(text: '天工阁 · 玩家自制工具集合，与畅游官方无关'),
@@ -264,6 +269,16 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
       },
     );
   }
+}
+
+/// 把原型 `'名称 +数值'` 形式的属性文案拆成「名称 / 数值」两列。
+JobMatItem _statItem(String spec, int index) {
+  final parts = spec.split(' +');
+  return JobMatItem(
+    label: parts.first,
+    value: parts.length > 1 ? '+${parts[1]}' : spec,
+    badge: '$index',
+  );
 }
 
 /// 等级 tag（`.tag-gold`：42 级神器）。
@@ -290,7 +305,7 @@ class _LvTag extends StatelessWidget {
   }
 }
 
-/// 档位分段（`.lv-seg`）：42 / 62 / 82 / 102。
+/// 档位分段（`.lv-seg`）：42 / 52 / 62 / 72 / 82 / 86 / 92 / 96 / 102。
 class _LvSeg extends StatelessWidget {
   const _LvSeg({
     required this.labels,

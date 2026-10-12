@@ -39,7 +39,7 @@ Future<void> _pumpSect(WidgetTester tester) async {
 
 void main() {
   group('职业神器页', () {
-    testWidgets('默认少林 42 级韦陀伏魔杖 + 基础属性 + 获取途径', (tester) async {
+    testWidgets('默认少林 42 级熔金落日刀 + 基础属性 + 获取途径', (tester) async {
       await _pumpArtifact(tester);
 
       expect(find.text('职业神器'), findsWidgets);
@@ -49,31 +49,43 @@ void main() {
       expect(find.text('少林'), findsNWidgets(2));
       expect(find.text('外功 · 坦克'), findsOneWidget);
 
-      // 神器卡：武器名 / 等级 tag / 档位
-      expect(find.text('韦陀伏魔杖'), findsOneWidget);
+      // 神器卡：武器名 / 等级 tag / 档位（九档）
+      expect(find.text('熔金落日刀'), findsOneWidget);
       expect(find.text('42 级神器'), findsOneWidget);
-      for (final lv in ['42', '62', '82', '102']) {
+      for (final lv in [
+        '42',
+        '52',
+        '62',
+        '72',
+        '82',
+        '86',
+        '92',
+        '96',
+        '102',
+      ]) {
         expect(find.text(lv), findsOneWidget);
       }
 
       // 简介
-      expect(find.textContaining('少室山精铁所铸'), findsOneWidget);
-      expect(find.textContaining('适配武器：禅杖'), findsOneWidget);
+      expect(find.textContaining('刀斧/枪棒类第一代神器'), findsOneWidget);
+      expect(find.textContaining('适配武器：枪棒/刀斧'), findsOneWidget);
 
-      // 基础属性
+      // 基础属性（原型按 ' +' 拆分为名称 / 数值两部分）
       expect(find.text('基础属性'), findsOneWidget);
-      expect(find.text('攻击'), findsOneWidget);
-      expect(find.text('+380'), findsOneWidget);
-      expect(find.text('+30'), findsOneWidget);
-      expect(find.text('+8'), findsOneWidget);
+      expect(find.text('内外功攻击'), findsOneWidget);
+      expect(find.text('+随星级成长（5 星起）'), findsOneWidget);
+      expect(find.text('命中'), findsOneWidget);
+      expect(find.text('+随星级成长'), findsOneWidget);
+      expect(find.text('神器被动'), findsOneWidget);
+      expect(find.text('+增内/外功 · 降闪避/会防 四型随机'), findsOneWidget);
 
       // 神兵特性 / 获取途径
-      expect(find.textContaining('神兵共鸣'), findsOneWidget);
+      expect(find.textContaining('神器被动于 96 级前生效'), findsOneWidget);
       expect(find.text('获取途径'), findsOneWidget);
-      expect(find.textContaining('欧阳冶处接取'), findsOneWidget);
+      expect(find.textContaining('欧冶子处领取「血浴神兵」'), findsOneWidget);
 
       // 脚注
-      expect(find.textContaining('神器每 20 级一档'), findsOneWidget);
+      expect(find.textContaining('神器共九档'), findsOneWidget);
     });
 
     testWidgets('切换档位到 102 / 切换门派到峨眉', (tester) async {
@@ -82,9 +94,9 @@ void main() {
       // 档位 102
       await tester.tap(find.text('102'));
       await tester.pumpAndSettle();
-      expect(find.text('不动明王杖'), findsOneWidget);
+      expect(find.text('大唐昆岳'), findsOneWidget);
       expect(find.text('102 级神器'), findsOneWidget);
-      expect(find.text('+320'), findsOneWidget);
+      expect(find.textContaining('达摩一叹'), findsOneWidget);
 
       // 切峨眉 → 回到 42 档
       await tester.ensureVisible(find.text('峨眉'));
@@ -92,7 +104,7 @@ void main() {
       await tester.tap(find.text('峨眉'));
       await tester.pumpAndSettle();
       expect(find.text('峨眉'), findsNWidgets(2));
-      expect(find.text('灵犀双影剑'), findsOneWidget);
+      expect(find.text('秋水无痕剑'), findsOneWidget);
       expect(find.text('42 级神器'), findsOneWidget);
     });
 
@@ -106,14 +118,14 @@ void main() {
 
       expect(find.text('曼陀山庄'), findsNWidgets(2)); // pill + 当前门派名
       expect(find.text('内功 · 琴音'), findsOneWidget);
-      expect(find.text('玉弦琴'), findsOneWidget); // 42 级官网神器
-      expect(find.textContaining('曼陀山庄入门之琴'), findsOneWidget);
+      expect(find.text('幽篁漱玉琴'), findsOneWidget); // 42 级官网神器
+      expect(find.textContaining('曼陀山庄专属神器'), findsOneWidget);
 
-      // 切换档位到 102：绿绮琴
+      // 切换档位到 102：大楚秋声
       await tester.tap(find.text('102'));
       await tester.pumpAndSettle();
-      expect(find.text('绿绮琴'), findsOneWidget);
-      expect(find.textContaining('镇庄之宝'), findsOneWidget);
+      expect(find.text('大楚秋声'), findsOneWidget);
+      expect(find.textContaining('山茶花宝石光效'), findsOneWidget);
     });
   });
 
