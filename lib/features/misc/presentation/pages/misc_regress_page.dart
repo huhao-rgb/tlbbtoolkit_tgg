@@ -4,8 +4,10 @@ import 'dart:convert';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
@@ -30,7 +32,9 @@ import 'package:tlbbtoolkit/features/misc/domain/reg_account.dart';
 ///   长按账号卡片可拖拽调整排序（顺序随列表持久化）；
 /// - 选中账号面板三态：空闲可开始回归计时、计时中倒计时、已达成可领奖；
 /// - 底部面板同时展示该账号的回归历史记录；
-/// - 账号与计时状态持久化到本地（原型 `localStorage[tgg-reg-v1]`）。
+/// - 账号与计时状态持久化到本地（`tgg-reg-v2`，含 `updatedAt` / 墓碑元数据）；
+/// - 「同步码」把本机账号编码为一段文本，在另一台设备粘贴即合并，
+///   用于跨端（手机 ↔ 桌面）迁移数据；合并规则见 `reg_sync.dart`。
 class MiscRegressPage extends ConsumerStatefulWidget {
   const MiscRegressPage({super.key});
 
@@ -96,8 +100,9 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
               ];
             });
           } else {
+            // 随机 id：毫秒时间戳在多设备间会撞号（同步合并时误并为一个账号）。
             final a = RegAccount(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              id: newRegAccountId(),
               name: name,
               lv: lv,
               sectKey: sectKey,
@@ -144,7 +149,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
   /// 拖拽结束：把调整后的顺序落盘一次（避免悬停换位时频繁写存储）。
   void _onReorderDragEnd() => _persist();
 
-  // ---- 导入 / 导出（原型 `regExport` / `regImportFile`）----
+  // ---- 导入 / 导出 / 同步码（原型 `regExport` / `regImportFile`）----
 
   static const _jsonType = XTypeGroup(
     label: 'JSON',
@@ -233,19 +238,37 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
       _toast('导入失败：文件格式不正确，请使用本工具导出的 JSON 文件', warn: true);
       return;
     }
-    final r = _repo.mergeImported(raw, current: _accts);
-    if (r.added > 0) {
-      setState(() => _accts = r.merged);
+    await _mergeAccounts(raw);
+  }
+
+  /// 合并外部账号（导入文件 / 同步码）→ 落盘 → 提示结果。
+  ///
+  /// 合并规则见 `domain/reg_sync.dart`：按 id（或「姓名+门派」）判重、
+  /// 回归记录取并集、时间戳新者胜。
+  Future<void> _mergeAccounts(List<Map<String, dynamic>> raw) async {
+    // 仓储内部以「含墓碑的本地记录」为基准合并并落盘，
+    // 因此已删除的账号不会被外部旧数据复活。
+    final r = await _repo.importAccounts(raw);
+    if (r.added > 0 || r.updated > 0) {
+      setState(() => _accts = r.accts);
+      _startTickerIfNeeded();
     }
-    await _persist();
+    final changed = r.added + r.updated;
     _toast(
-      r.added > 0
-          ? '导入成功：新增 ${r.added} 条'
-                '${r.skipped > 0 ? ' · 跳过重复/无效 ${r.skipped} 条' : ''}'
-          : '没有可导入的新账户（全部重复或无效）',
-      warn: r.added == 0,
+      changed > 0
+          ? '合并成功：新增 ${r.added} 条 · 更新 ${r.updated} 条'
+                '${r.skipped > 0 ? ' · 跳过 ${r.skipped} 条' : ''}'
+          : '没有需要合并的变更（数据已是最新）',
+      warn: changed == 0,
     );
   }
+
+  /// 同步码：展示本机同步码，并接收其他设备的同步码合并到本机。
+  Future<void> _syncCode() => showTgModal(
+    context: context,
+    maxWidth: 520,
+    child: _SyncCodeModal(repo: _repo, accts: _accts, onMerge: _mergeAccounts),
+  );
 
   static String _p2(int v) => v.toString().padLeft(2, '0');
 
@@ -392,14 +415,16 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
         ),
       ],
     );
-    // 导入 / 导出 / 添加账号 按钮组（原型 `regImportBtn` / `regExport`）
-    final actions = Row(
-      mainAxisSize: MainAxisSize.min,
+    // 导入 / 导出 / 同步码 / 添加账号 按钮组（原型 `regImportBtn` / `regExport`）
+    // Wrap：按钮变多后窄屏逐个折行而不是溢出。
+    final actions = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.end,
       children: [
         _LineIconButton(icon: 'download', label: '导入', onTap: _importJson),
-        const SizedBox(width: 8),
         _LineIconButton(icon: 'upload', label: '导出', onTap: _exportJson),
-        const SizedBox(width: 8),
+        _LineIconButton(icon: 'spark', label: '同步码', onTap: _syncCode),
         _AddButton(onTap: () => _addOrEdit(), compact: compact),
       ],
     );
@@ -413,7 +438,17 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
               Align(alignment: Alignment.centerRight, child: actions),
             ],
           )
-        : Row(children: [titleBadge, const Spacer(), actions]);
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleBadge,
+              const SizedBox(width: 12),
+              // Expanded 给 Wrap 定宽，按钮多时自动折行而非溢出
+              Expanded(
+                child: Align(alignment: Alignment.centerRight, child: actions),
+              ),
+            ],
+          );
     return TgCard(
       basePadding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -1954,6 +1989,304 @@ class _SectPill extends StatelessWidget {
 }
 
 /// 页脚（天工阁通用两行文案）已改用 shared 的 [TgPageFoot]。
+
+/// 同步码弹窗：上半区展示本机同步码（可复制），下半区粘贴其他设备的同步码合并。
+///
+/// 之所以用「一段文本」而不是 QR / 局域网直传：无需引入新依赖、无需后端，
+/// 复制粘贴到聊天窗口即可完成跨端传递，覆盖手机 ↔ 桌面的全部组合。
+class _SyncCodeModal extends StatefulWidget {
+  const _SyncCodeModal({
+    required this.repo,
+    required this.accts,
+    required this.onMerge,
+  });
+
+  final RegRepository repo;
+  final List<RegAccount> accts;
+
+  /// 合并回调（由页面负责落盘与提示）。
+  final Future<void> Function(List<Map<String, dynamic>> raw) onMerge;
+
+  @override
+  State<_SyncCodeModal> createState() => _SyncCodeModalState();
+}
+
+class _SyncCodeModalState extends State<_SyncCodeModal> {
+  late final String _code = widget.repo.buildSyncCode(widget.accts);
+  final TextEditingController _paste = TextEditingController();
+  bool _copied = false;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _paste.dispose();
+    super.dispose();
+  }
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: _code));
+    if (mounted) setState(() => _copied = true);
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+    if (!mounted || text == null || text.isEmpty) return;
+    setState(() {
+      _paste.text = text;
+      _error = null;
+    });
+  }
+
+  Future<void> _merge() async {
+    if (_busy) return;
+    final text = _paste.text.trim();
+    if (text.isEmpty) {
+      setState(() => _error = '请先粘贴其他设备的同步码');
+      return;
+    }
+    final List<Map<String, dynamic>>? raw;
+    try {
+      raw = widget.repo.parseSyncCode(text);
+    } on FormatException {
+      setState(() => _error = '同步码无法识别，请确认已完整复制');
+      return;
+    }
+    setState(() {
+      _error = null;
+      _busy = true;
+    });
+    await widget.onMerge(raw);
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final count = widget.accts.where((a) => !a.isDeleted).length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // modal-head
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: tg.goldTint(.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tg.goldTint(.28), width: 1),
+              ),
+              child: TgIcon('spark', size: 21, color: tg.gold),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '数据同步码',
+                    style: TextStyle(
+                      fontFamily: TgFonts.serif,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: tg.t1,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '跨设备传递 · 账号与回归记录',
+                    style: TgType.tag.copyWith(color: tg.t3),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            TgModalCloseButton(onTap: () => Navigator.of(context).pop()),
+          ],
+        ),
+        const SizedBox(height: 14),
+        const TgNoteBar(
+          text:
+              '同步码是一段文本：在本机生成后复制，到另一台设备的同一弹窗粘贴并合并。'
+              '其中包含账号名与回归记录，请勿公开分享。',
+          accent: TgNoteAccent.plain,
+        ),
+        const SizedBox(height: 15),
+        Row(
+          children: [
+            Expanded(child: _FieldLabel('本机同步码（$count 个账号）')),
+            _LineIconButton(icon: 'note', label: '复制同步码', onTap: _copy),
+            if (_copied) ...[
+              const SizedBox(width: 8),
+              Text('已复制', style: TgType.tag.copyWith(color: tg.gold2)),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        // 二维码：另一台设备用系统相机 / 微信扫一扫即可拿到同一段同步码，
+        // 省去「复制 → 发到聊天窗口 → 打开文件」的中间步骤。
+        _SyncCodeQr(data: _code),
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            '扫码得到同步码，粘贴到下框即可',
+            style: TgType.tag.copyWith(color: tg.t3),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 76,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: tg.inset,
+            borderRadius: TgRadius.input,
+            border: Border.all(color: tg.border, width: 1),
+          ),
+          child: SingleChildScrollView(
+            child: SelectableText(
+              _code,
+              style: TextStyle(
+                fontSize: 11.5,
+                height: 1.5,
+                color: tg.t2,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Divider(color: tg.border, height: 1),
+        const SizedBox(height: 15),
+        _FieldLabel('粘贴其他设备的同步码'),
+        const SizedBox(height: 6),
+        TgTextField(
+          controller: _paste,
+          hintText: 'TGG1:…',
+          height: 44,
+          onChanged: (_) => setState(() => _error = null),
+          suffix: _MiniTextButton(label: '粘贴', onTap: _pasteFromClipboard),
+        ),
+        if (_error != null) ...[
+          const SizedBox(height: 8),
+          Text(_error!, style: TgType.tag.copyWith(color: tg.red)),
+        ],
+        const SizedBox(height: 18),
+        SizedBox(
+          width: double.infinity,
+          child: _PrimaryButton(label: '合并到本机', onTap: _merge),
+        ),
+      ],
+    );
+  }
+}
+
+/// 同步码二维码（把 [data] 这段同步码画成可扫的图形）。
+///
+/// - **固定白底 + 标准留白**：深色主题下二维码仍必须「白底黑块」才扫得动，
+///   因此这里不跟随主题色；
+/// - 纠错级别取最低的 `L`：单账号约 150 字符 Base64，账号多时只有 L 装得下。
+///   超出容量时 [PrettyQrView.data] 会回调 `errorBuilder`，降级提示改用复制；
+/// - 形状用 [PrettyQrSmoothSymbol] 而非方块 / 圆点：后两者内部按
+///   `clamp(x, 1, moduleSize / 2)` 计算，**模块小于 2 逻辑像素时 `min > max`
+///   直接断言崩溃**（账号较多、二维码变密时必然踩到）。SmoothSymbol 的圆角
+///   半径与模块尺寸成比例，模块变小会自然退化成方块，不会崩。
+class _SyncCodeQr extends StatelessWidget {
+  const _SyncCodeQr({required this.data});
+
+  final String data;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 220),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: tg.borderHi, width: 1),
+            ),
+            child: PrettyQrView.data(
+              data: data,
+              errorCorrectLevel: QrErrorCorrectLevel.L,
+              decoration: const PrettyQrDecoration(
+                background: Colors.white,
+                quietZone: PrettyQrQuietZone.standard,
+                shape: PrettyQrSmoothSymbol(
+                  roundFactor: 0.5,
+                  color: Colors.black,
+                ),
+              ),
+              errorBuilder: (_, _, _) => const _QrOverflowHint(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 同步码超出二维码容量时的降级提示。
+class _QrOverflowHint extends StatelessWidget {
+  const _QrOverflowHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(10),
+        child: Text(
+          '账号较多，同步码超出二维码容量\n请改用「复制同步码」',
+          textAlign: TextAlign.center,
+          // 固定画在白底二维码框内，不跟随主题色（否则对比度不足）
+          style: TextStyle(
+            fontSize: 11.5,
+            height: 1.6,
+            color: Color(0xFF6B6B6B),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 极简文字按钮（弹窗输入框内的「粘贴」等微操作）。
+class _MiniTextButton extends StatelessWidget {
+  const _MiniTextButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: tg.gold2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// 两位补零（用于时间 / 倒计时文本）。
 String _pad2(int n) => n.toString().padLeft(2, '0');
