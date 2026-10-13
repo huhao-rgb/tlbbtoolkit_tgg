@@ -25,4 +25,19 @@ abstract final class AppConstants {
     'USE_LOCAL_DATA_SOURCE',
     defaultValue: true,
   );
+
+  /// 云同步接口根地址（腾讯云开发 CloudBase 的 HTTP 访问服务域名，
+  /// 形如 `https://<envId>.service.tcloudbase.com`），通过
+  /// `--dart-define=SYNC_BASE_URL=...` 注入（本地见 `.vscode/launch.json`，
+  /// CI 见仓库变量 `vars.SYNC_BASE_URL`）。
+  ///
+  /// **留空 = 未启用云同步**：卡回归功能照常离线可用，云同步入口隐藏。
+  /// 「是否已配置 + 斜杠容错」的统一判定见 `regSyncConfigProvider`。
+  static const String syncBaseUrl = String.fromEnvironment('SYNC_BASE_URL');
+
+  /// 云同步接口路径，需与控制台里 HTTP 访问服务配置的路径一致。
+  static const String syncPath = String.fromEnvironment(
+    'SYNC_PATH',
+    defaultValue: '/reg',
+  );
 }

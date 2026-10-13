@@ -172,6 +172,61 @@ final class LocalStorageProvider
 
 String _$localStorageHash() => r'5c3fbac58b511e27789874d27914836b4215318d';
 
+/// 平台安全存储（Keychain / Keystore / libsecret / 凭据管理器）。
+///
+/// 用于存放**不应明文落盘**的凭据，如卡回归的云同步配对私钥
+/// （见 `RegPairingStore`）；普通业务数据仍走 [localStorageProvider]。
+
+@ProviderFor(secureKvStore)
+final secureKvStoreProvider = SecureKvStoreProvider._();
+
+/// 平台安全存储（Keychain / Keystore / libsecret / 凭据管理器）。
+///
+/// 用于存放**不应明文落盘**的凭据，如卡回归的云同步配对私钥
+/// （见 `RegPairingStore`）；普通业务数据仍走 [localStorageProvider]。
+
+final class SecureKvStoreProvider
+    extends $FunctionalProvider<SecureKvStore, SecureKvStore, SecureKvStore>
+    with $Provider<SecureKvStore> {
+  /// 平台安全存储（Keychain / Keystore / libsecret / 凭据管理器）。
+  ///
+  /// 用于存放**不应明文落盘**的凭据，如卡回归的云同步配对私钥
+  /// （见 `RegPairingStore`）；普通业务数据仍走 [localStorageProvider]。
+  SecureKvStoreProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'secureKvStoreProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$secureKvStoreHash();
+
+  @$internal
+  @override
+  $ProviderElement<SecureKvStore> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SecureKvStore create(Ref ref) {
+    return secureKvStore(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SecureKvStore value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SecureKvStore>(value),
+    );
+  }
+}
+
+String _$secureKvStoreHash() => r'00e2fb31b9f25a4eb223b59919961303b3003ec3';
+
 /// 应用包信息（应用名 / 版本号 / 构建号），运行时由 `package_info_plus`
 /// 从平台侧读取。
 ///

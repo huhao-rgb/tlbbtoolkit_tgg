@@ -96,20 +96,26 @@ void main() {
   });
 
   test('save：内容未变不刷新 updatedAt；变化才刷新', () async {
-    final r = await repo();
+    // 注入时钟：updatedAt 是毫秒级，用真实时钟会因「两次 save 落在同一毫秒」而偶发失败。
+    var clock = 1000;
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final r = RegRepository(LocalStorage(prefs), clock: () => clock);
+
     await r.save([
       RegAccount(id: 'a1', name: '甲', lv: 89, sectKey: 'xiaoyao'),
     ], null);
-    final first = r.load().accts.single.updatedAt;
-    expect(first, greaterThan(0));
+    expect(r.load().accts.single.updatedAt, 1000);
 
     // 同样内容再存一次 → 时间戳不变（幂等，避免无意义漂移）
+    clock = 2000;
     await r.save(r.load().accts, null);
-    expect(r.load().accts.single.updatedAt, first);
+    expect(r.load().accts.single.updatedAt, 1000);
 
-    // 改了等级 → 刷新
+    // 改了等级 → 刷新到当次时钟
+    clock = 3000;
     await r.save([r.load().accts.single.copyWith(lv: 90)], null);
-    expect(r.load().accts.single.updatedAt, greaterThan(first));
+    expect(r.load().accts.single.updatedAt, 3000);
     expect(r.load().accts.single.lv, 90);
   });
 

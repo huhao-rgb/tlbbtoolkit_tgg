@@ -23,10 +23,23 @@ const int kRegSyncPayloadVersion = 2;
 ///
 /// 必须含墓碑：否则「A 设备删掉的账号」无法传播到 B，B 下次同步会把它推回来。
 /// 上传前先过 [pruneRegTombstones] 裁掉超期墓碑。
-String encodeRegSyncPayload(List<RegAccount> accounts) => jsonEncode({
-  'v': kRegSyncPayloadVersion,
-  'accts': [for (final a in accounts) a.toJson()],
-});
+///
+/// **顺序规范化（essential）**：账号按 id 排序后再编码。同步引擎是靠
+/// 「载荷文本是否相等」判断要不要回传的，而 [mergeRegAccounts] 刻意保留
+/// `local` 顺序（导入/合并后不搅乱本机列表）。两者相遇会产生一个隐蔽的
+/// 往复：A 上传的顺序以 A 为 local，B 合并后顺序以 B 为 local，
+/// 于是**内容已完全一致、载荷文本却不同**，两端每次同步都各白写一次云端
+/// （rev 无限增长、状态永远到不了 `upToDate`）。
+///
+/// 排序让载荷成为**内容的规范形式**，与「谁先合并」无关；
+/// 本机列表顺序不受影响（`saveAll` 存的是合并结果本身）。
+String encodeRegSyncPayload(List<RegAccount> accounts) {
+  final ordered = [...accounts]..sort((a, b) => a.id.compareTo(b.id));
+  return jsonEncode({
+    'v': kRegSyncPayloadVersion,
+    'accts': [for (final a in ordered) a.toJson()],
+  });
+}
 
 /// 解析云端载荷；结构不符抛 [FormatException]。
 List<RegAccount> decodeRegSyncPayload(String source) {
@@ -53,13 +66,21 @@ typedef RegMergeResult = ({
   int skipped,
 });
 
-/// 合并本机账号 [local] 与外部账号 [remote]（来自导入文件或同步码）。
+/// 合并本机账号 [local] 与外部账号 [remote]（来自导入文件、同步码或云端）。
 ///
 /// [local] 的顺序被保留（新账号按 [remote] 顺序追加），避免导入后本机
 /// 排序被搅乱。返回列表**可能含墓碑记录**，由仓储决定如何持久化与过滤。
+///
+/// [canonicalizeIds]：判重命中但两端 id 不同时，是否把 id 统一到
+/// [_canonicalId] 的确定性取值。
+/// - **云同步必须开启**（见 `syncRegAccounts`）：两端独立合并出的载荷必须
+///   逐字节一致，否则「内容已同步」永远判不出来，两端会反复回传；
+/// - **导入保持关闭**：导入是本地一次性动作，不需要跨端字节相等，
+///   此时把本机 id 悄悄换成导入项生成的随机 id 只会让用户困惑（选中项丢失）。
 RegMergeResult mergeRegAccounts({
   required List<RegAccount> local,
   required List<RegAccount> remote,
+  bool canonicalizeIds = false,
 }) {
   final merged = <RegAccount>[...local];
   final indexById = <String, int>{};
@@ -92,12 +113,15 @@ RegMergeResult mergeRegAccounts({
       continue;
     }
 
-    final next = _mergePair(merged[i], r);
+    final next = _mergePair(merged[i], r, canonicalizeIds: canonicalizeIds);
     if (next == null) {
       skipped++;
       continue;
     }
     merged[i] = next;
+    // id 可能被判重规则改成规范 id（见 _canonicalId）：补登记，
+    // 否则后面带该 id 的 remote 记录会找不到它，被当成新账号重复追加。
+    if (next.id.isNotEmpty) indexById.putIfAbsent(next.id, () => i!);
     updated++;
   }
 
@@ -113,8 +137,40 @@ String _nameKey(RegAccount a) => '${a.name}\u0000${a.sectKey}';
   return d == null ? (deleted: false, t: a.updatedAt) : (deleted: true, t: d);
 }
 
+/// 同一条账号在两端 id 不同时，取定的规范 id：**字典序较小者**。
+///
+/// 必须确定性：`_mergePair` 是「本机 vs 外部」两个方向的同一套代码，
+/// 若各自保留本机 id，两端合并出的载荷永远不同 → 每次同步都各白写一次云端
+/// （见 `encodeRegSyncPayload` 的注释）。取较小者**可交换**，
+/// 因此「谁先合并」不影响结果，两端必然收敛到同一个 id。
+String _canonicalId(String a, String b) {
+  if (a.isEmpty) return b;
+  if (b.isEmpty) return a;
+  return a.compareTo(b) <= 0 ? a : b;
+}
+
+/// 复制一条记录并替换 id / runs（[RegAccount.copyWith] 刻意不允许改 id）。
+RegAccount _rebuild(RegAccount base, {String? id, List<RegRun>? runs}) =>
+    RegAccount(
+      id: id ?? base.id,
+      name: base.name,
+      lv: base.lv,
+      sectKey: base.sectKey,
+      curMs: base.curMs,
+      runs: runs ?? base.runs,
+      updatedAt: base.updatedAt,
+      deletedAt: base.deletedAt,
+    );
+
 /// 合并同一条账号的本地版 [a] 与外部版 [b]；无需改动 [a] 时返回 null。
-RegAccount? _mergePair(RegAccount a, RegAccount b) {
+///
+/// 关键约束：**结果必须对调 [a]、[b] 后一致**（除 id 走 [_canonicalId]）。
+/// 否则两端各自合并出的载荷不同，同步引擎会以为「云端还没同步」而反复回传。
+RegAccount? _mergePair(
+  RegAccount a,
+  RegAccount b, {
+  required bool canonicalizeIds,
+}) {
   final ra = _rank(a);
   final rb = _rank(b);
   // 时间大者胜；打平则墓碑优先（宁可少复活，不可误复活）。
@@ -122,29 +178,38 @@ RegAccount? _mergePair(RegAccount a, RegAccount b) {
   final winner = bWins ? b : a;
   final wRank = bWins ? rb : ra;
 
+  final RegAccount merged;
   if (wRank.deleted) {
-    if (a.isDeleted) {
-      // 双方都是墓碑：只取更新的删除时间（影响墓碑保留期）。
-      return bWins ? b : null;
-    }
-    return winner;
+    // 胜者是墓碑：删除生效（或刷新墓碑时间）。
+    merged = a.isDeleted && !bWins ? a : winner;
+  } else if (a.isDeleted) {
+    // 本机是墓碑、对方存活 → 复活。回归轮次取并集：墓碑带着删除前的记录，
+    // 丢掉它会与镜像方向（走「双方都存活」分支）的结果不一致。
+    merged = _rebuild(winner, runs: _unionRuns(a.runs, b.runs));
+  } else {
+    // 双方都存活：标量字段取胜者，回归轮次取并集。
+    merged = RegAccount(
+      id: a.id,
+      name: winner.name,
+      lv: winner.lv,
+      sectKey: winner.sectKey,
+      curMs: winner.curMs,
+      runs: _unionRuns(a.runs, b.runs),
+      updatedAt: ra.t > rb.t ? ra.t : rb.t,
+    );
   }
 
-  // 胜者是存活记录：本机是墓碑 → 复活，直接采用胜者。
-  if (a.isDeleted) return winner;
+  // 不开启规范化时沿用原行为（保留本机 id）
+  final id = canonicalizeIds ? _canonicalId(a.id, b.id) : merged.id;
+  final result = id == merged.id ? merged : _rebuild(merged, id: id);
 
-  // 双方都存活：标量字段取胜者，回归轮次取并集。
-  final next = RegAccount(
-    id: a.id,
-    name: winner.name,
-    lv: winner.lv,
-    sectKey: winner.sectKey,
-    curMs: winner.curMs,
-    runs: _unionRuns(a.runs, b.runs),
-    updatedAt: ra.t > rb.t ? ra.t : rb.t,
-  );
-  // 内容与本地完全一致时不写回（保持本地时间戳，保证幂等）。
-  return next.sameContentAs(a) ? null : next;
+  // 无需写回：id 未变、内容一致、墓碑时间也没前进（后者影响墓碑保留期）。
+  if (result.id == a.id &&
+      result.sameContentAs(a) &&
+      result.deletedAt == a.deletedAt) {
+    return null;
+  }
+  return result;
 }
 
 /// 回归轮次并集：同一 `startMs` 视为同一轮，保留较大的 `endMs`，按起点升序。

@@ -155,7 +155,13 @@ Future<RegSyncResult> syncRegAccounts({
 
     final remoteReady = pruneRegTombstones(remoteAccounts, now);
     final merged = pruneRegTombstones(
-      mergeRegAccounts(local: base, remote: remoteReady).merged,
+      // canonicalizeIds: 云端两侧独立合并的载荷必须逐字节一致，
+      // 否则「已同步」永远判不出来（详见 mergeRegAccounts 的注释）
+      mergeRegAccounts(
+        local: base,
+        remote: remoteReady,
+        canonicalizeIds: true,
+      ).merged,
       now,
     );
 

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tlbbtoolkit/core/network/api_client.dart';
 import 'package:tlbbtoolkit/core/storage/local_storage.dart';
+import 'package:tlbbtoolkit/core/storage/secure_kv_store.dart';
 
 part 'providers.g.dart';
 
@@ -37,6 +38,13 @@ LocalStorage localStorage(Ref ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return LocalStorage(prefs);
 }
+
+/// 平台安全存储（Keychain / Keystore / libsecret / 凭据管理器）。
+///
+/// 用于存放**不应明文落盘**的凭据，如卡回归的云同步配对私钥
+/// （见 `RegPairingStore`）；普通业务数据仍走 [localStorageProvider]。
+@riverpod
+SecureKvStore secureKvStore(Ref ref) => const FlutterSecureKvStore();
 
 /// 应用包信息（应用名 / 版本号 / 构建号），运行时由 `package_info_plus`
 /// 从平台侧读取。

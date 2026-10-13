@@ -61,9 +61,13 @@ dependencies:
   package_info_plus: ^9.0.1
   pretty_qr_code: ^3.6.0
   cryptography: ^2.9.0
+  flutter_secure_storage: ^10.3.4
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  # 真机/真桌面集成测试（验证 flutter_secure_storage 等平台能力）
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to

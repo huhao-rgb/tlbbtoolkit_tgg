@@ -107,6 +107,28 @@ void main() {
       expect(() => decodeRegSyncPayload('not json'), throwsFormatException);
     });
 
+    test('云同步载荷：顺序规范化 —— 与输入顺序无关，且不改动调用方的列表', () {
+      // 引擎用「载荷文本相等」判断是否需要回传，而合并结果会保留各自的
+      // local 顺序；若载荷随顺序而变，两端内容一致却会互相反复回传。
+      final a = acct('b1', name: '乙');
+      final b = acct('a1', name: '甲');
+      final c = acct('c1', name: '丙');
+
+      expect(
+        encodeRegSyncPayload([a, b, c]),
+        encodeRegSyncPayload([c, a, b]),
+        reason: '同一组账号应编码出完全相同的文本',
+      );
+
+      final input = [a, b, c];
+      encodeRegSyncPayload(input);
+      expect(input.map((x) => x.id).toList(), [
+        'b1',
+        'a1',
+        'c1',
+      ], reason: '编码不得就地排序调用方的列表');
+    });
+
     test('墓碑裁剪：过期丢弃、未过期保留、存活记录永不动（边界含等号）', () {
       final now = t0 + kRegTombstoneTtlMs;
       final kept = pruneRegTombstones([
@@ -121,6 +143,125 @@ void main() {
       ], now);
 
       expect(kept.map((a) => a.id), ['live', 'fresh']);
+    });
+  });
+
+  group('合并对称性（脚本靠载荷字节相等判断「是否已同步」）', () {
+    test('去重取定规范 id：镜像方向必须得到同一个 id 与同一份载荷', () {
+      // 历史数据的现实场景：同名同门派的账号在两端各自新增过，
+      // 早期版本用毫秒时间戳做 id → 两端 id 不同。若各自「保留本机 id」，
+      // 两端合并出的载荷永远不同 → 每次同步都各白写一次云端（无限往复）。
+      final onA = acct('aaaa0000000000000000000000000001', name: '逍遥生');
+      final onB = acct('bbbb0000000000000000000000000002', name: '逍遥生');
+
+      final fromA = mergeRegAccounts(
+        local: [onA],
+        remote: [onB],
+        canonicalizeIds: true,
+      ).merged;
+      final fromB = mergeRegAccounts(
+        local: [onB],
+        remote: [onA],
+        canonicalizeIds: true,
+      ).merged;
+
+      expect(fromA, hasLength(1));
+      expect(fromB, hasLength(1));
+      expect(fromA.single.id, fromB.single.id, reason: '两端必须收敛到同一个 id');
+      expect(fromA.single.id, onA.id, reason: '取字典序较小者');
+      expect(
+        encodeRegSyncPayload(fromA),
+        encodeRegSyncPayload(fromB),
+        reason: '载荷必须逐字节一致，否则永远到不了 upToDate',
+      );
+    });
+
+    test('本机 id 较大时会被换成规范 id，且确实写回', () {
+      final big = acct('bbbb0000000000000000000000000002', name: '逍遥生');
+      final small = acct('aaaa0000000000000000000000000001', name: '逍遥生');
+
+      final res = mergeRegAccounts(
+        local: [big],
+        remote: [small],
+        canonicalizeIds: true,
+      );
+      expect(res.merged.single.id, small.id);
+      expect(res.updated, 1, reason: 'id 变化必须真的写回，否则本机永远坚持自己的 id，往复依旧');
+    });
+
+    test('导入路径（默认关闭规范化）不得改动本机 id', () {
+      final localAcct = acct('a1', name: '已有号');
+      final incoming = acct('00000000000000000000000000000001', name: '已有号');
+
+      final res = mergeRegAccounts(local: [localAcct], remote: [incoming]);
+      expect(res.merged.single.id, 'a1', reason: '导入是本地动作，不该换掉本机 id');
+      expect(res.updated, 0);
+      expect(res.skipped, 1);
+    });
+
+    test('墓碑同样规范化（墓碑 id 不一致一样会往复）', () {
+      final tombA = acct(
+        'aaaa0000000000000000000000000001',
+        name: '逍遥生',
+        deletedAt: t0 + 100,
+        updatedAt: t0 + 100,
+      );
+      final tombB = acct(
+        'bbbb0000000000000000000000000002',
+        name: '逍遥生',
+        deletedAt: t0 + 100,
+        updatedAt: t0 + 100,
+      );
+
+      final fromA = mergeRegAccounts(
+        local: [tombA],
+        remote: [tombB],
+        canonicalizeIds: true,
+      ).merged;
+      final fromB = mergeRegAccounts(
+        local: [tombB],
+        remote: [tombA],
+        canonicalizeIds: true,
+      ).merged;
+
+      expect(fromA.single.isDeleted, isTrue);
+      expect(fromA.single.id, fromB.single.id);
+      expect(encodeRegSyncPayload(fromA), encodeRegSyncPayload(fromB));
+    });
+
+    test('复活路径：回归轮次取并集，且镜像方向结果一致', () {
+      final tomb = acct(
+        'aaaa0000000000000000000000000001',
+        name: '逍遥生',
+        runs: [run(1)],
+        deletedAt: t0 + 50,
+        updatedAt: t0 + 50,
+      );
+      final live = acct(
+        'bbbb0000000000000000000000000002',
+        name: '逍遥生',
+        runs: [run(2)],
+        updatedAt: t0 + 90,
+      );
+
+      final fromTomb = mergeRegAccounts(
+        local: [tomb],
+        remote: [live],
+        canonicalizeIds: true,
+      ).merged;
+      final fromLive = mergeRegAccounts(
+        local: [live],
+        remote: [tomb],
+        canonicalizeIds: true,
+      ).merged;
+
+      expect(fromTomb.single.isDeleted, isFalse, reason: '更晚的存活记录应复活账号');
+      expect(fromTomb.single.runs, [run(1), run(2)], reason: '轮次取并集，不得丢');
+      expect(fromLive.single.runs, [
+        run(1),
+        run(2),
+      ], reason: '镜像方向同样取并集（否则两端载荷不一致）');
+      expect(encodeRegSyncPayload(fromTomb), encodeRegSyncPayload(fromLive));
     });
   });
 

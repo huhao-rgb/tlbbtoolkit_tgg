@@ -1,0 +1,40 @@
+{
+  // F5 调试配置：云同步地址通过 `--dart-define` 编译期注入。
+  //
+  // ⚠️ `--dart-define` 必须放 **toolArgs**（传给 flutter 工具），
+  //    放 `args` 会被当成传给 main() 的参数、define 不生效。
+  //
+  // 云同步地址与后端部署说明见 server/cloudbase/README.md。
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "天工阁 · macOS（云同步）",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "deviceId": "macos",
+      "toolArgs": [
+        "--dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com"
+      ]
+    },
+    {
+      "name": "天工阁 · Chrome（云同步）",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com"
+      ]
+    },
+    {
+      // 对照配置：不注入 SYNC_BASE_URL，用于验证「未配置云同步」的降级表现
+      // （页头不显示同步徽标、同步弹窗默认落在「一次性同步码」）。
+      "name": "天工阁 · macOS（仅本地）",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "deviceId": "macos"
+    }
+  ]
+}

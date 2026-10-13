@@ -37,6 +37,20 @@ class ApiClient {
     return dio;
   }
 
+  /// 创建云同步专用的 [Dio]。
+  ///
+  /// 与 [createDio] 的区别：**不挂 LogInterceptor**。云同步是高频静默调用，
+  /// 且请求体是整段密文，打日志既无用又吵闹。
+  static Dio createSyncDio(String baseUrl) => Dio(
+    BaseOptions(
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 15),
+      sendTimeout: const Duration(seconds: 15),
+      headers: const {'Accept': 'application/json'},
+    ),
+  );
+
   /// 供仓储层统一处理 [DioException]。
   static ApiException toApiException(Object error) {
     if (error is DioException) {

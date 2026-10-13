@@ -9,15 +9,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/core/storage/local_storage.dart';
+import 'package:tlbbtoolkit/core/storage/secure_kv_store.dart';
+import 'package:tlbbtoolkit/features/misc/data/reg_pairing_store.dart';
 import 'package:tlbbtoolkit/features/misc/data/reg_repository.dart';
+import 'package:tlbbtoolkit/features/misc/data/reg_sync_gateway_memory.dart';
 import 'package:tlbbtoolkit/features/misc/domain/reg_account.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/providers/reg_sync_providers.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_regress_page.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 
 /// 以完整主题 + ProviderScope（注入 mock prefs）泵入卡回归页。
 Future<void> pumpPage(
   WidgetTester tester, {
   Size size = const Size(1200, 1000),
   Map<String, Object> initial = const {},
+  MemorySecureStore? secureStore,
+  RegSyncGatewayMemory? gateway,
+  bool cloudConfigured = false,
 }) async {
   SharedPreferences.setMockInitialValues(initial);
   final prefs = await SharedPreferences.getInstance();
@@ -25,7 +33,18 @@ Future<void> pumpPage(
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        if (secureStore != null)
+          secureKvStoreProvider.overrideWithValue(secureStore),
+        if (gateway != null) regSyncGatewayProvider.overrideWithValue(gateway),
+        if (cloudConfigured)
+          regSyncConfigProvider.overrideWithValue((
+            enabled: true,
+            baseUrl: 'https://sync.example.com',
+            path: '/reg',
+          )),
+      ],
       child: MaterialApp(
         theme: TgTheme.dark,
         darkTheme: TgTheme.dark,
@@ -57,6 +76,31 @@ Map<String, Object> seedAccounts(int n) => {
     'sel': null,
   }),
 };
+
+/// 打开「数据同步」弹窗并切到「一次性同步码」tab。
+///
+/// 默认构建没有注入 SYNC_BASE_URL，弹窗本就落在这个 tab；这里显式点一次，
+/// 保证无论构建开关如何都稳定。
+Future<void> openOneShotTab(WidgetTester tester) async {
+  await tester.tap(find.text('同步'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('一次性同步码'));
+  await tester.pumpAndSettle();
+}
+
+/// 内存版安全存储（页面测试不碰平台通道）。
+class MemorySecureStore implements SecureKvStore {
+  final Map<String, String> data = {};
+
+  @override
+  Future<String?> read(String key) async => data[key];
+
+  @override
+  Future<void> write(String key, String value) async => data[key] = value;
+
+  @override
+  Future<void> delete(String key) async => data.remove(key);
+}
 
 void main() {
   testWidgets('默认渲染：页头 + 规则 + 空态账号卡 + 未选中提示', (tester) async {
@@ -201,10 +245,9 @@ void main() {
     await tester.tap(find.text('保存账号'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('同步码'));
-    await tester.pumpAndSettle();
+    await openOneShotTab(tester);
 
-    expect(find.text('数据同步码'), findsOneWidget);
+    expect(find.text('数据同步'), findsOneWidget);
     expect(find.textContaining('本机同步码'), findsOneWidget);
     expect(find.byType(SelectableText), findsOneWidget);
     expect(find.text('复制同步码'), findsOneWidget);
@@ -228,7 +271,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 弹窗关闭 + 他机账号已并入（本机账号保留）
-    expect(find.text('数据同步码'), findsNothing);
+    expect(find.text('数据同步'), findsNothing);
     expect(find.text('武当山长'), findsWidgets);
     expect(find.text('逍遥生'), findsWidgets);
     expect(find.text('2'), findsOneWidget);
@@ -243,7 +286,7 @@ void main() {
 
     // 4 个操作按钮 + 账号卡在窄屏的最挤状态（溢出即抛 RenderFlex 异常）
     expect(find.text('导入'), findsOneWidget);
-    expect(find.text('同步码'), findsOneWidget);
+    expect(find.text('同步'), findsOneWidget);
 
     await tester.tap(find.text('添加账号'));
     await tester.pumpAndSettle();
@@ -251,9 +294,8 @@ void main() {
     await tester.tap(find.text('保存账号'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('同步码'));
-    await tester.pumpAndSettle();
-    expect(find.text('数据同步码'), findsOneWidget);
+    await openOneShotTab(tester);
+    expect(find.text('数据同步'), findsOneWidget);
     expect(find.text('合并到本机'), findsOneWidget);
     expect(find.byType(PrettyQrView), findsOneWidget);
   });
@@ -264,8 +306,7 @@ void main() {
     // clamp(x, 1, moduleSize/2) 计算，模块 <2px 时 min>max 直接断言崩溃。
     await pumpPage(tester, initial: seedAccounts(10));
 
-    await tester.tap(find.text('同步码'));
-    await tester.pumpAndSettle();
+    await openOneShotTab(tester);
 
     expect(find.byType(PrettyQrView), findsOneWidget);
     expect(find.textContaining('超出二维码容量'), findsNothing);
@@ -276,8 +317,7 @@ void main() {
     await pumpPage(tester, initial: seedAccounts(40));
     expect(find.text('40'), findsOneWidget); // 账号计数
 
-    await tester.tap(find.text('同步码'));
-    await tester.pumpAndSettle();
+    await openOneShotTab(tester);
 
     // 编码失败 → 走 errorBuilder 降级，而不是抛异常 / 白屏
     expect(find.byType(PrettyQrView), findsNothing);
@@ -285,5 +325,120 @@ void main() {
     // 复制通道仍然可用
     expect(find.byType(SelectableText), findsOneWidget);
     expect(find.text('复制同步码'), findsOneWidget);
+  });
+
+  testWidgets('云同步未配置：页头不显示徽标，弹窗默认落在「一次性同步码」', (tester) async {
+    await pumpPage(tester);
+
+    expect(find.text('未开启'), findsNothing, reason: '未配置云同步不应出现状态徽标');
+    expect(find.text('已同步'), findsNothing);
+
+    await tester.tap(find.text('同步'));
+    await tester.pumpAndSettle();
+    expect(find.text('数据同步'), findsOneWidget);
+    // 未配置 → 默认落在可用的那条通道
+    expect(find.textContaining('本机同步码'), findsOneWidget);
+
+    await tester.tap(find.text('云同步'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('未配置云同步'), findsOneWidget);
+  });
+
+  testWidgets('云同步已配置：页头徽标「未开启」→ 生成配对码后上传并转「已同步」', (tester) async {
+    final secure = MemorySecureStore();
+    final gateway = RegSyncGatewayMemory();
+    await pumpPage(
+      tester,
+      secureStore: secure,
+      gateway: gateway,
+      cloudConfigured: true,
+    );
+
+    // 先造一条本机数据
+    await tester.tap(find.text('添加账号'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '逍遥生');
+    await tester.tap(find.text('保存账号'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('未开启'), findsOneWidget, reason: '页面标题旁的状态徽标');
+
+    await tester.tap(find.text('同步'));
+    await tester.pumpAndSettle();
+    // 已配置 → 默认落在云同步
+    expect(find.text('生成配对码并开启同步'), findsOneWidget);
+
+    await tester.tap(find.text('生成配对码并开启同步'));
+    await tester.pumpAndSettle();
+
+    // 配对完成：上传了密文，界面给出配对码与状态
+    expect(gateway.recordCount, 1);
+    expect(find.textContaining('已同步'), findsWidgets);
+    expect(find.text('复制配对码'), findsOneWidget);
+    expect(find.byType(PrettyQrView), findsOneWidget);
+    // 凭据进了安全存储
+    expect(secure.data[RegPairingStore.key], isNotNull);
+
+    // 关掉弹窗后，页头徽标为「已同步」
+    await tester.tap(find.byType(TgModalCloseButton));
+    await tester.pumpAndSettle();
+    expect(find.text('已同步'), findsOneWidget);
+  });
+
+  testWidgets('云同步已配对：本地新增账号后防抖自动推送（无需手动点同步）', (tester) async {
+    final secure = MemorySecureStore();
+    final gateway = RegSyncGatewayMemory();
+    await pumpPage(
+      tester,
+      secureStore: secure,
+      gateway: gateway,
+      cloudConfigured: true,
+    );
+
+    await tester.tap(find.text('同步'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('生成配对码并开启同步'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TgModalCloseButton));
+    await tester.pumpAndSettle();
+
+    final pushes = gateway.pushCount;
+
+    // 新增账号 → 页面落盘后交给同步控制器防抖
+    await tester.tap(find.text('添加账号'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '武当山长');
+    await tester.tap(find.text('保存账号'));
+    await tester.pumpAndSettle();
+    expect(gateway.pushCount, pushes, reason: '防抖窗口内不该立刻推送');
+    expect(find.text('待同步'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(gateway.pushCount, pushes + 1, reason: '防抖结束后自动推送一次');
+    expect(find.text('已同步'), findsOneWidget);
+  });
+
+  testWidgets('窄屏 390（已配置云同步）：标题行徽标 + 按钮组 + 弹窗均不溢出', (tester) async {
+    final secure = MemorySecureStore();
+    final gateway = RegSyncGatewayMemory();
+    await pumpPage(
+      tester,
+      size: const Size(390, 900),
+      secureStore: secure,
+      gateway: gateway,
+      cloudConfigured: true,
+    );
+
+    expect(find.text('未开启'), findsOneWidget);
+
+    await tester.tap(find.text('同步'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('生成配对码并开启同步'));
+    await tester.pumpAndSettle();
+
+    // 配对完成后的视图（含二维码）在窄屏也必须完整可见（溢出会直接抛异常）
+    expect(find.textContaining('复制配对码'), findsOneWidget);
+    expect(find.byType(PrettyQrView), findsOneWidget);
   });
 }

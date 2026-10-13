@@ -26,7 +26,13 @@ typedef RegImportResult = ({
 /// 两条通道都复用 [mergeRegAccounts] 合并（按 id / 姓名+门派 判重，
 /// 回归轮次取并集），并兼容 v1 导出文件与纯账号数组。
 class RegRepository {
-  const RegRepository(this._store);
+  /// [clock] 可注入的当前时间（ms），用于测试消除毫秒级时序不确定性
+  /// （`updatedAt` 是毫秒粒度，两次连续写入可能落在同一毫秒）；生产环境为 null。
+  const RegRepository(this._store, {this.clock});
+
+  final int Function()? clock;
+
+  int _now() => clock?.call() ?? DateTime.now().millisecondsSinceEpoch;
 
   /// 当前存储 key（v2：账号带 `updatedAt` / `deletedAt` 同步元数据）。
   static const String key = 'tgg-reg-v2';
@@ -64,7 +70,7 @@ class RegRepository {
   /// - 上次落盘存在、本次消失的存活记录 → 转成墓碑（`deletedAt = now`）；
   /// - 过期墓碑 → 裁剪（见 [kRegTombstoneTtlMs]）。
   Future<List<RegAccount>> save(List<RegAccount> accts, String? sel) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = _now();
     final prev = _readStored()?.accts ?? const <RegAccount>[];
     final prevById = {for (final p in prev) p.id: p};
     final keptIds = {for (final a in accts) a.id};
@@ -96,7 +102,7 @@ class RegRepository {
   /// 与 [save] 的分工：[save] 面向「本地编辑」（自行推导墓碑、刷新时间戳）；
   /// 本方法面向「同步合并结果」（时间戳已由合并逻辑定好，原样落盘）。
   Future<List<RegAccount>> saveAll(List<RegAccount> all, String? sel) async {
-    final kept = pruneRegTombstones(all, DateTime.now().millisecondsSinceEpoch);
+    final kept = pruneRegTombstones(all, _now());
     await _writeStored(kept, sel);
     return [
       for (final a in kept)
@@ -214,7 +220,7 @@ class RegRepository {
     final migrated = _parseStored(legacy);
     // 历史记录没有 updatedAt：以迁移时间为准，使本机数据在后续合并中
     // 不被「时间戳更旧」的副本覆盖。
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = _now();
     final accts = [for (final a in migrated.accts) a.copyWith(updatedAt: now)];
     // 迁移落盘不阻塞首帧；写成功后再删 v1，失败则下次启动重试。
     unawaited(

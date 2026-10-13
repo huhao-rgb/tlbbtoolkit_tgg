@@ -11,7 +11,6 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
-import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
@@ -19,11 +18,16 @@ import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_segmented.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
+import 'package:tlbbtoolkit/features/misc/data/reg_pairing_store.dart';
 import 'package:tlbbtoolkit/features/misc/data/reg_repository.dart';
 import 'package:tlbbtoolkit/features/misc/domain/reg_account.dart';
+import 'package:tlbbtoolkit/features/misc/domain/reg_pairing.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/providers/reg_sync_controller.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/providers/reg_sync_providers.dart';
 
 /// 卡回归计算器（对应原型 `v-regression`）。
 ///
@@ -52,7 +56,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
   @override
   void initState() {
     super.initState();
-    _repo = RegRepository(ref.read(localStorageProvider));
+    _repo = ref.read(regAccountRepositoryProvider);
     final loaded = _repo.load();
     _accts = loaded.accts;
     _selId = loaded.sel;
@@ -79,7 +83,10 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
 
   Future<void> _persist() async {
     await _repo.save(_accts, _selId);
-    if (mounted) _startTickerIfNeeded();
+    if (!mounted) return;
+    _startTickerIfNeeded();
+    // 本地变更 → 交给同步控制器做防抖推送（未配对时是空操作）。
+    ref.read(regSyncControllerProvider.notifier).markDirty();
   }
 
   void _addOrEdit({RegAccount? edit}) {
@@ -263,11 +270,11 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
     );
   }
 
-  /// 同步码：展示本机同步码，并接收其他设备的同步码合并到本机。
-  Future<void> _syncCode() => showTgModal(
+  /// 打开「数据同步」弹窗（云同步 / 一次性同步码）。
+  Future<void> _openSync() => showTgModal(
     context: context,
     maxWidth: 520,
-    child: _SyncCodeModal(repo: _repo, accts: _accts, onMerge: _mergeAccounts),
+    child: _SyncModal(repo: _repo, accts: _accts, onMerge: _mergeAccounts),
   );
 
   static String _p2(int v) => v.toString().padLeft(2, '0');
@@ -323,6 +330,17 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 同步可能改写了本地数据（拉到了别的设备的内容）→ 重新加载页面持有的列表。
+    ref.listen(regSyncControllerProvider, (prev, next) {
+      if (next.dataRevision == (prev?.dataRevision ?? 0)) return;
+      final loaded = _repo.load();
+      setState(() {
+        _accts = loaded.accts;
+        _selId = loaded.sel;
+        if (_selId != null && !_accts.any((a) => a.id == _selId)) _selId = null;
+      });
+      _startTickerIfNeeded();
+    });
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
@@ -415,7 +433,21 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
         ),
       ],
     );
-    // 导入 / 导出 / 同步码 / 添加账号 按钮组（原型 `regImportBtn` / `regExport`）
+    // 标题右侧挂云同步状态徽标（未配置云同步时不显示，避免噪音）
+    final titleRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        titleBadge,
+        if (ref.watch(regSyncConfigProvider).enabled) ...[
+          const SizedBox(width: 10),
+          _SyncStatusChip(
+            sync: ref.watch(regSyncControllerProvider),
+            onTap: _openSync,
+          ),
+        ],
+      ],
+    );
+    // 导入 / 导出 / 同步 / 添加账号 按钮组（原型 `regImportBtn` / `regExport`）
     // Wrap：按钮变多后窄屏逐个折行而不是溢出。
     final actions = Wrap(
       spacing: 8,
@@ -424,7 +456,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
       children: [
         _LineIconButton(icon: 'download', label: '导入', onTap: _importJson),
         _LineIconButton(icon: 'upload', label: '导出', onTap: _exportJson),
-        _LineIconButton(icon: 'spark', label: '同步码', onTap: _syncCode),
+        _LineIconButton(icon: 'spark', label: '同步', onTap: _openSync),
         _AddButton(onTap: () => _addOrEdit(), compact: compact),
       ],
     );
@@ -433,7 +465,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              titleBadge,
+              titleRow,
               const SizedBox(height: 12),
               Align(alignment: Alignment.centerRight, child: actions),
             ],
@@ -441,7 +473,7 @@ class _MiscRegressPageState extends ConsumerState<MiscRegressPage> {
         : Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              titleBadge,
+              titleRow,
               const SizedBox(width: 12),
               // Expanded 给 Wrap 定宽，按钮多时自动折行而非溢出
               Expanded(
@@ -1990,12 +2022,14 @@ class _SectPill extends StatelessWidget {
 
 /// 页脚（天工阁通用两行文案）已改用 shared 的 [TgPageFoot]。
 
-/// 同步码弹窗：上半区展示本机同步码（可复制），下半区粘贴其他设备的同步码合并。
+/// 数据同步弹窗：云同步（配对 / 状态 / 手动同步）+ 一次性同步码。
 ///
-/// 之所以用「一段文本」而不是 QR / 局域网直传：无需引入新依赖、无需后端，
-/// 复制粘贴到聊天窗口即可完成跨端传递，覆盖手机 ↔ 桌面的全部组合。
-class _SyncCodeModal extends StatefulWidget {
-  const _SyncCodeModal({
+/// - 「云同步」配一次即全自动（见 `reg_sync_controller.dart`）；
+/// - 「一次性同步码」（`TGG1:`）无需后端，适合临时换机或只想传一次。
+///
+/// 两条通道都走同一套合并规则（`reg_sync.dart`），所以混用也不会互相踩。
+class _SyncModal extends ConsumerStatefulWidget {
+  const _SyncModal({
     required this.repo,
     required this.accts,
     required this.onMerge,
@@ -2008,11 +2042,352 @@ class _SyncCodeModal extends StatefulWidget {
   final Future<void> Function(List<Map<String, dynamic>> raw) onMerge;
 
   @override
-  State<_SyncCodeModal> createState() => _SyncCodeModalState();
+  ConsumerState<_SyncModal> createState() => _SyncModalState();
 }
 
-class _SyncCodeModalState extends State<_SyncCodeModal> {
+class _SyncModalState extends ConsumerState<_SyncModal> {
+  static const String _tabCloud = '云同步';
+  static const String _tabCode = '一次性同步码';
+
+  /// 未配置云同步时默认落在「一次性同步码」：不让用户一进来就看到用不了的功能。
+  late String _tab = ref.read(regSyncConfigProvider).enabled
+      ? _tabCloud
+      : _tabCode;
+
+  /// 打开弹窗时即固定一次性同步码（不随弹窗内的后续操作变化）。
   late final String _code = widget.repo.buildSyncCode(widget.accts);
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // modal-head
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: tg.goldTint(.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tg.goldTint(.28), width: 1),
+              ),
+              child: TgIcon('spark', size: 21, color: tg.gold),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '数据同步',
+                    style: TextStyle(
+                      fontFamily: TgFonts.serif,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: tg.t1,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '账号与回归记录 · 跨设备',
+                    style: TgType.tag.copyWith(color: tg.t3),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            TgModalCloseButton(onTap: () => Navigator.of(context).pop()),
+          ],
+        ),
+        const SizedBox(height: 14),
+        TgSegmented(
+          values: const [_tabCloud, _tabCode],
+          selected: _tab,
+          onSelect: (v) => setState(() => _tab = v),
+        ),
+        const SizedBox(height: 16),
+        if (_tab == _tabCloud)
+          const _CloudSyncView()
+        else
+          _OneShotCodeView(
+            code: _code,
+            accountCount: widget.accts.where((a) => !a.isDeleted).length,
+            repo: widget.repo,
+            onMerge: widget.onMerge,
+          ),
+      ],
+    );
+  }
+}
+
+/// 云同步视图：未配置 → 说明；未配对 → 生成/输入配对码；已配对 → 状态 + 配对码。
+class _CloudSyncView extends ConsumerStatefulWidget {
+  const _CloudSyncView();
+
+  @override
+  ConsumerState<_CloudSyncView> createState() => _CloudSyncViewState();
+}
+
+class _CloudSyncViewState extends ConsumerState<_CloudSyncView> {
+  final TextEditingController _paste = TextEditingController();
+  bool _copied = false;
+  bool _busy = false;
+  bool _confirmUnpair = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _paste.dispose();
+    super.dispose();
+  }
+
+  RegSyncController get _controller =>
+      ref.read(regSyncControllerProvider.notifier);
+
+  Future<void> _generate() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      // 生成即配对：本机成为「第一台设备」，随后自动上传本机数据。
+      await _controller.pair(RegPairing.generate());
+    } on RegPairingStoreException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _join() async {
+    if (_busy) return;
+    final text = _paste.text.trim();
+    if (text.isEmpty) {
+      setState(() => _error = '请先粘贴其他设备的配对码');
+      return;
+    }
+    final RegPairing pairing;
+    try {
+      pairing = RegPairing.decode(text);
+    } on FormatException catch (e) {
+      setState(() => _error = e.message);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _controller.pair(pairing);
+    } on RegPairingStoreException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _unpair() async {
+    // 两次点击确认（同删除账号的交互习惯）
+    if (!_confirmUnpair) {
+      setState(() => _confirmUnpair = true);
+      return;
+    }
+    try {
+      await _controller.unpair();
+      if (mounted) {
+        setState(() {
+          _confirmUnpair = false;
+          _error = null;
+        });
+      }
+    } on RegPairingStoreException catch (e) {
+      if (mounted) {
+        setState(() {
+          _confirmUnpair = false;
+          _error = e.message;
+        });
+      }
+    }
+  }
+
+  Future<void> _copyText(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) setState(() => _copied = true);
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+    if (!mounted || text == null || text.isEmpty) return;
+    setState(() {
+      _paste.text = text;
+      _error = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final enabled = ref.watch(regSyncConfigProvider).enabled;
+    if (!enabled) {
+      return const TgNoteBar(
+        text:
+            '当前构建未配置云同步（启动时没有注入 SYNC_BASE_URL），'
+            '请改用「一次性同步码」手动传递数据。',
+        accent: TgNoteAccent.plain,
+      );
+    }
+
+    final sync = ref.watch(regSyncControllerProvider);
+    final pairing = sync.pairing;
+    if (pairing == null) return _buildUnpaired(tg);
+
+    final code = pairing.encode();
+    final style = _syncPhaseStyle(tg, sync);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 状态行
+        Row(
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: style.color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 7),
+            Text(
+              style.detail,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: style.color,
+              ),
+            ),
+            const Spacer(),
+            _MiniTextButton(label: '立即同步', onTap: _controller.syncNow),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _FieldLabel('配对码（在其他设备输入同一码）'),
+        const SizedBox(height: 10),
+        _SyncCodeQr(data: code),
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            '另一台设备扫码，或复制此码粘贴到「云同步」',
+            style: TgType.tag.copyWith(color: tg.t3),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _LineIconButton(
+              icon: 'note',
+              label: '复制配对码',
+              onTap: () => _copyText(code),
+            ),
+            if (_copied) ...[
+              const SizedBox(width: 10),
+              Text('已复制', style: TgType.tag.copyWith(color: tg.gold2)),
+            ],
+          ],
+        ),
+        const SizedBox(height: 16),
+        Divider(color: tg.border, height: 1),
+        const SizedBox(height: 15),
+        const TgNoteBar(
+          text:
+              '配对码含解密密钥，只存在本机安全存储里；'
+              '一旦丢失，云端数据无法恢复，需重新配对。',
+          accent: TgNoteAccent.danger,
+          icon: 'shield',
+        ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: _MiniTextButton(
+            label: _confirmUnpair ? '再点一次确认解除' : '解除同步',
+            color: tg.red,
+            onTap: _unpair,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUnpaired(TgColors tg) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const TgNoteBar(
+        text:
+            '开启后，本机账号与回归记录会**加密**上传云端，'
+            '其他设备输入同一配对码即可自动同步（含离线改动的合并）。',
+        accent: TgNoteAccent.gold,
+      ),
+      const SizedBox(height: 16),
+      SizedBox(
+        width: double.infinity,
+        child: _PrimaryButton(
+          label: '生成配对码并开启同步',
+          icon: 'spark',
+          onTap: _generate,
+        ),
+      ),
+      const SizedBox(height: 16),
+      Divider(color: tg.border, height: 1),
+      const SizedBox(height: 15),
+      _FieldLabel('已有配对码？粘贴到下面'),
+      const SizedBox(height: 6),
+      TgTextField(
+        controller: _paste,
+        hintText: 'TGG2:…',
+        height: 44,
+        onChanged: (_) => setState(() => _error = null),
+        suffix: _MiniTextButton(label: '粘贴', onTap: _pasteFromClipboard),
+      ),
+      if (_error != null) ...[
+        const SizedBox(height: 8),
+        Text(_error!, style: TgType.tag.copyWith(color: tg.red)),
+      ],
+      const SizedBox(height: 18),
+      SizedBox(
+        width: double.infinity,
+        child: _PrimaryButton(label: '使用该配对码', onTap: _join),
+      ),
+    ],
+  );
+}
+
+/// 一次性同步码视图（`TGG1:`）：生成二维码/文本，或粘贴他机同步码合并。
+class _OneShotCodeView extends StatefulWidget {
+  const _OneShotCodeView({
+    required this.code,
+    required this.accountCount,
+    required this.repo,
+    required this.onMerge,
+  });
+
+  final String code;
+  final int accountCount;
+  final RegRepository repo;
+  final Future<void> Function(List<Map<String, dynamic>> raw) onMerge;
+
+  @override
+  State<_OneShotCodeView> createState() => _OneShotCodeViewState();
+}
+
+class _OneShotCodeViewState extends State<_OneShotCodeView> {
   final TextEditingController _paste = TextEditingController();
   bool _copied = false;
   bool _busy = false;
@@ -2025,7 +2400,7 @@ class _SyncCodeModalState extends State<_SyncCodeModal> {
   }
 
   Future<void> _copy() async {
-    await Clipboard.setData(ClipboardData(text: _code));
+    await Clipboard.setData(ClipboardData(text: widget.code));
     if (mounted) setState(() => _copied = true);
   }
 
@@ -2063,52 +2438,10 @@ class _SyncCodeModalState extends State<_SyncCodeModal> {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final count = widget.accts.where((a) => !a.isDeleted).length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // modal-head
-        Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: tg.goldTint(.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: tg.goldTint(.28), width: 1),
-              ),
-              child: TgIcon('spark', size: 21, color: tg.gold),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '数据同步码',
-                    style: TextStyle(
-                      fontFamily: TgFonts.serif,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: tg.t1,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '跨设备传递 · 账号与回归记录',
-                    style: TgType.tag.copyWith(color: tg.t3),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            TgModalCloseButton(onTap: () => Navigator.of(context).pop()),
-          ],
-        ),
-        const SizedBox(height: 14),
         const TgNoteBar(
           text:
               '同步码是一段文本：在本机生成后复制，到另一台设备的同一弹窗粘贴并合并。'
@@ -2118,7 +2451,7 @@ class _SyncCodeModalState extends State<_SyncCodeModal> {
         const SizedBox(height: 15),
         Row(
           children: [
-            Expanded(child: _FieldLabel('本机同步码（$count 个账号）')),
+            Expanded(child: _FieldLabel('本机同步码（${widget.accountCount} 个账号）')),
             _LineIconButton(icon: 'note', label: '复制同步码', onTap: _copy),
             if (_copied) ...[
               const SizedBox(width: 8),
@@ -2127,9 +2460,8 @@ class _SyncCodeModalState extends State<_SyncCodeModal> {
           ],
         ),
         const SizedBox(height: 12),
-        // 二维码：另一台设备用系统相机 / 微信扫一扫即可拿到同一段同步码，
-        // 省去「复制 → 发到聊天窗口 → 打开文件」的中间步骤。
-        _SyncCodeQr(data: _code),
+        // 二维码：另一台设备用系统相机 / 微信扫一扫即可拿到同一段同步码。
+        _SyncCodeQr(data: widget.code),
         const SizedBox(height: 8),
         Center(
           child: Text(
@@ -2148,7 +2480,7 @@ class _SyncCodeModalState extends State<_SyncCodeModal> {
           ),
           child: SingleChildScrollView(
             child: SelectableText(
-              _code,
+              widget.code,
               style: TextStyle(
                 fontSize: 11.5,
                 height: 1.5,
@@ -2182,6 +2514,85 @@ class _SyncCodeModalState extends State<_SyncCodeModal> {
       ],
     );
   }
+}
+
+/// 云同步状态徽标（点 + 文案），点击打开同步弹窗。
+class _SyncStatusChip extends StatelessWidget {
+  const _SyncStatusChip({required this.sync, required this.onTap});
+
+  final RegSyncState sync;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final style = _syncPhaseStyle(tg, sync);
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: tg.tintOf(style.color, .1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: tg.tintOf(style.color, .3), width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: style.color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                style.label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: style.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 同步阶段的文案与配色（徽标与弹窗共用，保证两处措辞一致）。
+({String label, String detail, Color color}) _syncPhaseStyle(
+  TgColors tg,
+  RegSyncState sync,
+) {
+  final time = sync.lastSyncedMs == null
+      ? null
+      : regFmt(sync.lastSyncedMs!).split(' ').last;
+  return switch (sync.phase) {
+    RegSyncPhase.off => (label: '未开启', detail: '未开启云同步', color: tg.t3),
+    RegSyncPhase.syncing => (label: '同步中', detail: '正在与云端同步…', color: tg.blue),
+    RegSyncPhase.synced => (
+      label: '已同步',
+      detail: time == null ? '已同步' : '已同步 · $time',
+      color: tg.green,
+    ),
+    RegSyncPhase.pending => (
+      label: '待同步',
+      detail: '本地有改动，等待上传…',
+      color: tg.gold2,
+    ),
+    RegSyncPhase.failed => (
+      label: '未同步',
+      detail: time == null ? '未同步（可重试）' : '未同步 · 上次 $time',
+      color: tg.red,
+    ),
+  };
 }
 
 /// 同步码二维码（把 [data] 这段同步码画成可扫的图形）。
@@ -2260,10 +2671,13 @@ class _QrOverflowHint extends StatelessWidget {
 
 /// 极简文字按钮（弹窗输入框内的「粘贴」等微操作）。
 class _MiniTextButton extends StatelessWidget {
-  const _MiniTextButton({required this.label, required this.onTap});
+  const _MiniTextButton({required this.label, required this.onTap, this.color});
 
   final String label;
   final VoidCallback onTap;
+
+  /// 文字色；默认金色（危险动作用 `tg.red`）。
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -2279,7 +2693,7 @@ class _MiniTextButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: tg.gold2,
+              color: color ?? tg.gold2,
             ),
           ),
         ),

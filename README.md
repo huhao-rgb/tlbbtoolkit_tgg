@@ -36,12 +36,44 @@ fvm flutter run
 fvm flutter run --dart-define=API_BASE_URL=https://api.example.com \
                 --dart-define=USE_LOCAL_DATA_SOURCE=false
 
+# 启用「卡回归」云同步（地址为 CloudBase 环境，部署见 server/cloudbase/README.md）
+fvm flutter run --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
+
 # 静态检查
 fvm flutter analyze
 
 # 测试
 fvm flutter test
 ```
+
+> 💡 **VS Code 按 `F5` 已内置上述 define**（见 [`.vscode/launch.json`](.vscode/launch.json)）：
+> *「天工阁 · macOS（云同步）」/「天工阁 · Chrome（云同步）」* 会自动带上 `SYNC_BASE_URL`，
+> *「天工阁 · macOS（仅本地）」* 则不带，便于对照验证降级路径。
+>
+> ⚠️ `SYNC_BASE_URL` 是**编译期**注入（`String.fromEnvironment`），
+> **不能**用 `export SYNC_BASE_URL=...` —— Flutter 不读操作系统环境变量。
+> 同理 Release 包也要显式带上，否则发布版视为「未配置云同步」
+> （降级为一次性同步码，不报错）：
+>
+> ```sh
+> fvm flutter build apk --release \
+>   --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
+> ```
+>
+> 🧪 **真实链路端到端测试**（打到真实云端，验证加密/合并/冲突在真网络上成立）：
+> 默认**跳过**，只有注入 `SYNC_BASE_URL` 时才执行，CI 与离线开发不受影响。
+>
+> ```sh
+> fvm flutter test test/features/misc/reg_sync_e2e_test.dart \
+>   --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
+> ```
+>
+> 每个用例用随机 syncId 建独立记录，结束即删除，不触碰既有数据。
+>
+> 发版流水线（[`release.yml`](.github/workflows/release.yml)）从仓库变量
+> `vars.SYNC_BASE_URL` 读取该地址（Settings → Secrets and variables → Actions →
+> Variables）。**未配置该变量时流水线只打一条 warning、照常出包**，但包里不含云同步功能。
+> 地址粘贴时多一个末尾斜杠会被自动归一化（否则会拼成 `//reg` 而 404）。
 
 ## 目录结构
 
