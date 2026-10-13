@@ -16,6 +16,8 @@ part of 'music_player_providers.dart';
 /// - 循环模式开启 = 单曲循环，关闭 = 播完自动下一首（原型 `bgmAudio.onended`）；
 /// - 音量 / 循环 / 上次曲目持久化（原型写 localStorage）。
 ///
+/// 原型没有删除入口，列表左滑删除是**本次新增**的交互（见 [removeAt]）。
+///
 /// [keepAlive]：播放器是全局单例，页面切换不应打断播放，
 /// 也让「播完自动下一首」的订阅在顶栏重建时依然有效。
 
@@ -30,6 +32,8 @@ final musicPlayerControllerProvider = MusicPlayerControllerProvider._();
 /// - 循环模式开启 = 单曲循环，关闭 = 播完自动下一首（原型 `bgmAudio.onended`）；
 /// - 音量 / 循环 / 上次曲目持久化（原型写 localStorage）。
 ///
+/// 原型没有删除入口，列表左滑删除是**本次新增**的交互（见 [removeAt]）。
+///
 /// [keepAlive]：播放器是全局单例，页面切换不应打断播放，
 /// 也让「播完自动下一首」的订阅在顶栏重建时依然有效。
 final class MusicPlayerControllerProvider
@@ -41,6 +45,8 @@ final class MusicPlayerControllerProvider
   /// - 上一首 / 下一首在列表内**环绕**（`bgmStep2`）；
   /// - 循环模式开启 = 单曲循环，关闭 = 播完自动下一首（原型 `bgmAudio.onended`）；
   /// - 音量 / 循环 / 上次曲目持久化（原型写 localStorage）。
+  ///
+  /// 原型没有删除入口，列表左滑删除是**本次新增**的交互（见 [removeAt]）。
   ///
   /// [keepAlive]：播放器是全局单例，页面切换不应打断播放，
   /// 也让「播完自动下一首」的订阅在顶栏重建时依然有效。
@@ -72,7 +78,7 @@ final class MusicPlayerControllerProvider
 }
 
 String _$musicPlayerControllerHash() =>
-    r'a789ccfccd7829fba6d78008137df1e10b7cb562';
+    r'ac05e165469dbbed37e8f43818336b2ed6fb772e';
 
 /// 怀旧音律播放器状态（对应原型 `bgmState` + `BGM_TRACKS` 相关逻辑）。
 ///
@@ -81,6 +87,8 @@ String _$musicPlayerControllerHash() =>
 /// - 上一首 / 下一首在列表内**环绕**（`bgmStep2`）；
 /// - 循环模式开启 = 单曲循环，关闭 = 播完自动下一首（原型 `bgmAudio.onended`）；
 /// - 音量 / 循环 / 上次曲目持久化（原型写 localStorage）。
+///
+/// 原型没有删除入口，列表左滑删除是**本次新增**的交互（见 [removeAt]）。
 ///
 /// [keepAlive]：播放器是全局单例，页面切换不应打断播放，
 /// 也让「播完自动下一首」的订阅在顶栏重建时依然有效。
