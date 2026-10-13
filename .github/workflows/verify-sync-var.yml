@@ -1,0 +1,31 @@
+# 临时校验用：确认仓库变量 SYNC_BASE_URL 能被 Actions 正确读到。
+# 校验完立即删除，不参与发版。
+name: 临时校验 SYNC_BASE_URL（用完即删）
+
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-sync-var.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 读取仓库变量（与 release.yml 完全相同的取值方式）
+        env:
+          SYNC_BASE_URL: ${{ vars.SYNC_BASE_URL }}
+        run: |
+          EXPECTED='https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com'
+          echo "变量长度: ${#SYNC_BASE_URL}"
+          echo "变量值  : [${SYNC_BASE_URL}]"
+          if [ -z "$SYNC_BASE_URL" ]; then
+            echo "::error::仓库变量 SYNC_BASE_URL 为空或未生效（检查是否配在 Variables 而非 Secrets，以及名字是否完全一致）"
+            exit 1
+          fi
+          if [ "$SYNC_BASE_URL" != "$EXPECTED" ]; then
+            echo "::error::值与预期不一致。客户端会归一化首尾空格与斜杠，但 host 写错会连不上云端。"
+            echo "  实际: [${SYNC_BASE_URL}]"
+            echo "  期望: [${EXPECTED}]"
+            exit 1
+          fi
+          echo "✅ 仓库变量已生效，且与预期地址逐字符一致"
