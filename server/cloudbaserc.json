@@ -1,0 +1,16 @@
+{
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "envId": "tgg-account-d8gd8q1mc16b81044",
+  "functionRoot": "./cloudbase/functions",
+  "functions": [
+    {
+      "name": "reg-sync",
+      "description": "卡回归云同步接口（哑存储 + 乐观并发）",
+      "handler": "index.main",
+      "runtime": "Nodejs20.19",
+      "timeout": 5,
+      "memorySize": 256,
+      "installDependency": true
+    }
+  ]
+}

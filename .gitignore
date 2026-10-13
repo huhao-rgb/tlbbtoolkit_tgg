@@ -53,3 +53,8 @@ app.*.map.json
 
 # AI agent 本地配置（arkcli / harness 注入产物，含本机绝对路径，因人而异）
 .codex/
+
+# 云同步服务端（server/）
+server/**/node_modules/
+server/**/.env
+server/**/.env.*

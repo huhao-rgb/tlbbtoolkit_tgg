@@ -1,0 +1,16 @@
+{
+  "name": "reg-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "卡回归云同步接口（哑存储 + 乐观并发；走平台数据通道，无需数据库连接串）",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.3"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
