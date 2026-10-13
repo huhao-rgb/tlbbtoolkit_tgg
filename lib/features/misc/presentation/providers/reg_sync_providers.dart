@@ -69,7 +69,13 @@ RegSyncConfig regSyncConfig(Ref ref) => normalizeRegSyncConfig(
 /// 注入 `--dart-define=SYNC_BASE_URL=https://<envId>.service.tcloudbase.com`
 /// 时走真实云端；未注入则给「未配置」占位（状态一律 `unavailable`），
 /// 卡回归功能照常离线可用。
-@riverpod
+///
+/// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+/// 而销毁会触发下面的 `dio.close()`；此时**进行中的请求会抛**
+/// `StateError("Can't establish connection after the adapter was closed.")`
+/// —— 实测就是这样让真机上的每次同步都失败的（单测用的是内存网关，测不出来）。
+/// 网关本就是长生命周期资源，长驻还能复用连接池。
+@Riverpod(keepAlive: true)
 RegSyncGateway regSyncGateway(Ref ref) {
   final config = ref.watch(regSyncConfigProvider);
   if (!config.enabled) return const RegSyncGatewayDisabled();

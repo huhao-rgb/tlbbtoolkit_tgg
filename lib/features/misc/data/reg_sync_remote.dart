@@ -122,13 +122,26 @@ class RegSyncGatewayRemote implements RegSyncGateway {
   static String _describe(DioException e) {
     final code = e.response?.statusCode;
     if (code != null) return '云端错误（HTTP $code）';
+    final why = _why(e.error);
     return switch (e.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout => '云端请求超时',
-      DioExceptionType.connectionError => '无法连接云端',
-      _ => '云端请求失败（${e.type.name}）',
+      DioExceptionType.receiveTimeout => '云端请求超时$why',
+      DioExceptionType.connectionError => '无法连接云端$why',
+      _ => '云端请求失败（${e.type.name}）$why',
     };
+  }
+
+  /// 把底层原因附在文案后面（DNS 解析失败 / 连接被拒 / TLS 握手失败…）。
+  ///
+  /// 只说「无法连接云端」无法区分是哪一种，而真机排查恰恰只差这一条信息
+  /// （真机上没有断点可看）。该文案**只进日志**，不展示给用户；
+  /// 内容是公开域名与系统错误，不含任何密钥。
+  static String _why(Object? error) {
+    if (error == null) return '';
+    var text = '$error'.replaceAll('\n', ' ').trim();
+    if (text.length > 160) text = '${text.substring(0, 160)}…';
+    return '（${error.runtimeType}: $text）';
   }
 
   /// 兼容 dio 已解析的 JSON 与「content-type 不对导致拿到字符串」两种情况。

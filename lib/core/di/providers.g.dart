@@ -9,22 +9,40 @@ part of 'providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// 全局 [Dio] 实例，供各 feature 的网络数据源使用。
+///
+/// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+/// 而销毁会执行下面的 `dio.close()`；此刻**进行中的请求会抛**
+/// `StateError("Can't establish connection after the adapter was closed.")`
+/// —— 云同步网关正是踩了这个坑（真机上每次同步都失败，且单测用内存网关
+/// 测不出来）。全局 HTTP 客户端本就该长驻，顺带复用连接池。
 
 @ProviderFor(dio)
 final dioProvider = DioProvider._();
 
 /// 全局 [Dio] 实例，供各 feature 的网络数据源使用。
+///
+/// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+/// 而销毁会执行下面的 `dio.close()`；此刻**进行中的请求会抛**
+/// `StateError("Can't establish connection after the adapter was closed.")`
+/// —— 云同步网关正是踩了这个坑（真机上每次同步都失败，且单测用内存网关
+/// 测不出来）。全局 HTTP 客户端本就该长驻，顺带复用连接池。
 
 final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
     with $Provider<Dio> {
   /// 全局 [Dio] 实例，供各 feature 的网络数据源使用。
+  ///
+  /// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+  /// 而销毁会执行下面的 `dio.close()`；此刻**进行中的请求会抛**
+  /// `StateError("Can't establish connection after the adapter was closed.")`
+  /// —— 云同步网关正是踩了这个坑（真机上每次同步都失败，且单测用内存网关
+  /// 测不出来）。全局 HTTP 客户端本就该长驻，顺带复用连接池。
   DioProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'dioProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -51,7 +69,7 @@ final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$dioHash() => r'8f5356bb2e1ca6ee59b5128ea27cd0121316aa98';
+String _$dioHash() => r'217822b297f25c497f11ae00e35dfa8b84898779';
 
 /// 全局 [SharedPreferences] 实例。
 ///

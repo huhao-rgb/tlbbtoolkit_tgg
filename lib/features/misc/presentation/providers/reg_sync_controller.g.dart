@@ -65,7 +65,7 @@ final class RegSyncControllerProvider
   }
 }
 
-String _$regSyncControllerHash() => r'4f3dc0b86c5ed2c4e757537d5abca75e2004a4f4';
+String _$regSyncControllerHash() => r'226db84705ec16a91dce50c50e0593bee6a7a5c7';
 
 /// 卡回归云同步控制器。
 ///

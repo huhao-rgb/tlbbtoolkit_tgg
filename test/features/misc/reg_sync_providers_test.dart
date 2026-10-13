@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tlbbtoolkit/features/misc/data/reg_pairing_store.dart';
 import 'package:tlbbtoolkit/features/misc/data/reg_sync_crypto_aesgcm.dart';
 import 'package:tlbbtoolkit/features/misc/data/reg_sync_gateway_disabled.dart';
+import 'package:tlbbtoolkit/features/misc/data/reg_sync_remote.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/providers/reg_sync_providers.dart';
 
 void main() {
@@ -18,6 +19,40 @@ void main() {
     );
     expect(container.read(regSyncCryptoProvider), isA<RegSyncCryptoAesGcm>());
     expect(container.read(regPairingStoreProvider), isA<RegPairingStore>());
+  });
+
+  test('网关 provider 必须常驻：被销毁会 close 掉 dio，进行中的请求直接抛错', () async {
+    // 真机实测故障：@riverpod 默认 autoDispose，无人订阅时被销毁 →
+    // onDispose 里的 dio.close() 生效 → 请求抛
+    // StateError("Can't establish connection after the adapter was closed.")，
+    // 表现就是「未同步（可重试）」且点立即同步也没用，云端一条记录都没有。
+    // 单测用的是内存网关（不持有任何可关闭资源），所以只有这条断言能守住它。
+    final container = ProviderContainer(
+      overrides: [
+        regSyncConfigProvider.overrideWithValue((
+          enabled: true,
+          baseUrl: 'https://example.invalid',
+          path: '/reg',
+        )),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final first = container.read(regSyncGatewayProvider);
+    expect(
+      first,
+      isA<RegSyncGatewayRemote>(),
+      reason: '需走真实 dio 实现才有可关闭的 adapter',
+    );
+
+    // 让 Riverpod 的「无订阅 → 销毁」调度跑完（这正是真机上发生的时机）
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      identical(first, container.read(regSyncGatewayProvider)),
+      isTrue,
+      reason: '网关（及其 dio）不得被销毁重建，否则同步请求会因 adapter 已关闭而失败',
+    );
   });
 
   group('normalizeRegSyncConfig —— define 是人工填写的，必须容错', () {

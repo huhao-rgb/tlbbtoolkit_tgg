@@ -203,6 +203,12 @@ String _$regSyncConfigHash() => r'10da0202857b4356a05e7780eadb2d40ebef64b9';
 /// 注入 `--dart-define=SYNC_BASE_URL=https://<envId>.service.tcloudbase.com`
 /// 时走真实云端；未注入则给「未配置」占位（状态一律 `unavailable`），
 /// 卡回归功能照常离线可用。
+///
+/// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+/// 而销毁会触发下面的 `dio.close()`；此时**进行中的请求会抛**
+/// `StateError("Can't establish connection after the adapter was closed.")`
+/// —— 实测就是这样让真机上的每次同步都失败的（单测用的是内存网关，测不出来）。
+/// 网关本就是长生命周期资源，长驻还能复用连接池。
 
 @ProviderFor(regSyncGateway)
 final regSyncGatewayProvider = RegSyncGatewayProvider._();
@@ -212,6 +218,12 @@ final regSyncGatewayProvider = RegSyncGatewayProvider._();
 /// 注入 `--dart-define=SYNC_BASE_URL=https://<envId>.service.tcloudbase.com`
 /// 时走真实云端；未注入则给「未配置」占位（状态一律 `unavailable`），
 /// 卡回归功能照常离线可用。
+///
+/// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+/// 而销毁会触发下面的 `dio.close()`；此时**进行中的请求会抛**
+/// `StateError("Can't establish connection after the adapter was closed.")`
+/// —— 实测就是这样让真机上的每次同步都失败的（单测用的是内存网关，测不出来）。
+/// 网关本就是长生命周期资源，长驻还能复用连接池。
 
 final class RegSyncGatewayProvider
     extends $FunctionalProvider<RegSyncGateway, RegSyncGateway, RegSyncGateway>
@@ -221,13 +233,19 @@ final class RegSyncGatewayProvider
   /// 注入 `--dart-define=SYNC_BASE_URL=https://<envId>.service.tcloudbase.com`
   /// 时走真实云端；未注入则给「未配置」占位（状态一律 `unavailable`），
   /// 卡回归功能照常离线可用。
+  ///
+  /// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+  /// 而销毁会触发下面的 `dio.close()`；此时**进行中的请求会抛**
+  /// `StateError("Can't establish connection after the adapter was closed.")`
+  /// —— 实测就是这样让真机上的每次同步都失败的（单测用的是内存网关，测不出来）。
+  /// 网关本就是长生命周期资源，长驻还能复用连接池。
   RegSyncGatewayProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'regSyncGatewayProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -254,4 +272,4 @@ final class RegSyncGatewayProvider
   }
 }
 
-String _$regSyncGatewayHash() => r'862d3b504ed67772dc89f2e6862b39cb49a24f17';
+String _$regSyncGatewayHash() => r'eab1eb410f3bd4bbe541c6f19fe25deb99d7a465';

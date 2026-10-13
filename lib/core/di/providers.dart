@@ -10,7 +10,13 @@ import 'package:tlbbtoolkit/core/storage/secure_kv_store.dart';
 part 'providers.g.dart';
 
 /// 全局 [Dio] 实例，供各 feature 的网络数据源使用。
-@riverpod
+///
+/// **必须 `keepAlive`**：`@riverpod` 默认 autoDispose，无人订阅时会被销毁，
+/// 而销毁会执行下面的 `dio.close()`；此刻**进行中的请求会抛**
+/// `StateError("Can't establish connection after the adapter was closed.")`
+/// —— 云同步网关正是踩了这个坑（真机上每次同步都失败，且单测用内存网关
+/// 测不出来）。全局 HTTP 客户端本就该长驻，顺带复用连接池。
+@Riverpod(keepAlive: true)
 Dio dio(Ref ref) {
   final dio = ApiClient.createDio();
   ref.onDispose(dio.close);

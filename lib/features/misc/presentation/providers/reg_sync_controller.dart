@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:tlbbtoolkit/features/misc/domain/reg_pairing.dart';
@@ -166,6 +167,12 @@ class RegSyncController extends _$RegSyncController {
       crypto: ref.read(regSyncCryptoProvider),
     );
     if (_disposed) return;
+
+    if (!result.cloudAvailable) {
+      // 失败原因只进日志：徽标放不下技术细节，但真机排查时没它就只能靠猜
+      // （此前它只存进 state，既不显示也不打印，等于丢失）。
+      debugPrint('卡回归云同步失败：${result.message ?? '未知原因'}');
+    }
 
     if (result.changed) {
       // 合并结果视为权威状态落盘（含墓碑），随后通知页面重新加载。
