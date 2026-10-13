@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_point.dart';
+import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
 import 'package:tlbbtoolkit/features/job/presentation/pages/job_point_page.dart';
 
 /// 以完整主题（含 TgColors extension）泵入职业加点计算器页。
@@ -41,26 +42,76 @@ void main() {
       expect(pts['ding'], 0);
     });
 
-    test('面板预览公式', () {
-      final p = computePreview(119, {
+    test('面板预览公式：逍遥成长系数', () {
+      expect(jobGrowthOf('xiaoyao')['hp']!.value, 50);
+      expect(jobGrowthOf('xiaoyao')['nei']!.value, 7.6715);
+
+      final p = computePreview('xiaoyao', 119, {
         'li': 0,
         'ling': 100,
         'ti': 100,
         'ding': 0,
         'shen': 100,
       });
-      expect(p.hp, 119 * 28 + 100 * 52);
-      expect(p.mp, 119 * 20 + 100 * 36);
-      expect(p.atkP, 100 * 9);
+      expect(p.hp, 119 * 28 + 100 * 50);
+      expect(p.mp, 119 * 20 + 0 * 36);
+      expect(p.atkP, closeTo(100 * 7.6715, 1e-9));
       expect(p.atkW, 0);
-      expect(p.hit, 119 * 7 + 100 * 8);
-      expect(p.dodge, 119 * 5 + 100 * 6);
+      expect(p.hit, 119 * 7 + 100 * 7.5);
+      expect(p.dodge, 119 * 5 + 100 * 4);
+      expect(p.crit, closeTo(100 * (0.05 + 0.05), 1e-9));
+    });
+
+    test('面板预览：门派系数不同 → 结果不同（少林体力/明教力量）', () {
+      final pts = {'li': 100, 'ling': 0, 'ti': 100, 'ding': 0, 'shen': 0};
+      final shaolin = computePreview('shaolin', 100, pts);
+      final mingjiao = computePreview('mingjiao', 100, pts);
+      expect(shaolin.hp, closeTo(100 * 28 + 100 * 71.5, 1e-9));
+      expect(mingjiao.hp, closeTo(100 * 28 + 100 * 55.2, 1e-9));
+      expect(shaolin.atkW, closeTo(100 * 7.6, 1e-9));
+      expect(mingjiao.atkW, closeTo(100 * 8.3, 1e-9));
+    });
+
+    test('未知门派成长系数回退逍遥', () {
+      expect(jobGrowthOf('nope')['hp']!.value, 50);
+    });
+
+    test('成长系数条目 8 项且覆盖十二门派', () {
+      expect(kJobGrowthFields.length, 8);
+      // 键集合需与门派列表严格一致（避免拼错 key 导致静默回退逍遥）
+      expect(kJobGrowth.keys.toSet(), {for (final s in kJobSects) s.key});
+      for (final s in kJobSects) {
+        final g = kJobGrowth[s.key];
+        expect(g, isNotNull, reason: s.key);
+        for (final f in kJobGrowthFields) {
+          expect(g![f.key], isNotNull, reason: '${s.key}.${f.key}');
+        }
+      }
     });
 
     test('千分位', () {
       expect(formatThousand(3332), '3,332');
       expect(formatThousand(0), '0');
       expect(formatThousand(1234567), '1,234,567');
+    });
+
+    test('面板数值格式化：千分位 / 1 位小数 / 会心 2 位小数', () {
+      // toLocaleString：千分位 + 最多 3 位小数
+      expect(formatGrouped(3332), '3,332');
+      expect(formatGrouped(0), '0');
+      expect(formatGrouped(707.3224), '707.322');
+      expect(formatGrouped(52 * 71.5), '3,718');
+      // toFixed(1) 去尾
+      expect(formatFixed1(0), '0');
+      expect(formatFixed1(100 * 7.6715), '767.1');
+      expect(formatFixed1(100 * 7.6), '760');
+      // Math.round(v*100)/100
+      expect(formatCrit(0), '0');
+      expect(formatCrit(100 * 0.1), '10');
+      expect(formatCrit(3.4000000000000004), '3.4');
+      // 成长系数展示文本
+      expect(const JobGrowthValue(25).display, '25');
+      expect(const JobGrowthValue(7.6, approx: true).display, '≈7.6');
     });
   });
 
@@ -89,6 +140,19 @@ void main() {
     expect(find.text('2,380'), findsOneWidget); // 气
     expect(find.text('833'), findsOneWidget); // 命中
     expect(find.text('595'), findsOneWidget); // 闪避
+
+    // 会心攻击（7 项预览之一）
+    expect(find.text('会心攻击'), findsOneWidget);
+
+    // 门派成长系数（逍遥全为实测精确值 → 无 ≈ 标注）
+    expect(find.text('门派成长系数 · 每点潜能换算'), findsOneWidget);
+    expect(find.text('体力 → 血上限'), findsOneWidget);
+    expect(find.text('力量 → 外功攻击'), findsOneWidget);
+    expect(find.text('身法 → 会心防御'), findsOneWidget);
+    expect(find.text('50'), findsOneWidget); // 逍遥 体力 → 血上限
+    expect(find.text('7.6715'), findsOneWidget); // 逍遥 灵气 → 内功攻击
+    // 说明文字里也含 ≈，故用行首锚定，只校验系数条目的近似标注
+    expect(find.textContaining(RegExp('^≈')), findsNothing);
   });
 
   testWidgets('点击 ＋ 分配潜能：剩余减少、预览更新', (tester) async {
@@ -101,8 +165,24 @@ void main() {
 
     // 剩余 544 / 总 545
     expect(find.text('544'), findsOneWidget);
-    // 面板：气血 = 3332 + 52 = 3384
-    expect(find.text('3,384'), findsOneWidget);
+    // 面板：气血 = 3332 + 逍遥体力系数 50 = 3382
+    expect(find.text('3,382'), findsOneWidget);
+  });
+
+  testWidgets('切门派后成长系数与预览同步（少林 ≈ 近似标注）', (tester) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(find.text('少林'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('少林'));
+    await tester.pumpAndSettle();
+
+    // 少林成长系数：体力 → 血上限 71.5（精确）、力量 → 外功攻击 ≈7.6（近似）
+    expect(find.text('71.5'), findsOneWidget);
+    expect(find.text('≈7.6'), findsOneWidget);
+
+    // 面板预览无加点仍为等级基线
+    expect(find.text('3,332'), findsOneWidget);
   });
 
   testWidgets('一键推荐 → 合计 545 分配，清空归零', (tester) async {
@@ -134,7 +214,21 @@ void main() {
     await tester.tap(find.text('一键推荐'));
     await tester.pump();
 
-    // 少林权重 li 最高，力量加点多；外功攻击 = li*9 > 0
+    // 少林权重 li 最高，力量加点多；外功攻击 = 246 × 7.6 = 1,869.6
     expect(find.text('外功攻击'), findsOneWidget);
+    expect(find.text('1,869.6'), findsNothing); // 外功攻击用 toFixed(1) 去千分位
+    expect(find.text('1869.6'), findsOneWidget);
+    // 气血 = 3332 + 191 × 71.5 = 16,988.5
+    expect(find.text('16,988.5'), findsOneWidget);
+  });
+
+  testWidgets('紧凑宽度（560 / 390）：预览与成长系数自动换列不溢出', (tester) async {
+    for (final size in const [Size(560, 900), Size(390, 900)]) {
+      await pumpPage(tester, size: size);
+
+      expect(find.text('门派成长系数 · 每点潜能换算'), findsOneWidget);
+      expect(find.text('体力 → 血上限'), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: '$size');
+    }
   });
 }

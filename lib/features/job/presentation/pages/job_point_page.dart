@@ -18,7 +18,8 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 ///
 /// 门派 pills + 等级（10~119，默认 119）+ 五行潜能步进
 /// （− 进度条 ＋，进度=已点/总潜能）+ 一键推荐 / 清空 +
-/// 面板预览（气血/气/内外攻/命中/闪避，千分位）。
+/// 面板预览（气血/气/内外攻/命中/闪避/会心，按门派成长系数换算）+
+/// 门派成长系数 · 每点潜能换算表。
 class JobPointPage extends StatefulWidget {
   const JobPointPage({super.key, this.initialSect});
 
@@ -173,11 +174,16 @@ class _JobPointPageState extends State<JobPointPage> {
                           const SizedBox(height: 16),
                           _PreviewSection(
                             sectName: _sect.name,
-                            preview: computePreview(_lv, _pts),
+                            preview: computePreview(_sect.key, _lv, _pts),
                           ),
+                          // 门派成长系数 · 每点潜能换算
+                          const SizedBox(height: 14),
+                          _GrowthSection(sectKey: _sect.key),
                           const SizedBox(height: 12),
                           Text(
-                            '※ 每 1 级获得 5 点潜能（10 级起）；预览公式为参考基准，实际以游戏内为准。',
+                            '※ 每 1 级获得 5 点潜能（10 级起）；加点增量按各门派成长系数计算'
+                            '（玩家社区实测整理，≈ 为近似值，官方未公布完整成长表），'
+                            '等级基线为通用近似，实际以游戏内为准。',
                             style: TextStyle(
                               fontSize: 11.5,
                               color: context.tg.t3,
@@ -440,7 +446,7 @@ class _AttrRow extends StatelessWidget {
   }
 }
 
-/// 面板预览（`.mat-sec` h4 + auto-fit 网格 6 项）。
+/// 面板预览（`.mat-sec` h4 + auto-fit 网格 7 项）。
 class _PreviewSection extends StatelessWidget {
   const _PreviewSection({required this.sectName, required this.preview});
 
@@ -450,43 +456,19 @@ class _PreviewSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final cells = <(String, int)>[
-      ('气血上限', preview.hp),
-      ('气上限', preview.mp),
-      ('内功攻击', preview.atkP),
-      ('外功攻击', preview.atkW),
-      ('命中', preview.hit),
-      ('闪避', preview.dodge),
+    final cells = <(String, String)>[
+      ('气血上限', formatGrouped(preview.hp)),
+      ('气上限', formatGrouped(preview.mp)),
+      ('内功攻击', formatFixed1(preview.atkP)),
+      ('外功攻击', formatFixed1(preview.atkW)),
+      ('命中', formatGrouped(preview.hit)),
+      ('闪避', formatGrouped(preview.dodge)),
+      ('会心攻击', formatCrit(preview.crit)),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // h4：标题 + 分隔线（::after）
-        SizedBox(
-          width: double.infinity,
-          child: Row(
-            children: [
-              Text(
-                '面板预览 · ',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                  color: tg.t3,
-                ),
-              ),
-              Text(
-                sectName,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: tg.gold2,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: Container(height: 1, color: tg.borderHi)),
-            ],
-          ),
-        ),
+        _SectionHead(title: '面板预览 · ', highlight: sectName),
         const SizedBox(height: 10),
         // auto-fit minmax(150px,1fr) 复刻
         LayoutBuilder(
@@ -518,12 +500,17 @@ class _PreviewSection extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            name,
-                            style: TextStyle(fontSize: 12, color: tg.t2),
+                          Flexible(
+                            child: Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 12, color: tg.t2),
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Text(
-                            formatThousand(count),
+                            count,
                             style: TextStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
@@ -542,6 +529,124 @@ class _PreviewSection extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+/// 门派成长系数 · 每点潜能换算（`.pt-coef` auto-fill 网格 8 项）。
+class _GrowthSection extends StatelessWidget {
+  const _GrowthSection({required this.sectKey});
+
+  final String sectKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final growth = jobGrowthOf(sectKey);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHead(title: '门派成长系数 · 每点潜能换算'),
+        const SizedBox(height: 10),
+        // auto-fill minmax(168px,1fr) + gap 6 复刻
+        LayoutBuilder(
+          builder: (context, c) {
+            const minTile = 168.0;
+            const gap = 6.0;
+            final cols = (((c.maxWidth + gap) / (minTile + gap)).floor()).clamp(
+              1,
+              kJobGrowthFields.length,
+            );
+            final tileW = (c.maxWidth - gap * (cols - 1)) / cols;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final f in kJobGrowthFields)
+                  SizedBox(
+                    width: tileW,
+                    child: _GrowthTile(field: f, value: growth[f.key]),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// 单条成长系数（近似值整体弱化为 `t3` 并加 `≈` 前缀，对齐原型 `ptCoefHTML`）。
+class _GrowthTile extends StatelessWidget {
+  const _GrowthTile({required this.field, required this.value});
+
+  final JobGrowthField field;
+  final JobGrowthValue? value;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final approx = value?.approx ?? true;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: tg.inset,
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: tg.border, width: 1),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: Text(
+              field.label,
+              maxLines: 2,
+              style: TextStyle(fontSize: 12, color: approx ? tg.t3 : tg.t2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            value?.display ?? '—',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: approx ? tg.t3 : tg.t1,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 小节标题（`.mat-sec h4`：标题 + 可选高亮 + 尾部细分隔线）。
+class _SectionHead extends StatelessWidget {
+  const _SectionHead({required this.title, this.highlight});
+
+  final String title;
+  final String? highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final style = TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500);
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        children: [
+          Text(title, style: style.copyWith(color: tg.t3)),
+          if (highlight != null)
+            Text(
+              highlight!,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                color: tg.gold2,
+              ),
+            ),
+          const SizedBox(width: 8),
+          Expanded(child: Container(height: 1, color: tg.borderHi)),
+        ],
+      ),
     );
   }
 }
