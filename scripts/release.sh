@@ -171,6 +171,12 @@ echo "    3) git commit    chore: 修改版本号$VERSION"
 echo "    4) git tag -a    $TAG"
 echo "    5) git push      origin main + origin $TAG"
 echo
+echo "  ⚠️  云同步地址：本脚本不构建 APK，实际构建在 CI（release.yml）。"
+echo "      云同步地址由仓库变量 vars.SYNC_BASE_URL 注入"
+echo "      （Settings → Secrets and variables → Actions → Variables）。"
+echo "      未配置时 CI 只会打一条 warning，打出的 APK【不含云同步功能】但不会失败，"
+echo "      所以发版前请确认它已配置。"
+echo
 echo "----- CHANGELOG 草稿（可先在其他终端编辑 CHANGELOG.md 微调） -----"
 echo "$DRAFT"
 echo "----------------------------------------------------------------"
