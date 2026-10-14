@@ -17,7 +17,7 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 /// 职业加点计算器（对应原型 `v-class-point`）。
 ///
 /// 门派 pills + 等级（10~119，默认 119）+ 五行潜能滑块
-/// （− 滑块 ＋，滑块上限 = 已点 + 剩余潜能）+ 一键推荐 / 清空 +
+/// （− 滑块 ＋，滑块上限 = 已点 + 剩余潜能）+ 一键推荐 / 全点体力 · 全点身法 / 清空 +
 /// 面板预览（气血/气/内外攻/命中/闪避/会心，按门派成长系数换算）+
 /// 门派成长系数 · 每点潜能换算表。
 class JobPointPage extends StatefulWidget {
@@ -78,6 +78,15 @@ class _JobPointPageState extends State<JobPointPage> {
       final rec = recommendPoints(_sect.key, _total);
       for (final a in kJobAttrs) {
         _pts[a.key] = rec[a.key] ?? 0;
+      }
+    });
+  }
+
+  /// 全点某一个维度：该维度吃满总潜能，其余清零。
+  void _allTo(String key) {
+    setState(() {
+      for (final a in kJobAttrs) {
+        _pts[a.key] = a.key == key ? _total : 0;
       }
     });
   }
@@ -158,6 +167,7 @@ class _JobPointPageState extends State<JobPointPage> {
                             total: _total,
                             onLv: _setLv,
                             onRecommend: _recommend,
+                            onAllTo: _allTo,
                             onClear: _clear,
                           ),
                           const SizedBox(height: 4),
@@ -212,7 +222,7 @@ class _JobPointPageState extends State<JobPointPage> {
   }
 }
 
-/// 顶部工具行：等级输入 + 剩余潜能 / 总 + 一键推荐 / 清空。
+/// 顶部工具行：等级输入 + 剩余潜能 / 总 + 一键推荐 / 全点体力 / 全点身法 / 清空。
 class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.compact,
@@ -221,6 +231,7 @@ class _TopBar extends StatelessWidget {
     required this.total,
     required this.onLv,
     required this.onRecommend,
+    required this.onAllTo,
     required this.onClear,
   });
 
@@ -230,6 +241,9 @@ class _TopBar extends StatelessWidget {
   final int total;
   final ValueChanged<String> onLv;
   final VoidCallback onRecommend;
+
+  /// 全点回调（参数为五维 key，如 `ti` / `shen`）。
+  final ValueChanged<String> onAllTo;
   final VoidCallback onClear;
 
   @override
@@ -256,10 +270,21 @@ class _TopBar extends StatelessWidget {
       Text('/ 总', style: labelStyle.copyWith(color: tg.t3)),
       Text('$total', style: numStyle.copyWith(color: tg.t1)),
     ];
+    // Wrap 会传入最大宽度约束，而 JobMiniButton 内的 Material 会撑满该宽度，
+    // 故用 IntrinsicWidth 锁回内容宽度，使其在空间不足时能按需换行。
     final right = <Widget>[
-      JobMiniButton(label: '一键推荐', onTap: onRecommend),
-      const SizedBox(width: 8),
-      JobMiniButton(label: '清空', onTap: onClear),
+      IntrinsicWidth(
+        child: JobMiniButton(label: '一键推荐', onTap: onRecommend),
+      ),
+      IntrinsicWidth(
+        child: JobMiniButton(label: '全点体力', onTap: () => onAllTo('ti')),
+      ),
+      IntrinsicWidth(
+        child: JobMiniButton(label: '全点身法', onTap: () => onAllTo('shen')),
+      ),
+      IntrinsicWidth(
+        child: JobMiniButton(label: '清空', onTap: onClear),
+      ),
     ];
     if (!compact) {
       return Row(
@@ -268,8 +293,16 @@ class _TopBar extends StatelessWidget {
             if (i > 0) const SizedBox(width: 10),
             left[i],
           ],
-          const Spacer(),
-          ...right,
+          const SizedBox(width: 12),
+          // 按钮数较多，空间不足时换行而非溢出
+          Expanded(
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: right,
+            ),
+          ),
         ],
       );
     }
@@ -286,7 +319,12 @@ class _TopBar extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        Row(mainAxisAlignment: MainAxisAlignment.end, children: right),
+        Wrap(
+          alignment: WrapAlignment.end,
+          spacing: 8,
+          runSpacing: 8,
+          children: right,
+        ),
       ],
     );
   }

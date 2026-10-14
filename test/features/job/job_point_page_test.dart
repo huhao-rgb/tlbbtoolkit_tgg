@@ -124,6 +124,8 @@ void main() {
     // 剩余/总潜能 545
     expect(find.text('545'), findsNWidgets(2));
     expect(find.text('一键推荐'), findsOneWidget);
+    expect(find.text('全点体力'), findsOneWidget);
+    expect(find.text('全点身法'), findsOneWidget);
     expect(find.text('清空'), findsOneWidget);
 
     // 五行名
@@ -215,6 +217,50 @@ void main() {
     }
     expect(find.text('545'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('全点体力：体力吃满总潜能，其余清零，预览同步', (tester) async {
+    await pumpPage(tester);
+
+    // 先分配到别的维度，确认全点会覆盖而非叠加
+    await tester.tap(find.text('一键推荐'));
+    await tester.pump();
+    expect(find.text('273'), findsOneWidget); // 灵气
+
+    await tester.tap(find.text('全点体力'));
+    await tester.pump();
+
+    final sliders = find.byType(Slider);
+    expect(tester.widget<Slider>(sliders.at(2)).value, 545); // 体力吃满
+    for (final i in const [0, 1, 3, 4]) {
+      expect(tester.widget<Slider>(sliders.at(i)).value, 0, reason: 'row $i');
+    }
+    expect(find.text('545'), findsNWidgets(2)); // 行内 545 + 顶部「总」
+
+    // 面板：气血 = 3332 + 545 × 50；气/内攻等归零
+    expect(find.text('30,582'), findsOneWidget);
+    expect(find.text('2,380'), findsOneWidget); // 气上限只受等级基线影响
+    expect(find.text('2094.3'), findsNothing);
+  });
+
+  testWidgets('全点身法：命中按当前门派系数换算（少林 7 区别于逍遥 7.5）', (tester) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(find.text('少林'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('少林'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('全点身法'));
+    await tester.pump();
+
+    final sliders = find.byType(Slider);
+    expect(tester.widget<Slider>(sliders.at(4)).value, 545);
+    expect(tester.widget<Slider>(sliders.at(2)).value, 0);
+    // 少林身法 → 命中 7：833 + 545 × 7 = 4,648
+    expect(find.text('4,648'), findsOneWidget);
+    // 少林身法 → 闪避 4：595 + 545 × 4 = 2,775
+    expect(find.text('2,775'), findsOneWidget);
   });
 
   testWidgets('切门派后成长系数与预览同步（少林 ≈ 近似标注）', (tester) async {
