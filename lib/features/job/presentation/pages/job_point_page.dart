@@ -16,8 +16,8 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 
 /// 职业加点计算器（对应原型 `v-class-point`）。
 ///
-/// 门派 pills + 等级（10~119，默认 119）+ 五行潜能步进
-/// （− 进度条 ＋，进度=已点/总潜能）+ 一键推荐 / 清空 +
+/// 门派 pills + 等级（10~119，默认 119）+ 五行潜能滑块
+/// （− 滑块 ＋，滑块上限 = 已点 + 剩余潜能）+ 一键推荐 / 清空 +
 /// 面板预览（气血/气/内外攻/命中/闪避/会心，按门派成长系数换算）+
 /// 门派成长系数 · 每点潜能换算表。
 class JobPointPage extends StatefulWidget {
@@ -65,6 +65,12 @@ class _JobPointPageState extends State<JobPointPage> {
     setState(() {
       _pts[key] = (_pts[key]! + delta).clamp(0, _total);
     });
+  }
+
+  /// 滑块直接赋值：上限为「总潜能 − 其他维度已用」，保证总和不超过总潜能。
+  void _setPts(String key, int value) {
+    final max = _total - (_used - _pts[key]!);
+    setState(() => _pts[key] = value.clamp(0, max));
   }
 
   void _recommend() {
@@ -161,13 +167,14 @@ class _JobPointPageState extends State<JobPointPage> {
                             _AttrRow(
                               def: kJobAttrs[i],
                               value: _pts[kJobAttrs[i].key]!,
-                              ratio: _total == 0
-                                  ? 0
-                                  : _pts[kJobAttrs[i].key]! / _total,
+                              // 滑块上限 = 已点 + 剩余潜能，拖动不会超出总潜能
+                              maxValue:
+                                  _total - (_used - _pts[kJobAttrs[i].key]!),
                               canMinus: _pts[kJobAttrs[i].key]! > 0,
                               canPlus: _used < _total,
                               onMinus: () => _bump(kJobAttrs[i].key, -1),
                               onPlus: () => _bump(kJobAttrs[i].key, 1),
+                              onChanged: (v) => _setPts(kJobAttrs[i].key, v),
                             ),
                           ],
                           // 面板预览
@@ -356,29 +363,39 @@ class _NumberFieldState extends State<_NumberField> {
   }
 }
 
-/// 单条五行分配行（`-  bar  +  数值`）。
+/// 单条五行分配行（`-  滑块  +  数值`）。
+///
+/// 滑块上限 [maxValue] = 已点 + 剩余潜能，拖动即不会超出总潜能；
+/// 上限为 0（总潜能为 0）时滑块整行禁用。
 class _AttrRow extends StatelessWidget {
   const _AttrRow({
     required this.def,
     required this.value,
-    required this.ratio,
+    required this.maxValue,
     required this.canMinus,
     required this.canPlus,
     required this.onMinus,
     required this.onPlus,
+    required this.onChanged,
   });
 
   final JobAttrDef def;
   final int value;
-  final double ratio;
+
+  /// 该维度可分配上限（已点 + 剩余潜能）。
+  final int maxValue;
   final bool canMinus;
   final bool canPlus;
   final VoidCallback onMinus;
   final VoidCallback onPlus;
 
+  /// 滑块拖动回调（按 1 点离散取整后的目标值）。
+  final ValueChanged<int> onChanged;
+
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
+    final enabled = maxValue > 0;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10.5, horizontal: 2),
       decoration: BoxDecoration(
@@ -401,24 +418,19 @@ class _AttrRow extends StatelessWidget {
           const SizedBox(width: 12),
           JobMiniButton(label: '−', onTap: onMinus, enabled: canMinus),
           const SizedBox(width: 12),
-          // bar：进度（flex:1，金色渐变填充）
+          // slider：分配滑块（flex:1，金色轨道 · 1 点离散）
           Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(
-                color: tg.inset,
-                borderRadius: BorderRadius.circular(99),
-              ),
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: ratio.clamp(0, 1),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFC9995A), Color(0xFFF2D49B)],
-                    ),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
+            child: SizedBox(
+              // 与 − / ＋ 按钮同高，行高保持原样
+              height: 32,
+              child: SliderTheme(
+                data: _attrSliderTheme(tg),
+                child: Slider(
+                  value: (enabled ? value.clamp(0, maxValue) : 0).toDouble(),
+                  // Slider 要求 min < max，禁用态用占位上限
+                  max: enabled ? maxValue.toDouble() : 1.0,
+                  divisions: enabled ? maxValue : null,
+                  onChanged: enabled ? (v) => onChanged(v.round()) : null,
                 ),
               ),
             ),
@@ -444,6 +456,29 @@ class _AttrRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 五行分配滑块的轨道配色（金轨 · inset 底轨 · r99），沿用原进度条观感。
+SliderThemeData _attrSliderTheme(TgColors tg) {
+  return SliderThemeData(
+    trackHeight: 6,
+    activeTrackColor: tg.gold,
+    inactiveTrackColor: tg.inset,
+    thumbColor: tg.gold2,
+    overlayColor: tg.goldTint(.12),
+    disabledActiveTrackColor: tg.borderHi,
+    disabledInactiveTrackColor: tg.inset,
+    disabledThumbColor: tg.borderHi,
+    // 上限可达数百点，隐藏刻度与气泡（点数已由右侧数值显示）
+    tickMarkShape: SliderTickMarkShape.noTickMark,
+    showValueIndicator: ShowValueIndicator.never,
+    trackShape: const RoundedRectSliderTrackShape(),
+    thumbShape: const RoundSliderThumbShape(
+      enabledThumbRadius: 6.5,
+      disabledThumbRadius: 6.5,
+    ),
+    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+  );
 }
 
 /// 面板预览（`.mat-sec` h4 + auto-fit 网格 7 项）。

@@ -169,6 +169,54 @@ void main() {
     expect(find.text('3,382'), findsOneWidget);
   });
 
+  testWidgets('滑块上限 = 剩余潜能：拖满后其他维度不可再分配', (tester) async {
+    await pumpPage(tester);
+
+    final sliders = find.byType(Slider);
+    expect(sliders, findsNWidgets(5)); // 力量/灵气/体力/定力/身法
+
+    // 体力（第 3 行）拖到最右 → 吃满 545
+    await tester.drag(sliders.at(2), const Offset(2000, 0));
+    await tester.pump();
+    expect(tester.widget<Slider>(sliders.at(2)).value, 545);
+    // 剩余 0（「545」只剩行内数值 + 顶部「总」）
+    expect(find.text('545'), findsNWidgets(2));
+    // 面板：气血 = 3332 + 545 × 50
+    expect(find.text('30,582'), findsOneWidget);
+
+    // 其他维度上限被剩余潜能压到 0 → 滑块禁用、拖动无效
+    final li = tester.widget<Slider>(sliders.at(0));
+    expect(li.value, 0);
+    expect(li.onChanged, isNull);
+    await tester.drag(sliders.at(0), const Offset(2000, 0));
+    await tester.pump();
+    expect(tester.widget<Slider>(sliders.at(0)).value, 0);
+
+    // 已分配的体力仍可回拖
+    expect(tester.widget<Slider>(sliders.at(2)).onChanged, isNotNull);
+    await tester.drag(sliders.at(2), const Offset(-2000, 0));
+    await tester.pump();
+    expect(tester.widget<Slider>(sliders.at(2)).value, 0);
+    expect(find.text('545'), findsNWidgets(2)); // 回到「剩余 545 / 总 545」
+  });
+
+  testWidgets('总潜能为 0（10 级）：滑块全部禁用', (tester) async {
+    await pumpPage(tester);
+
+    await tester.enterText(find.byType(TextField), '10');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    final sliders = find.byType(Slider);
+    for (var i = 0; i < 5; i++) {
+      final s = tester.widget<Slider>(sliders.at(i));
+      expect(s.value, 0, reason: 'row $i');
+      expect(s.onChanged, isNull, reason: 'row $i');
+    }
+    expect(find.text('545'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('切门派后成长系数与预览同步（少林 ≈ 近似标注）', (tester) async {
     await pumpPage(tester);
 
