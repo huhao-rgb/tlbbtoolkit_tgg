@@ -16,6 +16,9 @@ import android.widget.ImageView
  * 用全屏 ImageView 绘制整幅 splash 图，展示固定时长后无动画切换到
  * Flutter 主界面（MainActivity）。
  *
+ * Flutter 引擎由 [WarmupEngine] 在进程启动时就并行预热，此处的展示时长
+ * 是「叠加在预热之上」的纯展示时长，不再额外串接一次冷启动。
+ *
  * 注意：必须 setContentView 一个真实内容视图——若只有 windowBackground，
  * 系统会一直显示「起始窗口」（不透传状态栏、图画不到状态栏背后）；
  * 有了真实视图 + edge-to-edge，启动图才能延伸到状态栏/导航栏背后，
@@ -27,9 +30,23 @@ class SplashActivity : android.app.Activity() {
 
     private val goMain = Runnable {
         if (isFinishing || isDestroyed) return@Runnable
-        startActivity(Intent(this, MainActivity::class.java))
-        // 前后窗口都是同一张启动图，禁用切换动画 → 过渡无感
-        overridePendingTransition(0, 0)
+        // 预热就绪 → 复用缓存引擎，省掉冷启动；未就绪 → 普通启动，走原有冷启动路径
+        val intent = if (WarmupEngine.isReady) {
+            FlutterActivity.withCachedEngine(WarmupEngine.ENGINE_ID).build(this)
+        } else {
+            WarmupEngine.abandon()
+            Intent(this, MainActivity::class.java)
+        }
+        // 前后窗口都是同一张启动图，禁用切换动画 → 过渡无感。
+        // Android 14 起 overridePendingTransition 已失效，改用 overrideActivityTransition。
+        if (Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
+        startActivity(intent)
         finish()
     }
 
