@@ -1,425 +1,293 @@
-/// 兽灵图鉴 —— 领域模型与数据（与 UI 原型 `SPIRITS` 一致）。
+/// 兽灵图鉴 —— 领域模型与数据（与 UI 原型 v1.13.0 `v-beast-index` 一致）。
 ///
-/// 9 只兽灵：白泽/穷奇/饕餮/梼杌/九尾/貔貅/睚眦/狻猊/年兽；每只有
-/// 稀有度(传说/史诗/稀有/普通)、流派(内功/外功/平衡)、星级、携带等级、
-/// 头像字徽与 4 档成长(1-5 / 6-10 / 11-15 / 16-20 级)。
+/// 兽灵以「珍兽技能」为单位划分：珍兽觉醒缔约兽灵后，对应技能获得强化。
+/// 兽灵技能共 **20 级 · 7 阶**（一阶 1-3 级 → 七阶 20 级），每只兽灵含
+/// **两个效果位**：效果一 4 级解锁、效果二 10 级解锁，部分效果在珍兽进入
+/// 「怒意三阶」抽取到该技能时触发。
+///
+/// 6 只兽灵中破御 / 破胆已收录 7 阶完整数据（TLBB怀旧攻略小程序 · 用户核验），
+/// 拼命 / 痛击 / 连击 / 灵动逐阶数值待补，仅收录攻略共识。
+///
+/// 文案中的 `<b>…</b>`（金强调）与 `<i>…</i>`（未解锁占位）由表现层解析。
 library;
 
 import 'package:flutter/foundation.dart';
 
-/// 稀有度配色键（对应原型 `rt`：blue / red / gold / ''=普通）。
-enum BeastRarityTone {
-  normal(''),
-  gold('gold'),
-  blue('blue'),
-  red('red');
+/// 兽灵数据完整度（对应原型标题行右侧 tag）。
+enum BeastSpiritStatus {
+  /// 已收录 7 阶逐阶数据（`.tag-gold`）。
+  complete('完整数据'),
 
-  const BeastRarityTone(this.key);
+  /// 逐阶数值待补，仅收录攻略共识（`.tag`）。
+  pending('待补');
 
-  final String key;
-}
+  const BeastSpiritStatus(this.label);
 
-/// 属性流派。
-enum BeastAttr {
-  nei('内功'),
-  wai('外功'),
-  bal('平衡');
-
-  const BeastAttr(this.label);
-
+  /// tag 文案。
   final String label;
 }
 
-/// 单档成长效果。
+/// 单个阶位的兽灵效果。
 @immutable
 class BeastSpiritTier {
   const BeastSpiritTier({
+    required this.name,
     required this.lv,
-    required this.main,
-    required this.subs,
-    required this.fx,
+    required this.dec,
+    required this.effect1,
+    required this.effect2,
   });
 
-  /// 档位（如 `1-5`）。
+  /// 阶位名（如 `一阶`）。
+  final String name;
+
+  /// 等级区间（如 `1-3 级`）。
   final String lv;
 
-  /// 成长 · 主。
-  final String main;
+  /// 阶位说明（含 `<b>…</b>` 金强调）。
+  final String dec;
 
-  /// 成长 · 副（1~2 条）。
-  final List<String> subs;
+  /// 兽灵效果一（4 级解锁；含 `<b>…</b>` / `<i>…</i>`）。
+  final String effect1;
 
-  /// 特效（含 `<b>…</b>` 强调标记）。
-  final String fx;
-
-  /// 标题文案（如 `1-5 级效果`）。
-  String get title => '$lv 级效果';
+  /// 兽灵效果二（10 级解锁；含 `<b>…</b>` / `<i>…</i>`）。
+  final String effect2;
 }
 
-/// 一只兽灵。
+/// 一只兽灵（以珍兽技能为单位）。
 @immutable
 class BeastSpirit {
   const BeastSpirit({
+    required this.id,
     required this.name,
-    required this.rarity,
-    required this.tone,
-    required this.stars,
-    required this.attr,
-    required this.role,
-    required this.level,
-    required this.avatar,
-    required this.tiers,
+    required this.sub,
+    required this.status,
+    this.tiers = const [],
+    this.pendingBody = '',
+    this.pendingNote = '',
   });
 
+  /// 稳定 id（对应原型 `#poyu` / `#podan` / …）。
+  final String id;
+
+  /// 名称（如 `破御兽灵`）。
   final String name;
 
-  /// 稀有度文案（传说 / 史诗 / 稀有 / 普通）。
-  final String rarity;
+  /// 一句话定位（如 `破防 · 会心削减`）。
+  final String sub;
 
-  /// 配色键。
-  final BeastRarityTone tone;
+  /// 数据完整度。
+  final BeastSpiritStatus status;
 
-  /// 星级（1~5）。
-  final int stars;
-
-  /// 属性流派。
-  final BeastAttr attr;
-
-  /// 定位。
-  final String role;
-
-  /// 携带等级。
-  final int level;
-
-  /// 头像字徽。
-  final String avatar;
-
-  /// 4 档成长。
+  /// 7 阶数据；[status] 为 [BeastSpiritStatus.pending] 时为空。
   final List<BeastSpiritTier> tiers;
 
-  /// 是否普通（无配色）。
-  bool get isCommon => tone == BeastRarityTone.normal;
+  /// 待补正文（含 `<b>…</b>`）；仅 [BeastSpiritStatus.pending] 使用。
+  final String pendingBody;
+
+  /// 待补攻略注（`※` 起头，走 `.soul-fx` 样式）；仅待补兽灵使用。
+  final String pendingNote;
+
+  /// 是否已收录 7 阶完整数据。
+  bool get isComplete => status == BeastSpiritStatus.complete;
 }
 
-/// 兽灵库（对应原型 `SPIRITS`）。
+/// 阶位结构中的一阶（对应「阶位结构 · 20 级 7 阶」进度条）。
+@immutable
+class BeastTierStep {
+  const BeastTierStep(this.name, this.lv);
+
+  /// 阶位名（如 `一阶`）。
+  final String name;
+
+  /// 等级区间（如 `1-3 级`）。
+  final String lv;
+}
+
+/// 阶位结构：20 级 7 阶。
+const List<BeastTierStep> kBeastTierSteps = [
+  BeastTierStep('一阶', '1-3 级'),
+  BeastTierStep('二阶', '4-6 级'),
+  BeastTierStep('三阶', '7-9 级'),
+  BeastTierStep('四阶', '10-12 级'),
+  BeastTierStep('五阶', '13-15 级'),
+  BeastTierStep('六阶', '16-19 级'),
+  BeastTierStep('七阶', '20 级'),
+];
+
+/// 兽灵技能图鉴（手风琴顺序与原型一致）。
 const List<BeastSpirit> kBeastSpirits = [
   BeastSpirit(
-    name: '白泽',
-    rarity: '传说',
-    tone: BeastRarityTone.blue,
-    stars: 5,
-    attr: BeastAttr.nei,
-    role: '群攻·治疗',
-    level: 85,
-    avatar: '白',
+    id: 'poyu',
+    name: '破御兽灵',
+    sub: '破防 · 会心削减',
+    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
-        lv: '1-5',
-        main: '内功攻击 +40',
-        subs: ['气上限 +300'],
-        fx: '治疗量 <b>+5%</b>',
+        name: '一阶',
+        lv: '1-3 级',
+        dec: '额外降低目标 <b>2%</b> 的会心防御',
+        effect1: '<i>4 级解锁</i>',
+        effect2: '<i>10 级解锁</i>',
       ),
       BeastSpiritTier(
-        lv: '6-10',
-        main: '内功攻击 +65',
-        subs: ['治疗强度 +50'],
-        fx: '群攻技能<b>目标数 +1</b>',
+        name: '二阶',
+        lv: '4-6 级',
+        dec: '额外降低目标 <b>4%</b> 的会心防御',
+        effect1: '珍兽进入<b>怒意三阶</b>抽取到此技能时，使主人会心攻击和会心防御 <b>+5%</b>',
+        effect2: '<i>10 级解锁</i>',
       ),
       BeastSpiritTier(
-        lv: '11-15',
-        main: '内功攻击 +95',
-        subs: ['治疗强度 +75'],
-        fx: '治疗附加 <b>3 秒持续回复</b>',
+        name: '三阶',
+        lv: '7-9 级',
+        dec: '额外降低目标 <b>8%</b> 的会心防御',
+        effect1: '珍兽进入<b>怒意三阶</b>抽取到此技能时，使主人会心攻击和会心防御 <b>+5%</b>',
+        effect2: '<i>10 级解锁</i>',
       ),
       BeastSpiritTier(
-        lv: '16-20',
-        main: '内功攻击 +130',
-        subs: ['治疗强度 +105'],
-        fx: '治疗时<b>解除 1 个负面状态</b>',
+        name: '四阶',
+        lv: '10-12 级',
+        dec: '额外降低目标 <b>16%</b> 的会心防御',
+        effect1: '怒意三阶抽取到此技能时，主人会心攻击和会心防御 <b>+15%</b>',
+        effect2: '怒意三阶抽取到此技能时，给主人一个<b>免疫 1 次</b>会心伤害的护盾，持续 <b>3 秒</b>',
+      ),
+      BeastSpiritTier(
+        name: '五阶',
+        lv: '13-15 级',
+        dec: '额外降低目标 <b>16%</b> 的会心防御',
+        effect1: '怒意三阶抽取到此技能时，主人会心攻击和会心防御 <b>+15%</b>',
+        effect2: '给主人一个<b>免疫 2 次</b>会心伤害的护盾，持续 <b>4 秒</b>',
+      ),
+      BeastSpiritTier(
+        name: '六阶',
+        lv: '16-19 级',
+        dec: '额外降低目标 <b>16%</b> 的会心防御',
+        effect1: '怒意三阶抽取到此技能时，主人会心攻击和会心防御 <b>+15%</b>',
+        effect2: '给主人一个<b>免疫 3 次</b>会心伤害的护盾，持续 <b>5 秒</b>',
+      ),
+      BeastSpiritTier(
+        name: '七阶',
+        lv: '20 级',
+        dec: '额外降低目标 <b>16%</b> 的会心防御',
+        effect1: '怒意三阶抽取到此技能时，主人会心攻击和会心防御 <b>+15%</b>',
+        effect2: '给主人一个<b>免疫 5 次</b>会心伤害的护盾，持续 <b>8 秒</b>',
       ),
     ],
   ),
   BeastSpirit(
-    name: '穷奇',
-    rarity: '传说',
-    tone: BeastRarityTone.red,
-    stars: 5,
-    attr: BeastAttr.wai,
-    role: '单体爆发',
-    level: 85,
-    avatar: '穷',
+    id: 'podan',
+    name: '破胆兽灵',
+    sub: '普攻附伤 · 增伤',
+    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
-        lv: '1-5',
-        main: '外功攻击 +45',
-        subs: ['会心 +15'],
-        fx: '暴击伤害 <b>+8%</b>',
+        name: '一阶',
+        lv: '1-3 级',
+        dec: '珍兽对拥有<b>破胆</b>效果的目标造成普通攻击伤害时，额外附带一次普通攻击 <b>1%</b> 的伤害',
+        effect1: '<i>4 级解锁</i>',
+        effect2: '<i>10 级解锁</i>',
       ),
       BeastSpiritTier(
-        lv: '6-10',
-        main: '外功攻击 +72',
-        subs: ['会心 +24'],
-        fx: '爆发技能<b>无视 10% 防御</b>',
+        name: '二阶',
+        lv: '4-6 级',
+        dec: '珍兽对拥有<b>破胆</b>效果的目标造成普通攻击伤害时，额外附带一次普通攻击 <b>2%</b> 的伤害',
+        effect1: '此珍兽出战时，主人对拥有破胆的目标造成的伤害提升 <b>1%</b>',
+        effect2: '<i>10 级解锁</i>',
       ),
       BeastSpiritTier(
-        lv: '11-15',
-        main: '外功攻击 +105',
-        subs: ['会心 +35'],
-        fx: '暴击后下次攻击伤害 <b>+15%</b>',
+        name: '三阶',
+        lv: '7-9 级',
+        dec: '珍兽对拥有<b>破胆</b>效果的目标造成普通攻击伤害时，额外附带一次普通攻击 <b>4%</b> 的伤害',
+        effect1: '此珍兽出战时，主人对拥有破胆的目标造成的伤害提升 <b>1%</b>',
+        effect2: '<i>10 级解锁</i>',
       ),
       BeastSpiritTier(
-        lv: '16-20',
-        main: '外功攻击 +145',
-        subs: ['会心 +48'],
-        fx: '击杀目标<b>刷新爆发技能</b>',
+        name: '四阶',
+        lv: '10-12 级',
+        dec: '珍兽对拥有<b>破胆</b>效果的目标造成普通攻击伤害时，额外附带一次普通攻击 <b>10%</b> 的伤害',
+        effect1: '此珍兽出战时，主人对拥有破胆的目标造成的伤害提升 <b>2%</b>',
+        effect2:
+            '主人对拥有破胆的目标造成的伤害提升 <b>1%</b>；<b>怒意三阶</b>抽取到此技能时，额外提升 <b>1%</b>',
+      ),
+      BeastSpiritTier(
+        name: '五阶',
+        lv: '13-15 级',
+        dec: '珍兽对拥有<b>破胆</b>效果的目标造成普通攻击伤害时，额外附带一次普通攻击 <b>10%</b> 的伤害',
+        effect1: '此珍兽出战时，主人对拥有破胆的目标造成的伤害提升 <b>2%</b>',
+        effect2:
+            '主人对拥有破胆的目标造成的伤害提升 <b>1%</b>；<b>怒意三阶</b>抽取到此技能时，额外提升 <b>2%</b>',
+      ),
+      BeastSpiritTier(
+        name: '六阶',
+        lv: '16-19 级',
+        dec: '珍兽对拥有<b>破胆</b>效果的目标造成普通攻击伤害时，额外附带一次普通攻击 <b>10%</b> 的伤害',
+        effect1: '此珍兽出战时，主人对拥有破胆的目标造成的伤害提升 <b>2%</b>',
+        effect2:
+            '主人对拥有破胆的目标造成的伤害提升 <b>2%</b>；<b>怒意三阶</b>抽取到此技能时，额外提升 <b>2%</b>',
+      ),
+      BeastSpiritTier(
+        name: '七阶',
+        lv: '20 级',
+        dec: '珍兽对拥有<b>破胆</b>效果的目标造成普通攻击伤害时，额外附带一次普通攻击 <b>10%</b> 的伤害',
+        effect1: '此珍兽出战时，主人对拥有破胆的目标造成的伤害提升 <b>2%</b>',
+        effect2:
+            '主人对拥有破胆的目标造成的伤害提升 <b>2%</b>；<b>怒意三阶</b>抽取到此技能时，额外提升 <b>4%</b>',
       ),
     ],
   ),
   BeastSpirit(
-    name: '饕餮',
-    rarity: '史诗',
-    tone: BeastRarityTone.gold,
-    stars: 4,
-    attr: BeastAttr.bal,
-    role: '持续吸收',
-    level: 75,
-    avatar: '饕',
-    tiers: [
-      BeastSpiritTier(
-        lv: '1-5',
-        main: '吸收护盾 +400',
-        subs: ['攻击回复 2% 伤害'],
-        fx: '—',
-      ),
-      BeastSpiritTier(
-        lv: '6-10',
-        main: '吸收护盾 +650',
-        subs: ['吸血 5%'],
-        fx: '护盾存在时<b>防御 +8%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '11-15',
-        main: '吸收护盾 +950',
-        subs: ['全属性 +20'],
-        fx: '护盾破碎时<b>对周围爆炸</b>',
-      ),
-      BeastSpiritTier(
-        lv: '16-20',
-        main: '吸收护盾 +1300',
-        subs: ['全属性 +30'],
-        fx: '吸收量转化为<b>战斗内永久增益</b>',
-      ),
-    ],
+    id: 'pinming',
+    name: '拼命兽灵',
+    sub: '勇猛 · 攻击强化',
+    status: BeastSpiritStatus.pending,
+    pendingBody:
+        '<b>版本核心技能</b>：兽灵强化下为输出宝宝必备。与连击、灵动并称输出宝宝<b>核心三件套</b>'
+        '（拼命 + 连击 + 灵动），勇猛性格触发频率最高。',
+    pendingNote: '※ 贴吧攻略共识：拼命为兽灵版本输出宝宝第一优先级',
   ),
   BeastSpirit(
-    name: '梼杌',
-    rarity: '史诗',
-    tone: BeastRarityTone.red,
-    stars: 4,
-    attr: BeastAttr.wai,
-    role: '破防压制',
-    level: 75,
-    avatar: '梼',
-    tiers: [
-      BeastSpiritTier(
-        lv: '1-5',
-        main: '外功攻击 +38',
-        subs: ['破防 +40'],
-        fx: '攻击<b>无视 5% 防御</b>',
-      ),
-      BeastSpiritTier(
-        lv: '6-10',
-        main: '外功攻击 +60',
-        subs: ['破防 +65'],
-        fx: '附加<b>破防标记</b>：受创 +6%',
-      ),
-      BeastSpiritTier(
-        lv: '11-15',
-        main: '外功攻击 +88',
-        subs: ['破防 +95'],
-        fx: '标记<b>可叠加 2 层</b>',
-      ),
-      BeastSpiritTier(
-        lv: '16-20',
-        main: '外功攻击 +120',
-        subs: ['破防 +130'],
-        fx: '压制：目标防御 <b>-15%</b>',
-      ),
-    ],
+    id: 'tongji',
+    name: '痛击兽灵',
+    sub: '胆小 · 内功输出',
+    status: BeastSpiritStatus.pending,
+    pendingBody:
+        '内功宝宝的主要输出技能，内功宝宝的输出很大比率来自痛击。胆小性格触发率高；'
+        '兽灵强化后为内功流（凝神/痛击向）核心。',
+    pendingNote: '※ 适配：内功珍兽 + 内功门派主人（武当/逍遥/星宿）',
   ),
   BeastSpirit(
-    name: '九尾',
-    rarity: '史诗',
-    tone: BeastRarityTone.blue,
-    stars: 4,
-    attr: BeastAttr.nei,
-    role: '魅惑控制',
-    level: 65,
-    avatar: '九',
-    tiers: [
-      BeastSpiritTier(
-        lv: '1-5',
-        main: '内功攻击 +36',
-        subs: ['命中 +25'],
-        fx: '技能 <b>4% 概率魅惑</b> 1 秒',
-      ),
-      BeastSpiritTier(
-        lv: '6-10',
-        main: '内功攻击 +58',
-        subs: ['命中 +40'],
-        fx: '魅惑概率提升至 <b>6%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '11-15',
-        main: '内功攻击 +85',
-        subs: ['命中 +58'],
-        fx: '魅惑期间目标<b>受伤 +12%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '16-20',
-        main: '内功攻击 +118',
-        subs: ['命中 +78'],
-        fx: '魅惑结束<b>返还 30% 冷却</b>',
-      ),
-    ],
+    id: 'lianji',
+    name: '连击兽灵',
+    sub: '勇猛 · 外功输出',
+    status: BeastSpiritStatus.pending,
+    pendingBody:
+        '外功输出宝宝常用兽灵：外功拼命输出宝宝带连击兽灵较多，配合拼命形成高频攻击链。'
+        '谨慎体力宝宝一般不选。',
+    pendingNote: '※ 贴吧讨论：外功输出向常用，PVE 收益直接',
   ),
   BeastSpirit(
-    name: '貔貅',
-    rarity: '稀有',
-    tone: BeastRarityTone.gold,
-    stars: 3,
-    attr: BeastAttr.bal,
-    role: '聚财增益',
-    level: 55,
-    avatar: '貔',
-    tiers: [
-      BeastSpiritTier(lv: '1-5', main: '全属性 +12', subs: ['银两掉落 +5%'], fx: '—'),
-      BeastSpiritTier(
-        lv: '6-10',
-        main: '全属性 +20',
-        subs: ['银两掉落 +8%'],
-        fx: '自身增益效果 <b>+8%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '11-15',
-        main: '全属性 +30',
-        subs: ['气上限 +500'],
-        fx: '银两掉落提升至 <b>+10%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '16-20',
-        main: '全属性 +42',
-        subs: ['气上限 +800'],
-        fx: '战斗胜利<b>额外宝箱 5% 概率</b>',
-      ),
-    ],
-  ),
-  BeastSpirit(
-    name: '睚眦',
-    rarity: '稀有',
-    tone: BeastRarityTone.red,
-    stars: 3,
-    attr: BeastAttr.wai,
-    role: '嗜血连击',
-    level: 45,
-    avatar: '睚',
-    tiers: [
-      BeastSpiritTier(
-        lv: '1-5',
-        main: '外功攻击 +35',
-        subs: ['吸血 3%'],
-        fx: '连击概率 <b>+4%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '6-10',
-        main: '外功攻击 +55',
-        subs: ['吸血 5%'],
-        fx: '连击概率提升至 <b>+6%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '11-15',
-        main: '外功攻击 +80',
-        subs: ['吸血 7%'],
-        fx: '嗜血：气血越低攻击越高（<b>至多 +12%</b>）',
-      ),
-      BeastSpiritTier(
-        lv: '16-20',
-        main: '外功攻击 +110',
-        subs: ['吸血 9%'],
-        fx: '连击触发时<b>回复 3% 气血</b>',
-      ),
-    ],
-  ),
-  BeastSpirit(
-    name: '狻猊',
-    rarity: '稀有',
-    tone: BeastRarityTone.blue,
-    stars: 3,
-    attr: BeastAttr.nei,
-    role: '火焰吐息',
-    level: 35,
-    avatar: '狻',
-    tiers: [
-      BeastSpiritTier(
-        lv: '1-5',
-        main: '内功攻击 +34',
-        subs: ['火攻 +15'],
-        fx: '吐息范围 <b>+10%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '6-10',
-        main: '内功攻击 +54',
-        subs: ['火攻 +24'],
-        fx: '附加<b>3 秒灼烧</b>',
-      ),
-      BeastSpiritTier(
-        lv: '11-15',
-        main: '内功攻击 +78',
-        subs: ['火攻 +35'],
-        fx: '灼烧<b>传播</b>至邻近目标',
-      ),
-      BeastSpiritTier(
-        lv: '16-20',
-        main: '内功攻击 +108',
-        subs: ['火攻 +48'],
-        fx: '灼烧目标受伤 <b>+15%</b>',
-      ),
-    ],
-  ),
-  BeastSpirit(
-    name: '年兽',
-    rarity: '普通',
-    tone: BeastRarityTone.normal,
-    stars: 2,
-    attr: BeastAttr.bal,
-    role: '新春限定',
-    level: 25,
-    avatar: '年',
-    tiers: [
-      BeastSpiritTier(
-        lv: '1-5',
-        main: '全属性 +15',
-        subs: ['气上限 +200'],
-        fx: '爆竹：<b>4% 概率眩晕</b> 1 秒',
-      ),
-      BeastSpiritTier(
-        lv: '6-10',
-        main: '全属性 +25',
-        subs: ['气上限 +350'],
-        fx: '眩晕概率提升至 <b>6%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '11-15',
-        main: '全属性 +36',
-        subs: ['气上限 +500'],
-        fx: '新春祝福：队伍经验 <b>+10%</b>',
-      ),
-      BeastSpiritTier(
-        lv: '16-20',
-        main: '全属性 +50',
-        subs: ['气上限 +700'],
-        fx: '变身形态 <b>8 秒</b>，全属性翻倍',
-      ),
-    ],
+    id: 'lingdong',
+    name: '灵动兽灵',
+    sub: '通用 · 生存减伤',
+    status: BeastSpiritStatus.pending,
+    pendingBody:
+        '生存向兽灵：减少珍兽受到的伤害，提升存活率。「灵动 + 拼命」为经典组合——'
+        '高输出宝宝生存压力大时必备，50 级兽灵可酌情替换。',
+    pendingNote: '※ 贴吧共识：灵动拼命必备；谨慎体力宝宝核心（打怒 + 灵动）',
   ),
 ];
+
+/// 图鉴顶部说明（原型 `.calc-note`，含 `<b>…</b>` 金强调）。
+const String kBeastIndexIntroNote =
+    '兽灵以<b>珍兽技能</b>为单位划分：珍兽觉醒缔约兽灵后，对应技能获得强化。'
+    '兽灵技能共 <b>20 级 · 7 阶</b>（一阶 1-3 级 → 七阶 20 级），每只兽灵含'
+    '<b>两个效果位</b>：效果一 4 级解锁、效果二 10 级解锁，部分效果在珍兽进入'
+    '<b>怒意三阶</b>抽取到该技能时触发。'
+    '（破御、破胆数据：TLBB怀旧攻略小程序 · 用户核验；其余来自社区实测与攻略共识，'
+    '逐级数值以游戏内为准）';
+
+/// 图鉴底部说明（原型 `.calc-note`）。
+const String kBeastIndexFootNote =
+    '※ 拼命/痛击/连击/灵动的逐阶数值尚未收录完整（官方未公布全部表格）；'
+    '破御、破胆 7 阶数据经用户从小程序「TLBB怀旧攻略」核验，可直接参考。'
+    '破御礼包例：「破御斩虚兽灵自选礼包」（2026-02 官方活动，叶子猪）。';

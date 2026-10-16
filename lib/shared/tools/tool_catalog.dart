@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 /// - 路由命名（`@TypedGoRoute(name:)` 与页面保持一致）；
 /// - 一致性测试（路由 location ↔ 目录 location）。
 ///
-/// 文案与《天工阁-UI原型.html》(v1.11.1，移除兽灵一级页) 对齐；图标暂用
+/// 文案与《天工阁-UI原型.html》(v1.13.0，兽灵手风琴版) 对齐；图标暂用
 /// Material 图标占位，后续替换为 `svg_icons/` 线性图标。
 ///
 /// 一级分类（[categories]）为 珍兽 / 职业 / 实用 三类：兽灵 · 兽魂已并入
@@ -233,9 +233,23 @@ abstract final class ToolCatalog {
     category: ToolGroup.pet,
     title: '兽灵图鉴',
     crumb: '珍兽 / 图鉴',
-    pageSubtitle: '收录兽灵的星级、属性流派与携带等级',
-    cardDesc: '星级属性 · 携带等级 · 获取途径',
-    keywords: ['兽灵', '图鉴', '星级', '内功', '外功', '平衡', '携带', '等级'],
+    pageSubtitle: '珍兽觉醒缔约 · 兽灵附体强化存活与输出 · 依据官方公告与玩家实测整理（2025-03 上线）',
+    cardDesc: '20 级 7 阶 · 兽灵技能逐阶效果速查',
+    keywords: [
+      '兽灵',
+      '图鉴',
+      '技能',
+      '阶位',
+      '效果',
+      '破御',
+      '破胆',
+      '拼命',
+      '痛击',
+      '连击',
+      '灵动',
+      '20级',
+      '7阶',
+    ],
     location: '/pet/beast/index',
     icon: 'gem',
   );

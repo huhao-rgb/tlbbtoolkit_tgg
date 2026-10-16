@@ -3,18 +3,24 @@ import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/features/pet/domain/beast_spirit.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
-import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
-import 'package:tlbbtoolkit/features/pet/domain/beast_spirit.dart';
 
-/// 兽灵图鉴（对应原型 `v-beast-index`）。
+/// 兽灵图鉴（对应原型 v1.13.0 `v-beast-index` · 兽灵手风琴版）。
 ///
-/// 流派（内功/外功/平衡）筛选 + 字徽卡片网格，点卡片打开
-/// 「成长档位」分档弹窗（spiritModal）。
+/// 页面结构：
+/// - `.calc-note` 说明 → 兽灵以珍兽技能为单位划分，20 级 7 阶、两个效果位；
+/// - `阶位结构 · 20 级 7 阶`：7 段金色进度条 + 阶位 / 等级区间；
+/// - `兽灵技能图鉴`：手风琴（`.bsacc-item`）罗列 6 只兽灵，**同时仅一项展开**；
+///   已收录完整数据的破御 / 破胆按 7 阶 chips 切换「阶位说明 + 两个效果位」，
+///   其余 4 只展示攻略共识（待补）。
+///
+/// 与 v1.11.1 版（流派筛选 + 星级卡片网格 + 成长档位弹窗）为**整体替换**。
 class BeastIndexPage extends StatefulWidget {
   const BeastIndexPage({super.key});
 
@@ -23,19 +29,14 @@ class BeastIndexPage extends StatefulWidget {
 }
 
 class _BeastIndexPageState extends State<BeastIndexPage> {
-  /// 流派筛选（null = 全部）。
-  BeastAttr? _attr;
+  /// 当前展开的手风琴下标；null = 全部收起。
+  ///
+  /// 默认展开第一项（破御兽灵）：原型初始态虽无 `.open`，但整页内容全靠手风琴
+  /// 承载，首屏全收起过于空，故默认展开首项。
+  int? _open = 0;
 
-  List<BeastSpirit> get _visible => _attr == null
-      ? kBeastSpirits
-      : kBeastSpirits.where((s) => s.attr == _attr).toList(growable: false);
-
-  void _open(BeastSpirit spirit) {
-    showTgModal(
-      context: context,
-      child: _SpiritDetailDialog(spirit: spirit),
-    );
-  }
+  /// 各兽灵当前选中的阶位（收起后保留，对应原型 DOM 状态不重置）。
+  final Map<String, int> _tierSel = <String, int>{};
 
   @override
   Widget build(BuildContext context) {
@@ -72,51 +73,44 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
                       title: ToolCatalog.beastIndex.title,
                       subtitle: ToolCatalog.beastIndex.pageSubtitle,
                     ),
-                    // 流派筛选 chips
-                    Wrap(
-                      spacing: TgSpacing.s9,
-                      runSpacing: TgSpacing.sm,
+                    // 顶部说明（.calc-note，margin-bottom 14）
+                    const _CalcNote(text: kBeastIndexIntroNote, markup: true),
+                    const SizedBox(height: 18),
+                    // 阶位结构 · 20 级 7 阶（.mat-sec）
+                    const _SectionTitle(title: '阶位结构 · 20 级 7 阶'),
+                    // .mat-sec h4 margin-bottom 10
+                    const SizedBox(height: 10),
+                    const _TierStructure(),
+                    const SizedBox(height: 18),
+                    // 兽灵技能图鉴（.mat-sec）
+                    const _SectionTitle(
+                      title: '兽灵技能图鉴',
+                      trailing: _Tag('点击展开 · 同时仅一项'),
+                    ),
+                    // .mat-sec h4 margin-bottom 10（标题含 tag 时行高更高，需留白）
+                    const SizedBox(height: 10),
+                    Column(
                       children: [
-                        _AttrChip(
-                          label: '全部',
-                          active: _attr == null,
-                          onTap: () => setState(() => _attr = null),
-                        ),
-                        for (final a in BeastAttr.values)
-                          _AttrChip(
-                            label: a.label,
-                            active: _attr == a,
-                            onTap: () => setState(() => _attr = a),
+                        for (var i = 0; i < kBeastSpirits.length; i++) ...[
+                          _BeastAccItem(
+                            spirit: kBeastSpirits[i],
+                            open: _open == i,
+                            onToggle: () =>
+                                setState(() => _open = _open == i ? null : i),
+                            tierIndex: _tierSel[kBeastSpirits[i].id] ?? 0,
+                            onTier: (t) => setState(
+                              () => _tierSel[kBeastSpirits[i].id] = t,
+                            ),
                           ),
+                          // .bsacc-item margin-bottom 10；末项与底部说明取 14
+                          SizedBox(
+                            height: i == kBeastSpirits.length - 1 ? 14 : 10,
+                          ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    // 卡片网格（≤640 固定 2 列；否则 auto-fill minmax(208,1fr)）
-                    LayoutBuilder(
-                      builder: (context, c) {
-                        const minTile = 208.0;
-                        const gap = 13.0;
-                        final cols = compact
-                            ? 2
-                            : (((c.maxWidth + gap) / (minTile + gap)).floor())
-                                  .clamp(2, 6);
-                        final tileW = (c.maxWidth - gap * (cols - 1)) / cols;
-                        return Wrap(
-                          spacing: gap,
-                          runSpacing: gap,
-                          children: [
-                            for (final s in _visible)
-                              SizedBox(
-                                width: tileW,
-                                child: _SpiritCard(
-                                  spirit: s,
-                                  onTap: () => _open(s),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
+                    // 底部说明（.calc-note）
+                    const _CalcNote(text: kBeastIndexFootNote),
                     const SizedBox(height: TgSpacing.s34),
                     const TgPageFoot(text: '天工阁 · 玩家自制工具集合，与畅游官方无关'),
                   ],
@@ -130,9 +124,393 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   }
 }
 
-/// 流派筛选 pill。
-class _AttrChip extends StatefulWidget {
-  const _AttrChip({
+/// 小节标题（`.mat-sec h4`）：标题 + 可选 tag + 右侧填充细线。
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, this.trailing});
+
+  final String title;
+
+  /// 标题右侧附加内容（如「点击展开 · 同时仅一项」tag）。
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Row(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w500,
+            color: tg.t3,
+          ),
+        ),
+        if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+        const SizedBox(width: 8),
+        Expanded(child: Container(height: 1, color: tg.borderHi)),
+      ],
+    );
+  }
+}
+
+/// 说明文字（`.calc-note`）：11.5 / t3；[markup] 时解析 `<b>` 为金强调。
+class _CalcNote extends StatelessWidget {
+  const _CalcNote({required this.text, this.markup = false});
+
+  final String text;
+  final bool markup;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final base = TextStyle(fontSize: 11.5, height: 1.7, color: tg.t3);
+    if (!markup) return Text(text, style: base);
+    return Text.rich(
+      TextSpan(children: _markupSpans(text, base, boldColor: tg.gold2)),
+    );
+  }
+}
+
+/// 阶位结构：7 段金色进度条 + 阶位 / 等级区间。
+class _TierStructure extends StatelessWidget {
+  const _TierStructure();
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Row(
+      children: [
+        for (var i = 0; i < kBeastTierSteps.length; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              children: [
+                // 6px 高金色渐变条（原型 linear-gradient(90deg,#d9b96c,#b98a3d)）
+                Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(3),
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [tg.gold, tg.goldDp],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${kBeastTierSteps[i].name}\n${kBeastTierSteps[i].lv}',
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 9.5, height: 1.35, color: tg.t3),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// 单只兽灵的手风琴卡（`.bsacc-item`）。
+class _BeastAccItem extends StatefulWidget {
+  const _BeastAccItem({
+    required this.spirit,
+    required this.open,
+    required this.onToggle,
+    required this.tierIndex,
+    required this.onTier,
+  });
+
+  final BeastSpirit spirit;
+  final bool open;
+  final VoidCallback onToggle;
+
+  /// 当前选中的阶位下标（仅完整数据兽灵使用）。
+  final int tierIndex;
+  final ValueChanged<int> onTier;
+
+  @override
+  State<_BeastAccItem> createState() => _BeastAccItemState();
+}
+
+class _BeastAccItemState extends State<_BeastAccItem> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final s = widget.spirit;
+    return Container(
+      decoration: BoxDecoration(
+        color: tg.card,
+        borderRadius: BorderRadius.circular(TgRadius.r12),
+        // .bsacc-item：常态即淡金描边 rgba(217,185,108,.26)
+        border: Border.all(color: tg.goldTint(.26), width: 1),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // bsacc-head
+          MouseRegion(
+            onEnter: (_) => setState(() => _hover = true),
+            onExit: (_) => setState(() => _hover = false),
+            cursor: SystemMouseCursors.click,
+            child: Material(
+              color: _hover ? tg.goldTint(.06) : Colors.transparent,
+              child: InkWell(
+                onTap: widget.onToggle,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 13,
+                  ),
+                  child: Row(
+                    children: [
+                      // 名称 + 定位（+ tag）占满左侧，箭头恒靠右
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                s.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: tg.t1,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 9),
+                            Flexible(
+                              child: Text(
+                                s.sub,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11, color: tg.t3),
+                              ),
+                            ),
+                            const SizedBox(width: 11),
+                            _Tag(s.status.label, gold: s.isComplete),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 9),
+                      // bsacc-arrow：收起朝下 → 展开旋转 180° 朝上
+                      AnimatedRotation(
+                        turns: widget.open ? .75 : .25,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
+                        child: TgIcon('chev', size: 12, color: tg.gold2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // bsacc-body：展开 / 收起（原型 max-height .32s ease）
+          ClipRect(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 320),
+              curve: Curves.ease,
+              alignment: Alignment.topCenter,
+              child: widget.open
+                  ? _Body(
+                      spirit: s,
+                      tierIndex: widget.tierIndex,
+                      onTier: widget.onTier,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 手风琴内容（`.bsacc-body-in`：padding 2 / 15 / 15）。
+class _Body extends StatelessWidget {
+  const _Body({
+    required this.spirit,
+    required this.tierIndex,
+    required this.onTier,
+  });
+
+  final BeastSpirit spirit;
+  final int tierIndex;
+  final ValueChanged<int> onTier;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return TgCardPadding(
+      base: const EdgeInsets.fromLTRB(15, 2, 15, 15),
+      child: spirit.isComplete
+          ? _CompleteBody(spirit: spirit, tierIndex: tierIndex, onTier: onTier)
+          : _PendingBody(spirit: spirit, textColor: tg.t2),
+    );
+  }
+}
+
+/// 完整数据兽灵：7 阶 chips + 阶位说明 / 两个效果位。
+class _CompleteBody extends StatelessWidget {
+  const _CompleteBody({
+    required this.spirit,
+    required this.tierIndex,
+    required this.onTier,
+  });
+
+  final BeastSpirit spirit;
+  final int tierIndex;
+  final ValueChanged<int> onTier;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final tier = spirit.tiers[tierIndex];
+    final decStyle = TextStyle(fontSize: 13, height: 1.7, color: tg.t1);
+    final fxStyle = TextStyle(fontSize: 12.5, height: 1.6, color: tg.t2);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // chips：一阶 · 1-3 级 … 七阶 · 20 级
+        Wrap(
+          spacing: 9,
+          runSpacing: 8,
+          children: [
+            for (var i = 0; i < spirit.tiers.length; i++)
+              _TierChip(
+                label: '${spirit.tiers[i].name} · ${spirit.tiers[i].lv}',
+                active: i == tierIndex,
+                onTap: () => onTier(i),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // .card：阶位说明 + 效果一 / 效果二
+        TgCard(
+          basePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: tier.name,
+                      style: decStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: tg.gold2,
+                      ),
+                    ),
+                    TextSpan(text: '（兽灵 ${tier.lv}）', style: decStyle),
+                    const TextSpan(text: '\n'),
+                    ..._markupSpans(tier.dec, decStyle, boldColor: tg.t1),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              _SoulFx(
+                spans: _markupSpans(
+                  '<b>兽灵效果一</b> · ${tier.effect1}',
+                  fxStyle,
+                  boldColor: tg.gold2,
+                  italicColor: tg.t3,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _SoulFx(
+                spans: _markupSpans(
+                  '<b>兽灵效果二</b> · ${tier.effect2}',
+                  fxStyle,
+                  boldColor: tg.gold2,
+                  italicColor: tg.t3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 待补兽灵：攻略共识正文 + `※` 注。
+class _PendingBody extends StatelessWidget {
+  const _PendingBody({required this.spirit, required this.textColor});
+
+  final BeastSpirit spirit;
+
+  /// 正文色（原型 `color:var(--t2)`）。
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final bodyStyle = TextStyle(fontSize: 12.5, height: 1.7, color: textColor);
+    final fxStyle = TextStyle(fontSize: 12.5, height: 1.6, color: tg.t2);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            children: _markupSpans(
+              spirit.pendingBody,
+              bodyStyle,
+              boldColor: textColor,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        _SoulFx(
+          spans: _markupSpans(
+            spirit.pendingNote,
+            fxStyle,
+            boldColor: tg.gold2,
+            italicColor: tg.t3,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 效果条（`.soul-fx`）：3px 金左边线 + 金淡底 + 右圆角。
+class _SoulFx extends StatelessWidget {
+  const _SoulFx({required this.spans});
+
+  final List<InlineSpan> spans;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: tg.goldTint(.07),
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+        border: Border(left: BorderSide(color: tg.gold2, width: 3)),
+      ),
+      child: Text.rich(TextSpan(children: spans)),
+    );
+  }
+}
+
+/// 阶位 chip（`.chip` / `.chip.active`）。
+class _TierChip extends StatefulWidget {
+  const _TierChip({
     required this.label,
     required this.active,
     required this.onTap,
@@ -143,10 +521,10 @@ class _AttrChip extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_AttrChip> createState() => _AttrChipState();
+  State<_TierChip> createState() => _TierChipState();
 }
 
-class _AttrChipState extends State<_AttrChip> {
+class _TierChipState extends State<_TierChip> {
   bool _hover = false;
 
   @override
@@ -192,705 +570,70 @@ class _AttrChipState extends State<_AttrChip> {
   }
 }
 
-/// 兽灵卡（`.spirit-card`）。
-class _SpiritCard extends StatefulWidget {
-  const _SpiritCard({required this.spirit, required this.onTap});
+/// 标签（`.tag`；[gold] 时为 `.tag-gold`）。
+class _Tag extends StatelessWidget {
+  const _Tag(this.text, {this.gold = false});
 
-  final BeastSpirit spirit;
-  final VoidCallback onTap;
-
-  @override
-  State<_SpiritCard> createState() => _SpiritCardState();
-}
-
-class _SpiritCardState extends State<_SpiritCard> {
-  bool _hover = false;
+  final String text;
+  final bool gold;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final s = widget.spirit;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _hover ? -3 : 0, 0),
-        decoration: BoxDecoration(
-          color: _hover ? tg.card2 : tg.card,
-          borderRadius: TgRadius.card,
-          border: Border.all(color: _hover ? tg.borderHi : tg.border, width: 1),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: TgRadius.card,
-          child: InkWell(
-            borderRadius: TgRadius.card,
-            hoverColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            splashColor: Colors.transparent,
-            onTap: widget.onTap,
-            child: TgCardPadding(
-              base: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-              child: Column(
-                children: [
-                  // sp-avatar：64 圆字徽
-                  _Avatar(avatar: s.avatar, tone: s.tone),
-                  const SizedBox(height: 12),
-                  // sp-name：名字 + 稀有度 tag
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          s.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w600,
-                            color: tg.t1,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      _RarityTag(spirit: s),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // stars
-                  Text(
-                    List.filled(s.stars, '★').join(),
-                    style: TextStyle(
-                      fontSize: 11,
-                      letterSpacing: 2.5,
-                      color: tg.gold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // sp-meta
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.only(top: 11),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: tg.border, width: 1),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        _metaLine(
-                          context,
-                          '属性 · ',
-                          s.attr.label,
-                          colored: s.isCommon
-                              ? null
-                              : _attrColor(context, s.attr),
-                        ),
-                        const SizedBox(height: 4),
-                        _metaLine(context, '携带等级 · ', '${s.level}'),
-                        const SizedBox(height: 4),
-                        _metaLine(context, '定位 · ', s.role),
-                      ],
-                    ),
-                  ),
-                  // soul-more 底注
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.only(top: 10),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: tg.borderHi, width: 1),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '点击查看等级效果',
-                          style: TextStyle(fontSize: 11.5, color: tg.t3),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '最高 20 级 · 4 档',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: tg.gold2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _metaLine(
-    BuildContext context,
-    String prefix,
-    String value, {
-    Color? colored,
-  }) {
-    final tg = context.tg;
-    return Text.rich(
-      TextSpan(
-        text: prefix,
-        style: TextStyle(fontSize: 11.5, color: tg.t3),
-        children: [
-          TextSpan(
-            text: value,
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w400,
-              color: colored ?? tg.t2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 卡片 meta 中「属性」按流派着色（普通灰色除外）。
-  Color? _attrColor(BuildContext context, BeastAttr attr) {
-    final tg = context.tg;
-    return switch (attr) {
-      BeastAttr.nei => tg.tagBlue,
-      BeastAttr.wai => tg.tagRed,
-      BeastAttr.bal => tg.gold2,
-    };
-  }
-}
-
-/// 64 圆字徽（径向渐变 + 描边）。
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.avatar, required this.tone});
-
-  final String avatar;
-  final BeastRarityTone tone;
-
-  @override
-  Widget build(BuildContext context) {
-    final st = _toneStyle(tone);
-    return Container(
-      width: 64,
-      height: 64,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          center: const Alignment(-0.4, -0.45),
-          colors: [st.glow, st.base.withValues(alpha: .05)],
-        ),
-        border: Border.all(color: st.border, width: 1),
-      ),
-      child: Text(
-        avatar,
-        style: TextStyle(
-          fontFamily: TgFonts.serif,
-          fontSize: 26,
-          fontWeight: FontWeight.w600,
-          color: st.charText,
-        ),
-      ),
-    );
-  }
-}
-
-/// 稀有度 tag（`.tag tag-<rt>`）。
-class _RarityTag extends StatelessWidget {
-  const _RarityTag({required this.spirit});
-
-  final BeastSpirit spirit;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final Color text;
-    final Color border;
-    final Color bg;
-    switch (spirit.tone) {
-      case BeastRarityTone.normal:
-        text = tg.t2;
-        border = tg.borderHi;
-        bg = Colors.transparent;
-      case BeastRarityTone.gold:
-        text = tg.gold2;
-        border = tg.goldTint(.4);
-        bg = tg.goldTint(.08);
-      case BeastRarityTone.blue:
-        text = tg.tagBlue;
-        border = tg.tagBorderOf(tg.blue);
-        bg = tg.tintOf(tg.blue, .08);
-      case BeastRarityTone.red:
-        text = tg.tagRed;
-        border = tg.tagBorderOf(tg.red);
-        bg = tg.tintOf(tg.red, .08);
-    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: border, width: 1),
+        color: gold ? tg.goldTint(.08) : Colors.transparent,
+        borderRadius: BorderRadius.circular(TgRadius.sm),
+        border: Border.all(
+          color: gold ? tg.goldTint(.4) : tg.borderHi,
+          width: 1,
+        ),
       ),
       child: Text(
-        spirit.rarity,
-        style: TextStyle(fontSize: 11, height: 1.7, color: text),
-      ),
-    );
-  }
-}
-
-/// 稀有度 → 头像配色。
-({Color base, Color border, Color charText, Color glow}) _toneStyle(
-  BeastRarityTone tone,
-) {
-  switch (tone) {
-    case BeastRarityTone.gold:
-      return (
-        base: const Color(0xFFE2B872),
-        border: const Color(0x73E2B872),
-        charText: const Color(0xFFF2D49B),
-        glow: const Color(0x66E2B872),
-      );
-    case BeastRarityTone.blue:
-      return (
-        base: const Color(0xFF5B9BFF),
-        border: const Color(0x735B9BFF),
-        charText: const Color(0xFFBFDCFF),
-        glow: const Color(0x665B9BFF),
-      );
-    case BeastRarityTone.red:
-      return (
-        base: const Color(0xFFFF7069),
-        border: const Color(0x73FF7069),
-        charText: const Color(0xFFFFC9C5),
-        glow: const Color(0x66FF7069),
-      );
-    case BeastRarityTone.normal:
-      return (
-        base: const Color(0xFF94A3B8),
-        border: const Color(0x6694A3B8),
-        charText: const Color(0xFFCBD5E1),
-        glow: const Color(0x4D94A3B8),
-      );
-  }
-}
-
-/// 成长档位弹窗（对应原型 spiritModal）。
-class _SpiritDetailDialog extends StatefulWidget {
-  const _SpiritDetailDialog({required this.spirit});
-
-  final BeastSpirit spirit;
-
-  @override
-  State<_SpiritDetailDialog> createState() => _SpiritDetailDialogState();
-}
-
-class _SpiritDetailDialogState extends State<_SpiritDetailDialog> {
-  int _tier = 0;
-
-  BeastSpirit get _spirit => widget.spirit;
-  BeastSpiritTier get _t => _spirit.tiers[_tier];
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final st = _toneStyle(_spirit.tone);
-    return LayoutBuilder(
-      builder: (context, c) {
-        final narrow = c.maxWidth < 500;
-        final seg = _SpSeg(
-          labels: [for (final t in _spirit.tiers) t.lv],
-          selected: _tier,
-          onSelect: (i) => setState(() => _tier = i),
-        );
-        final head = Row(
-          children: [
-            // 字徽 tile 40
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  center: const Alignment(-0.4, -0.45),
-                  colors: [st.glow, Colors.white.withValues(alpha: .03)],
-                ),
-                border: Border.all(color: st.border, width: 1),
-              ),
-              child: Text(
-                _spirit.avatar,
-                style: TextStyle(
-                  fontFamily: TgFonts.serif,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: st.charText,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _spirit.name,
-                    style: TextStyle(
-                      fontFamily: TgFonts.serif,
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                      color: tg.t1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  _RarityTag(spirit: _spirit),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            TgModalCloseButton(onTap: () => Navigator.pop(context)),
-          ],
-        );
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (narrow) ...[
-              head,
-              const SizedBox(height: 12),
-              seg,
-            ] else ...[
-              Row(
-                children: [
-                  Expanded(child: head),
-                  const SizedBox(width: 12),
-                  seg,
-                ],
-              ),
-            ],
-            const SizedBox(height: 14),
-            // sp-meta：属性/携带等级/定位 + 星级
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 11),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: tg.border, width: 1)),
-              ),
-              child: Column(
-                children: [
-                  Text.rich(
-                    TextSpan(
-                      text: '属性 · ',
-                      style: TextStyle(fontSize: 11.5, color: tg.t3),
-                      children: [
-                        TextSpan(
-                          text: _spirit.attr.label,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w400,
-                            color: _spirit.isCommon
-                                ? tg.t2
-                                : switch (_spirit.attr) {
-                                    BeastAttr.nei => tg.tagBlue,
-                                    BeastAttr.wai => tg.tagRed,
-                                    BeastAttr.bal => tg.gold2,
-                                  },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text.rich(
-                    TextSpan(
-                      text: '携带等级 · ',
-                      style: TextStyle(fontSize: 11.5, color: tg.t3),
-                      children: [
-                        TextSpan(
-                          text: '${_spirit.level}',
-                          style: TextStyle(fontSize: 11.5, color: tg.t2),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text.rich(
-                    TextSpan(
-                      text: '定位 · ',
-                      style: TextStyle(fontSize: 11.5, color: tg.t3),
-                      children: [
-                        TextSpan(
-                          text: _spirit.role,
-                          style: TextStyle(fontSize: 11.5, color: tg.t2),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  // 星级（实星+空星，金色）
-                  Text(
-                    List.generate(
-                      5,
-                      (i) => i < _spirit.stars ? '★' : '☆',
-                    ).join(),
-                    style: TextStyle(
-                      fontSize: 11,
-                      letterSpacing: 2,
-                      color: tg.gold2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            // 档位标题
-            _SpSectionTitle(title: _t.title),
-            const SizedBox(height: 10),
-            // mats（成长·主 / 副）
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _GrowthMatItem(badge: '主', name: '成长 · 主', value: _t.main),
-                for (var i = 0; i < _t.subs.length; i++)
-                  _GrowthMatItem(
-                    badge: '${i + 1}',
-                    name: '成长 · 副${i + 1}',
-                    value: _t.subs[i],
-                  ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            // 档位特效
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: tg.goldTint(.07),
-                borderRadius: const BorderRadius.horizontal(
-                  right: Radius.circular(10),
-                ),
-                border: Border(left: BorderSide(color: tg.gold2, width: 3)),
-              ),
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '档位特效 · ',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: tg.gold2,
-                      ),
-                    ),
-                    ..._fxSpans(
-                      _t.fx,
-                      TextStyle(fontSize: 12.5, height: 1.6, color: tg.t2),
-                      tg,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text.rich(
-              TextSpan(
-                style: TextStyle(fontSize: 11.5, color: tg.t3),
-                children: [
-                  const TextSpan(text: '※ 兽灵最高 '),
-                  TextSpan(
-                    text: '20 级',
-                    style: TextStyle(fontSize: 11.5, color: tg.gold2),
-                  ),
-                  const TextSpan(text: '，共 4 个成长档位；升级保留已解锁效果。'),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// 解析 `<b>…</b>` → 金加粗。
-  List<InlineSpan> _fxSpans(String raw, TextStyle base, TgColors tg) {
-    final reg = RegExp(r'<b>(.*?)</b>');
-    final out = <InlineSpan>[];
-    var last = 0;
-    for (final m in reg.allMatches(raw)) {
-      if (m.start > last) {
-        out.add(TextSpan(text: raw.substring(last, m.start), style: base));
-      }
-      out.add(
-        TextSpan(
-          text: m.group(1),
-          style: base.copyWith(color: tg.gold2, fontWeight: FontWeight.w600),
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          height: 1.7,
+          color: gold ? tg.gold2 : tg.t2,
         ),
-      );
-      last = m.end;
+      ),
+    );
+  }
+}
+
+/// 文案标记解析：`<b>…</b>` → [boldColor] 加粗，`<i>…</i>` → 斜体弱化。
+///
+/// 数据（[kBeastSpirits]）沿用原型 HTML 的富文本标记，表现层在此还原。
+/// 原型中 `.soul-fx b` 为金强调，其余 `<b>` 继承正文色加粗；`<i>` 无独立
+/// 样式（浏览器默认斜体），此处按弱文字 [italicColor] 处理。
+final RegExp _markupRe = RegExp(r'<(b|i)>(.*?)</\1>', dotAll: true);
+
+List<InlineSpan> _markupSpans(
+  String raw,
+  TextStyle base, {
+  Color? boldColor,
+  Color? italicColor,
+}) {
+  final out = <InlineSpan>[];
+  var last = 0;
+  for (final m in _markupRe.allMatches(raw)) {
+    if (m.start > last) {
+      out.add(TextSpan(text: raw.substring(last, m.start), style: base));
     }
-    if (last < raw.length) {
-      out.add(TextSpan(text: raw.substring(last), style: base));
-    }
-    return out;
-  }
-}
-
-/// 成长材料条（`.mat-item`）。
-class _GrowthMatItem extends StatelessWidget {
-  const _GrowthMatItem({
-    required this.badge,
-    required this.name,
-    required this.value,
-  });
-
-  final String badge;
-  final String name;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.only(left: 8, right: 12, top: 8, bottom: 8),
-      decoration: BoxDecoration(
-        color: tg.inset,
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: tg.border, width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 28,
-            height: 28,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: tg.goldTint(.10),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: tg.goldTint(.28), width: 1),
-            ),
-            child: Text(
-              badge,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: tg.gold2,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name, style: TextStyle(fontSize: 12, color: tg.t2)),
-              const SizedBox(height: 1),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: tg.t1,
-                ),
-              ),
-            ],
-          ),
-        ],
+    final inner = m.group(2)!;
+    out.add(
+      TextSpan(
+        text: inner,
+        style: m.group(1) == 'b'
+            ? base.copyWith(color: boldColor, fontWeight: FontWeight.w600)
+            : base.copyWith(color: italicColor, fontStyle: FontStyle.italic),
       ),
     );
+    last = m.end;
   }
-}
-
-/// 档位分段（`.lv-seg`）。
-class _SpSeg extends StatelessWidget {
-  const _SpSeg({
-    required this.labels,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  final List<String> labels;
-  final int selected;
-  final ValueChanged<int> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: tg.inset,
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: tg.borderHi, width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < labels.length; i++) ...[
-            if (i > 0) const SizedBox(width: 3),
-            InkWell(
-              onTap: () => onSelect(i),
-              borderRadius: BorderRadius.circular(6.5),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 3.5,
-                ),
-                decoration: BoxDecoration(
-                  // 原型 .lv-seg button.on：半透明金底 .14 + 内嵌 1px 金描边
-                  color: i == selected ? tg.goldTint(.14) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6.5),
-                  border: i == selected
-                      ? Border.all(color: tg.goldTint(.4), width: 1)
-                      : null,
-                ),
-                child: Text(
-                  labels[i],
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    height: 1,
-                    fontWeight: i == selected
-                        ? FontWeight.w600
-                        : FontWeight.w400,
-                    color: i == selected ? tg.gold2 : tg.t3,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+  if (last < raw.length) {
+    out.add(TextSpan(text: raw.substring(last), style: base));
   }
-}
-
-/// 小节标题（标题右侧分隔线）。
-class _SpSectionTitle extends StatelessWidget {
-  const _SpSectionTitle({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Row(
-      children: [
-        Text(title, style: TextStyle(fontSize: 12.5, color: tg.t3)),
-        const SizedBox(width: 8),
-        Expanded(child: Container(height: 1, color: tg.borderHi)),
-      ],
-    );
-  }
+  return out;
 }
