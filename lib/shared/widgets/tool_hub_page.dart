@@ -7,9 +7,10 @@ import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tool_card.dart';
 
-/// 分组 hub 页（如「宝宝工具」）：页头 + 该分组工具列表。
+/// 分组 hub 页（如「珍兽工具」）：页头 + 该分类工具列表。
 ///
-/// 对应原型 `v-hub-*`：crumb / h1 / 描述 + hub-list（工具卡片纵排）。
+/// 对应原型 `v-hub-pet`：crumb / h1 / 描述 + hub-list（工具卡片纵排）。
+/// 兽灵 · 兽魂一级页已移除，其 3 个工具经 `ToolCatalog.ofCategory` 一并列出。
 class ToolHubPage extends StatelessWidget {
   const ToolHubPage({super.key, required this.group});
 
@@ -18,7 +19,7 @@ class ToolHubPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final tools = ToolCatalog.ofGroup(group);
+    final tools = ToolCatalog.ofCategory(group);
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;

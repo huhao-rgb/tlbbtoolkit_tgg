@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
-import 'package:tlbbtoolkit/features/beast/presentation/pages/beast_skill_page.dart';
+import 'package:tlbbtoolkit/features/pet/presentation/pages/beast_skill_page.dart';
 
 /// 以完整主题（含 TgColors extension）泵入兽灵技能效果页。
 Future<void> pumpPage(

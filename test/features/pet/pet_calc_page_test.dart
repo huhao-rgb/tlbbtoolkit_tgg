@@ -5,7 +5,7 @@ import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/pet_calc_page.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 
-/// 以完整主题（含 TgColors extension）泵入宝宝资质计算页。
+/// 以完整主题（含 TgColors extension）泵入珍兽资质计算页。
 Future<void> pumpPage(
   WidgetTester tester, {
   Size size = const Size(1180, 900),
@@ -27,7 +27,7 @@ void main() {
     await pumpPage(tester);
 
     // 页头
-    expect(find.text('宝宝资质计算'), findsOneWidget);
+    expect(find.text('珍兽资质计算'), findsOneWidget);
     expect(find.textContaining('输入当前资质与悟灵状态'), findsOneWidget);
 
     // 表单标签（用「（…」后缀区分页头副标题中的同名词语）
@@ -123,7 +123,7 @@ void main() {
 
     // 无水平溢出（布局异常会抛 Overflow）
     expect(tester.takeException(), isNull);
-    expect(find.text('宝宝资质计算'), findsOneWidget);
+    expect(find.text('珍兽资质计算'), findsOneWidget);
 
     // 初始未计算：无结果弹窗
     expect(find.text('计算结果'), findsNothing);

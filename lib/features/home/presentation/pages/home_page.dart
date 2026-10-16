@@ -12,7 +12,7 @@ import 'package:tlbbtoolkit/shared/widgets/tool_card.dart';
 ///
 /// 忠实于原型 `v-home`：
 /// - Hero 卡（TLBB · 怀旧服 标签 / 天工阁标题 / 副标题 / 搜索框）
-/// - 分类 chips（全部 / 宝宝 / 兽灵 · 兽魂 / 职业）
+/// - 分类 chips（全部 / 珍兽 / 职业 / 实用；兽灵 · 兽魂已并入珍兽）
 /// - 统计（兽灵图鉴 / 技能数据 / 套装收录 / 门派覆盖）
 /// - 工具网格（数据来自共享目录 `ToolCatalog`，点击跳转对应工具）
 ///
@@ -32,12 +32,13 @@ class _HomePageState extends State<HomePage> {
     final kw = _keyword;
     return ToolCatalog.all
         .where((t) {
-          final okGroup = _group == null || t.group == _group;
+          final okCategory =
+              _group == null || (t.category ?? t.group) == _group;
           final okKw =
               kw.isEmpty ||
               t.title.contains(kw) ||
               t.keywords.any((k) => k.contains(kw));
-          return okGroup && okKw;
+          return okCategory && okKw;
         })
         .toList(growable: false);
   }
@@ -290,7 +291,7 @@ class _Toolbar extends StatelessWidget {
             active: selected == null,
             onTap: () => onSelect(null),
           ),
-          for (final g in ToolGroup.values)
+          for (final g in ToolGroup.categories)
             _FilterChip(
               label: g.label,
               active: selected == g,

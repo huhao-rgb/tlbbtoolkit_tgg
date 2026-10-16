@@ -185,32 +185,34 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('移动端首页：Hero + 信息条 + 5 段底部 tab', (tester) async {
+  testWidgets('移动端首页：Hero + 信息条 + 4 段底部 tab', (tester) async {
     await pumpApp(tester);
 
     expect(infoBarTitle('首页'), findsOneWidget);
     expect(find.text('天工阁'), findsOneWidget);
-    // 底部 tab 五段：首页 / 宝宝 / 兽灵 / 职业 / 实用。
+    // 底部 tab 四段：首页 / 珍兽 / 职业 / 实用（兽灵一级页已移除）。
     expect(find.byKey(_tabBarKey), findsOneWidget);
     expect(bottomTab('首页'), findsOneWidget);
-    expect(bottomTab('宝宝'), findsOneWidget);
-    expect(bottomTab('兽灵'), findsOneWidget);
+    expect(bottomTab('珍兽'), findsOneWidget);
     expect(bottomTab('职业'), findsOneWidget);
     expect(bottomTab('实用'), findsOneWidget);
+    expect(bottomTab('兽灵'), findsNothing);
     // 工具网格入口存在。
-    expect(find.text('宝宝资质计算'), findsOneWidget);
+    expect(find.text('珍兽资质计算'), findsOneWidget);
     // 一级页面无返回按钮。
     expect(find.byKey(_backButtonKey), findsNothing);
   });
 
-  testWidgets('移动端底部 tab 可切到分类 hub（宝宝）', (tester) async {
+  testWidgets('移动端底部 tab 可切到分类 hub（珍兽，含并入的兽灵工具）', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(bottomTab('宝宝'));
+    await tester.tap(bottomTab('珍兽'));
     await tester.pumpAndSettle();
 
-    expect(infoBarTitle('宝宝工具'), findsOneWidget);
-    expect(find.text('宝宝套装图鉴'), findsOneWidget);
+    expect(infoBarTitle('珍兽工具'), findsOneWidget);
+    expect(find.text('珍兽套装图鉴'), findsOneWidget);
+    // 兽灵 · 兽魂一级页已移除：3 个兽灵工具并入珍兽 hub。
+    expect(find.text('兽灵图鉴'), findsOneWidget);
     // hub 是一级页面：无返回按钮。
     expect(find.byKey(_backButtonKey), findsNothing);
   });
@@ -265,20 +267,40 @@ void main() {
   testWidgets('hub 内进入工具二级页，返回回到该 hub', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(bottomTab('宝宝'));
+    await tester.tap(bottomTab('珍兽'));
     await tester.pumpAndSettle();
 
-    await revealCenter(tester, find.text('宝宝资质计算'));
-    await tester.tap(find.text('宝宝资质计算'));
+    await revealCenter(tester, find.text('珍兽资质计算'));
+    await tester.tap(find.text('珍兽资质计算'));
     await tester.pumpAndSettle();
 
-    expect(infoBarTitle('宝宝资质计算'), findsOneWidget);
+    expect(infoBarTitle('珍兽资质计算'), findsOneWidget);
     expect(find.byKey(_backButtonKey), findsOneWidget);
 
-    // 返回 → 回到「宝宝工具」hub（当前分支根）。
+    // 返回 → 回到「珍兽工具」hub（当前分支根）。
     await tester.tap(find.byKey(_backButtonKey));
     await tester.pumpAndSettle();
-    expect(infoBarTitle('宝宝工具'), findsOneWidget);
+    expect(infoBarTitle('珍兽工具'), findsOneWidget);
+  });
+
+  testWidgets('兽灵工具挂在珍兽 hub 下，返回回到该 hub', (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(bottomTab('珍兽'));
+    await tester.pumpAndSettle();
+
+    // 兽灵 3 个工具已并入珍兽 hub（一级页移除）。
+    await revealCenter(tester, find.text('兽魂查询'));
+    await tester.tap(find.text('兽魂查询'));
+    await tester.pumpAndSettle();
+
+    expect(infoBarTitle('兽魂查询'), findsOneWidget);
+    expect(find.byKey(_backButtonKey), findsOneWidget);
+
+    // 返回 → 珍兽工具 hub。
+    await tester.tap(find.byKey(_backButtonKey));
+    await tester.pumpAndSettle();
+    expect(infoBarTitle('珍兽工具'), findsOneWidget);
   });
 
   testWidgets('首页网格直达工具（跨分支），返回其 hub，再回首页', (tester) async {
@@ -291,10 +313,10 @@ void main() {
     expect(infoBarTitle('兽魂查询'), findsOneWidget);
     expect(find.byKey(_backButtonKey), findsOneWidget);
 
-    // 返回 → 兽灵·兽魂 hub。
+    // 返回 → 珍兽工具 hub（兽灵一级页已移除）。
     await tester.tap(find.byKey(_backButtonKey));
     await tester.pumpAndSettle();
-    expect(infoBarTitle('兽灵 · 兽魂'), findsOneWidget);
+    expect(infoBarTitle('珍兽工具'), findsOneWidget);
 
     // 底部「首页」tab 回到首页。
     await tester.tap(bottomTab('首页'));
@@ -323,7 +345,7 @@ void main() {
     await pumpApp(tester);
 
     // 默认显示全部。
-    expect(find.text('宝宝资质计算'), findsOneWidget);
+    expect(find.text('珍兽资质计算'), findsOneWidget);
     expect(find.text('职业加点计算器'), findsOneWidget);
 
     await revealCenter(tester, homeChip('职业'));
@@ -331,7 +353,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('职业加点计算器'), findsOneWidget);
-    expect(find.text('宝宝资质计算'), findsNothing);
+    expect(find.text('珍兽资质计算'), findsNothing);
+
+    // 珍兽筛选同时覆盖已并入的兽灵工具。
+    await revealCenter(tester, homeChip('珍兽'));
+    await tester.tap(homeChip('珍兽'));
+    await tester.pumpAndSettle();
+    expect(find.text('珍兽资质计算'), findsOneWidget);
+    expect(find.text('兽魂查询'), findsOneWidget);
+    expect(find.text('职业加点计算器'), findsNothing);
   });
 
   testWidgets('首页搜索按关键词过滤', (tester) async {
@@ -493,18 +523,18 @@ void main() {
     expect(find.byKey(_tabBarKey), findsNothing);
     expect(find.byType(DesktopSidebar), findsOneWidget);
     expect(sidebarItem('首页'), findsOneWidget);
-    expect(sidebarItem('宝宝资质计算'), findsOneWidget);
+    expect(sidebarItem('珍兽资质计算'), findsOneWidget);
     expect(infoBarTitle('首页'), findsOneWidget);
   });
 
   testWidgets('桌面侧栏可直达工具并返回；首页项可回首页', (tester) async {
     await pumpAppAsDesktop(tester);
 
-    await revealCenter(tester, sidebarItem('宝宝资质计算'));
-    await tester.tap(sidebarItem('宝宝资质计算'));
+    await revealCenter(tester, sidebarItem('珍兽资质计算'));
+    await tester.tap(sidebarItem('珍兽资质计算'));
     await tester.pumpAndSettle();
 
-    expect(infoBarTitle('宝宝资质计算'), findsOneWidget);
+    expect(infoBarTitle('珍兽资质计算'), findsOneWidget);
     expect(find.byKey(_backButtonKey), findsOneWidget);
 
     // 侧栏「首页」回到首页。
@@ -513,10 +543,12 @@ void main() {
     expect(infoBarTitle('首页'), findsOneWidget);
   });
 
-  testWidgets('桌面侧栏分组完整列出各分组工具，实用组第二', (tester) async {
+  testWidgets('桌面侧栏分组完整列出各分组工具（珍兽组含并入的兽灵工具）', (tester) async {
     await pumpAppAsDesktop(tester);
 
-    // misc（实用）紧跟首页之后：直接列出卡回归/珍兽行情两个工具。
+    // 一级分组顺序：珍兽 → 职业 → 实用（兽灵已并入珍兽，不再单列）。
+    expect(sidebarItem('珍兽资质计算'), findsOneWidget);
+    expect(sidebarItem('兽魂查询'), findsOneWidget);
     expect(sidebarItem('卡回归计算器'), findsOneWidget);
     expect(sidebarItem('珍兽行情'), findsOneWidget);
 

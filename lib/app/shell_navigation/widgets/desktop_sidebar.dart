@@ -75,10 +75,10 @@ class DesktopSidebar extends ConsumerWidget {
                   active: currentLocation == '/home',
                   onTap: () => context.go('/home'),
                 ),
-                for (final group in ToolGroup.sidebarOrder) ...[
+                for (final group in ToolGroup.categories) ...[
                   const SizedBox(height: 2),
                   _GroupLabel(group.label),
-                  for (final tool in ToolCatalog.ofGroup(group))
+                  for (final tool in ToolCatalog.ofCategory(group))
                     _SidebarItem(
                       svgIcon: tool.icon,
                       label: tool.title,

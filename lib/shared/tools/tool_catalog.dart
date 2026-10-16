@@ -2,33 +2,39 @@ import 'package:flutter/material.dart';
 
 /// 天工阁 · 工具目录（跨 feature 共享的单一数据源）。
 ///
-/// 三个工具 feature（pet 宝宝 / beast 兽灵·兽魂 / job 职业）的
+/// 三个工具 feature（pet 珍兽 / job 职业 / misc 实用）的
 /// hub 与工具元信息集中于此，供以下模块共同消费：
 /// - `home`（首页工具网格、分类筛选、搜索）；
 /// - 各 feature 的 hub 页与工具占位页；
 /// - 路由命名（`@TypedGoRoute(name:)` 与页面保持一致）；
 /// - 一致性测试（路由 location ↔ 目录 location）。
 ///
-/// 文案与《天工阁-UI原型.html》(v1.4.0) 对齐；图标暂用 Material 图标占位，
-/// 后续替换为 `svg_icons/` 线性图标。
+/// 文案与《天工阁-UI原型.html》(v1.11.1，移除兽灵一级页) 对齐；图标暂用
+/// Material 图标占位，后续替换为 `svg_icons/` 线性图标。
+///
+/// 一级分类（[categories]）为 珍兽 / 职业 / 实用 三类：兽灵 · 兽魂已并入
+/// 珍兽，不再是独立一级分类，仅作为卡片图钉配色分组（[beast]）保留。
 enum ToolGroup {
   pet(
     path: 'pet',
-    label: '宝宝',
-    short: '宝宝',
+    label: '珍兽',
+    short: '珍兽',
     tabIcon: 'paw',
-    hubTitle: '宝宝工具',
-    hubCrumb: '宝宝 BABY',
-    hubSubtitle: '资质、技能、套装 —— 从选宠到成品的三件套',
+    hubTitle: '珍兽工具',
+    hubCrumb: '珍兽 PET',
+    hubSubtitle: '资质、技能、套装、兽魂、图鉴 —— 从选宠到成品的全套工具',
   ),
+  // 兽灵 · 兽魂：一级页已移除，6 个珍兽工具中属兽灵系统的 3 个（兽魂查询 /
+  // 兽灵图鉴 / 兽灵技能效果）仍以此为 [ToolDef.group]，用于卡片图钉取紫色
+  // （原型 `.tile.beast`）；归属分类见 [category]。
   beast(
     path: 'beast',
     label: '兽灵 · 兽魂',
-    short: '兽灵',
+    short: '珍兽',
     tabIcon: 'gem',
-    hubTitle: '兽灵 · 兽魂',
-    hubCrumb: '兽灵 BEAST',
-    hubSubtitle: '图鉴、词条、技能 —— 兽灵系统的三本账',
+    hubTitle: '珍兽工具',
+    hubCrumb: '珍兽 PET',
+    hubSubtitle: '资质、技能、套装、兽魂、图鉴 —— 从选宠到成品的全套工具',
   ),
   job(
     path: 'job',
@@ -62,10 +68,10 @@ enum ToolGroup {
   /// 路由段（也是首页分类 `data-cat`、URL 首段）。
   final String path;
 
-  /// 分类短名：首页筛选 chip。
+  /// 分类短名：首页筛选 chip（也是工具页面包屑首段）。
   final String label;
 
-  /// 面包屑链接文本（如 宝宝 / 兽灵 / 职业）。
+  /// 面包屑链接文本。
   final String short;
 
   /// 移动端底部 tab 图标资产名（首页单独为 home）。
@@ -76,15 +82,22 @@ enum ToolGroup {
   final String hubCrumb;
   final String hubSubtitle;
 
-  /// hub 路由 location（与各 feature 的 hub 根路由路径一致）。
-  String get hubLocation => '/$path';
-
-  /// 桌面侧栏分组顺序（对应原型 sidebar）：
-  /// 首页(总览)之后紧跟「实用」，再 宝宝 → 兽灵·兽魂 → 职业。
+  /// 归属一级分类的 hub 路由 location（如 `/pet`）。
   ///
-  /// 与 [values]（首页 chips / 移动 tab 顺序，misc 在最后）不同，因此侧栏
-  /// 遍历本列表而非 `ToolGroup.values`。
-  static const List<ToolGroup> sidebarOrder = [misc, pet, beast, job];
+  /// [beast] 返回 `/pet`：兽灵 · 兽魂一级页已移除，其工具挂在珍兽 hub 下；
+  /// 若仍返回 `/beast` 会指向不存在的路由。
+  String get hubLocation => '/${category.path}';
+
+  /// 归属的一级分类。
+  ///
+  /// 仅 [beast] 例外：兽灵 · 兽魂已并入珍兽，其工具在 hub / 首页筛选 / 侧栏
+  /// 分组中一律归到 [pet]；自身仅用于卡片图钉配色。
+  ToolGroup get category => this == beast ? pet : this;
+
+  /// 一级分类顺序（首页 chips / 移动 tab / 侧栏分组）。
+  ///
+  /// 与 [values]（含已并入珍兽的 [beast]）不同，因此各处分组遍历本列表。
+  static const List<ToolGroup> categories = [pet, job, misc];
 }
 
 /// 单个工具的元信息。
@@ -100,19 +113,23 @@ class ToolDef {
     required this.keywords,
     required this.location,
     required this.icon,
+    this.category,
     this.isHot = false,
   });
 
   /// 稳定 id（如 `pet-calc`），对应原型视图 `v-<id>` 后缀。
   final String id;
 
-  /// 所属分组。
+  /// 分组（决定卡片图钉配色：pet 金 / beast 紫 / job 蓝 / misc 金）。
   final ToolGroup group;
+
+  /// 归属的一级分类；缺省跟随 [group]（仅兽灵三工具显式传 `pet`）。
+  final ToolGroup? category;
 
   /// 统一标题（路由 name / 信息条 / 页头 h1 / 卡片名）。
   final String title;
 
-  /// 工具页头面包屑，如 `宝宝 / 资质计算`。
+  /// 工具页头面包屑，如 `珍兽 / 资质计算`。
   final String crumb;
 
   /// 工具页头副标题（取自原型 page-head `<p>`）。
@@ -147,15 +164,15 @@ class HomeStat {
 
 /// 工具目录常量表。
 abstract final class ToolCatalog {
-  // ---- 宝宝 pet ----
+  // ---- 珍兽 pet ----
   static const ToolDef petCalc = ToolDef(
     id: 'pet-calc',
     group: ToolGroup.pet,
-    title: '宝宝资质计算',
-    crumb: '宝宝 / 资质计算',
+    title: '珍兽资质计算',
+    crumb: '珍兽 / 资质计算',
     pageSubtitle: '输入当前资质与悟灵状态，预估培养至目标悟灵后的成品资质、评级与成长空间',
     cardDesc: '成长率 × 悟性 × 灵性，预估成品资质与评级',
-    keywords: ['资质', '计算', '宝宝', '成长率', '悟性', '灵性', '内功', '外功', '超灵'],
+    keywords: ['资质', '计算', '宝宝', '珍兽', '成长率', '悟性', '灵性', '内功', '外功', '超灵'],
     location: '/pet/calc',
     icon: 'calc',
     isHot: true,
@@ -164,8 +181,8 @@ abstract final class ToolCatalog {
   static const ToolDef petProb = ToolDef(
     id: 'pet-prob',
     group: ToolGroup.pet,
-    title: '宝宝技能释放概率',
-    crumb: '宝宝 / 技能概率',
+    title: '珍兽技能释放概率',
+    crumb: '珍兽 / 技能概率',
     pageSubtitle: '按性格查看自动 / 状态 / 辅助技能的触发概率与判定方式',
     cardDesc: '自动 / 状态 / 辅助技能触发判定一览',
     keywords: ['技能', '概率', '释放', '触发', '判定', '猛击', '连击', '附身'],
@@ -176,8 +193,8 @@ abstract final class ToolCatalog {
   static const ToolDef petSuit = ToolDef(
     id: 'pet-suit',
     group: ToolGroup.pet,
-    title: '宝宝套装图鉴',
-    crumb: '宝宝 / 套装图鉴',
+    title: '珍兽套装图鉴',
+    crumb: '珍兽 / 套装图鉴',
     pageSubtitle: '怀旧服 75 / 85 / 95 三档 22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
     cardDesc: '22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
     keywords: [
@@ -196,40 +213,43 @@ abstract final class ToolCatalog {
     icon: 'shield',
   );
 
-  // ---- 兽灵 · 兽魂 beast ----
+  // ---- 兽灵系统（并入珍兽分类；图钉仍取紫色 .tile.beast） ----
   static const ToolDef beastSoul = ToolDef(
     id: 'beast-soul',
     group: ToolGroup.beast,
+    category: ToolGroup.pet,
     title: '兽魂查询',
-    crumb: '兽灵 / 兽魂查询',
+    crumb: '珍兽 / 兽魂查询',
     pageSubtitle: '按类型筛选十五大兽魂，速查出战技能与融魂技能',
     cardDesc: '十五大兽魂 · 出战 / 融魂技能速查',
     keywords: ['兽魂', '神兽魂', '荒兽魂', '灵兽魂', '出战技能', '融魂技能', '火攻', '冰攻'],
-    location: '/beast/soul',
+    location: '/pet/beast/soul',
     icon: 'flame',
   );
 
   static const ToolDef beastIndex = ToolDef(
     id: 'beast-index',
     group: ToolGroup.beast,
+    category: ToolGroup.pet,
     title: '兽灵图鉴',
-    crumb: '兽灵 / 图鉴',
+    crumb: '珍兽 / 图鉴',
     pageSubtitle: '收录兽灵的星级、属性流派与携带等级',
     cardDesc: '星级属性 · 携带等级 · 获取途径',
     keywords: ['兽灵', '图鉴', '星级', '内功', '外功', '平衡', '携带', '等级'],
-    location: '/beast/index',
+    location: '/pet/beast/index',
     icon: 'gem',
   );
 
   static const ToolDef beastSkill = ToolDef(
     id: 'beast-skill',
     group: ToolGroup.beast,
+    category: ToolGroup.pet,
     title: '兽灵技能效果',
-    crumb: '兽灵 / 技能效果',
+    crumb: '珍兽 / 技能效果',
     pageSubtitle: '点击展开 Lv.1-5 等级数值表',
     cardDesc: 'Lv.1-5 等级数值表 · 触发条件',
     keywords: ['兽灵', '技能', '等级', '效果', '数值', '冷却'],
-    location: '/beast/skill',
+    location: '/pet/beast/skill',
     icon: 'spark',
   );
 
@@ -350,9 +370,14 @@ abstract final class ToolCatalog {
     miscAccountMarket,
   ];
 
-  /// 某分组下的工具（hub 页列表顺序）。
-  static List<ToolDef> ofGroup(ToolGroup group) =>
-      all.where((t) => t.group == group).toList(growable: false);
+  /// 某一级分类下的工具（hub 页列表顺序 / 首页筛选 / 侧栏分组）。
+  ///
+  /// 按 [ToolDef.category]（缺省跟随 [ToolDef.group]）匹配：兽灵三工具的
+  /// `group` 是 [ToolGroup.beast]（图钉取紫），`category` 为珍兽，因此会一并
+  /// 出现在「珍兽工具」hub / 首页珍兽筛选 / 侧栏珍兽分组。
+  static List<ToolDef> ofCategory(ToolGroup category) => all
+      .where((t) => (t.category ?? t.group) == category)
+      .toList(growable: false);
 
   /// 首页顶部统计（演示值；正式接入后改为按数据仓库统计）。
   static const List<HomeStat> homeStats = [

@@ -22,14 +22,14 @@ import 'package:tlbbtoolkit/app/shell_navigation/widgets/desktop_sidebar.dart';
 /// ├──────────────────┤        │ ─总览─  │ ──────────────── │
 /// │                  │        │ 首页    │                  │
 /// │      内容区       │        │ ─实用─  │     内容区        │
-/// │                  │        │ …15项   │                  │
+/// │                  │        │ …14项   │                  │
 /// ├──────────────────┤        │ 主题切换 │                  │
-/// │ 首页│宝宝│兽灵│职业│实用     │        │                  │
+/// │ 首页│珍兽│职业│实用 │        │                  │
 /// └──────────────────┘        └────────┴──────────────────┘
 /// ```
 ///
 /// - 信息条：显示当前路由名；二级页面显示返回按钮；右侧主题切换与设置入口；
-/// - mobile：底部 5 段 tab（首页 / 宝宝 / 兽灵 / 职业 / 实用 → 各分类 hub），
+/// - mobile：底部 4 段 tab（首页 / 珍兽 / 职业 / 实用 → 各分类 hub），
 ///   与顶栏同为悬浮毛玻璃（共用 [TgGlass]），页面内容可滑入其下方被模糊；
 /// - desktop：左侧 236 宽原型侧栏（品牌 + 分组工具导航），无底部 tab。
 class AppShellNavigation extends ConsumerWidget {
@@ -38,11 +38,12 @@ class AppShellNavigation extends ConsumerWidget {
   /// go_router 注入的状态化导航壳，负责各 tab 分支的 Navigator 与切换。
   final StatefulNavigationShell navigationShell;
 
-  /// 移动端 tab 项（分支 0..4 = home/pet/beast/job/misc）。
+  /// 移动端 tab 项（分支 0..3 = home/pet/job/misc）。
+  ///
+  /// 兽灵 · 兽魂一级页已移除，其 3 个工具并入「珍兽」分支，故不再有独立 tab。
   static const List<({String icon, String label})> _tabs = [
     (icon: 'home', label: '首页'),
-    (icon: 'paw', label: '宝宝'),
-    (icon: 'gem', label: '兽灵'),
+    (icon: 'paw', label: '珍兽'),
     (icon: 'sword', label: '职业'),
     (icon: 'spark', label: '实用'),
   ];
@@ -73,7 +74,7 @@ class AppShellNavigation extends ConsumerWidget {
   ///
   /// 先 pop 当前分支导航栈内的上一层页面（如 `/misc/market/detail` 商品详情
   /// → `/misc/market` 行情列表，列表滚动位置随之保留）；仅当栈内已是分支
-  /// 内首个页面时才回到该分支的 hub（如 `/pet/calc` → 宝宝工具 hub）。
+  /// 内首个页面时才回到该分支的 hub（如 `/pet/calc` → 珍兽工具 hub）。
   void _goBack(BuildContext context) {
     if (_popBranchStack(context)) return;
     navigationShell.goBranch(
@@ -183,7 +184,7 @@ class AppShellNavigation extends ConsumerWidget {
   }
 }
 
-/// 移动端底部 tabbar（5 段：首页 / 宝宝 / 兽灵 / 职业 / 实用）。
+/// 移动端底部 tabbar（4 段：首页 / 珍兽 / 职业 / 实用）。
 ///
 /// 悬浮毛玻璃底栏（与顶栏同一套参数 [TgGlass] + 顶边 1px 边框）：
 /// - 毛玻璃底（`blur 16px` + [TgGlass] 半透明底色）+ 顶边 1px 边框；

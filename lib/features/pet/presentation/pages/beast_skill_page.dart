@@ -9,7 +9,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
-import 'package:tlbbtoolkit/features/beast/domain/beast_skill.dart';
+import 'package:tlbbtoolkit/features/pet/domain/beast_skill.dart';
 
 /// 兽灵技能效果（对应原型 `v-beast-skill`）。
 ///

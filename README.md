@@ -101,7 +101,7 @@ lib/
 │   │   ├── data/              # DTO + 数据源 + 仓储实现 + 注入
 │   │   ├── presentation/      # 页面 + 组件 + 状态 provider
 │   │   └── home_routes.dart   # 类型安全路由（/home + detail/:id 二级路由）
-│   ├── settings/              # 示例：本地持久化 + 设置（/settings tab）
+│   ├── settings/              # 示例：本地持久化 + 设置（/misc/settings 二级页）
 │   └── ...                    # 新 feature 参照 home 的目录模板
 └── shared/                    # 跨 feature 共享的组件/工具
     └── widgets/               # AppAsyncView 等通用组件
@@ -126,7 +126,10 @@ mobile（<900）                    desktop（≥900）
 ```
 
 - **mobile**（<900）：底部 `NavigationBar`；**desktop**（≥900）：左侧 `NavigationRail`；
-- 一级页面 = tab 分支（home `/home`、settings `/settings`），切换保留各分支导航状态；
+- 一级页面 = tab 分支（`/home` 首页、`/pet` 珍兽、`/job` 职业、`/misc` 实用），
+  切换保留各分支导航状态；同一分支可聚合多个 feature 的顶层路由
+  （兽灵 · 兽魂一级页移除后，其工具作为 `pet` feature 的二级路由并入珍兽，
+  location 仍为 `/pet/beast/*`）；
 - 二级页面（如 `/home/detail/:id`）显示在分支栈内，信息条自动出现返回按钮；
 - 页面本身**不写 Scaffold/AppBar**，统一由 shell 提供框架；
 - 宽屏内容限宽：设置/详情页用 `DesktopContentConstraint`（≤840 居中）；首页列表用

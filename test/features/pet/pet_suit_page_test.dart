@@ -32,7 +32,7 @@ void main() {
     await pumpPage(tester);
 
     // 页头
-    expect(find.text('宝宝套装图鉴'), findsWidgets);
+    expect(find.text('珍兽套装图鉴'), findsWidgets);
     expect(find.textContaining('22 个珍兽套装系列'), findsOneWidget);
 
     // 视图 chips

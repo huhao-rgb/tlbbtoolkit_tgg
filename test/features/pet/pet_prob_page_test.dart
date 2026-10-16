@@ -26,7 +26,7 @@ void main() {
     await pumpPage(tester);
 
     // 页头
-    expect(find.text('宝宝技能释放概率'), findsOneWidget);
+    expect(find.text('珍兽技能释放概率'), findsOneWidget);
     expect(find.textContaining('按性格查看自动'), findsOneWidget);
 
     // 性格 chips
@@ -107,7 +107,7 @@ void main() {
     await pumpPage(tester, size: const Size(390, 844));
 
     expect(tester.takeException(), isNull);
-    expect(find.text('宝宝技能释放概率'), findsOneWidget);
+    expect(find.text('珍兽技能释放概率'), findsOneWidget);
     // 移动端表头隐藏
     expect(find.text('触发概率'), findsNothing);
 

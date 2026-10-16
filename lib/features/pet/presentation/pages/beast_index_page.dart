@@ -9,7 +9,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
-import 'package:tlbbtoolkit/features/beast/domain/beast_spirit.dart';
+import 'package:tlbbtoolkit/features/pet/domain/beast_spirit.dart';
 
 /// 兽灵图鉴（对应原型 `v-beast-index`）。
 ///

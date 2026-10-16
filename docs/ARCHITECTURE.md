@@ -173,8 +173,15 @@ class HomeItems extends _$HomeItems {
 
 - **顶部公共信息条**：显示当前路由名（取自 `@TypedGoRoute` 的 `name:`）；
   当前为二级页面时显示返回按钮（回到该 tab 分支根页面）。
-- **一级页面 = tab 分支根路由**（如 `/home`、`/settings`），**二级页面 = 分支内嵌套路由**
-  （如 `/home/detail/:id`，通过 `@TypedGoRoute` 的 `routes:` 声明）。
+- **一级页面 = tab 分支根路由**（如 `/home`、`/pet`），**二级页面 = 分支内嵌套路由**
+  （如 `/pet/calc`，通过 `@TypedGoRoute` 的 `routes:` 声明）。
+- **同一分支可聚合多个 feature 的顶层路由**：分支按 URL 匹配而非「一个分支一个
+  feature」，所以 `StatefulShellBranch(routes: [...misc.$appRoutes, ...settings.$appRoutes])`
+  就是让 settings 的 `/misc/settings` 与本分支平级（「二级页面」按路径段数兜底，
+  `segmentCount > 1` 即二级）。
+- 兽灵 · 兽魂并入珍兽时采用了更彻底的方案：代码整体迁入 `features/pet/`，3 个工具
+  在 `pet_routes.dart` 里作为 `/pet` 的嵌套子路由声明（location 保持 `/pet/beast/*`），
+  因此不再需要跨 feature 聚合 `$appRoutes`。
 - **页面自身不写 Scaffold/AppBar**（避免与 shell 信息条嵌套），只负责内容区。
 - 信息条状态由 `shellNavigationProvider`（`@riverpod`，监听 `routerDelegate`）推导：
   路由匹配树中超过 2 层（shell + 分支根 + …）即判定为二级页面。
@@ -236,5 +243,8 @@ fvm dart run build_runner build
    （一级 tab 用根路径 + `name:`，二级页面用嵌套 `routes:`）；
 5. 在 `lib/app/router/app_router.dart` 前缀导入，把 `$appRoutes` 作为一个
    `StatefulShellBranch` 追加，并在 `AppShellNavigation._tabs` 中补一个 tab 项；
+   若只是并入既有分类（而非新开一级 tab），则把 `$appRoutes` 追加进该分类的
+   分支，并在 `shared/tools/tool_catalog.dart` 里把工具的 `category` 指向该分类，
+   `_tabs` 不变；
 6. 运行 `fvm dart run build_runner build` 生成全部代码；
 7. 补充 `test/features/<name>/` 单元测试。
