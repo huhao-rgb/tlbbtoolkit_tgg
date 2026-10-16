@@ -243,6 +243,7 @@ abstract final class ToolCatalog {
       '效果',
       '破御',
       '破胆',
+      '冰精',
       '拼命',
       '痛击',
       '连击',

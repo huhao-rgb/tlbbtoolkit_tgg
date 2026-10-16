@@ -13,7 +13,7 @@ void main() {
 
   test('完整数据兽灵：7 阶齐备且阶位与阶位结构一致', () {
     final complete = kBeastSpirits.where((s) => s.isComplete).toList();
-    expect(complete.map((s) => s.id), ['poyu', 'podan']);
+    expect(complete.map((s) => s.id), ['poyu', 'podan', 'bingjing']);
 
     for (final s in complete) {
       expect(s.status.label, '完整数据');
@@ -25,6 +25,43 @@ void main() {
       // 完整数据兽灵不使用待补字段
       expect(s.pendingBody, isEmpty, reason: s.name);
       expect(s.pendingNote, isEmpty, reason: s.name);
+    }
+  });
+
+  test('冰精兽灵逐阶数值（小程序「TLBB怀旧攻略」核验）', () {
+    final ice = kBeastSpirits.firstWhere((s) => s.id == 'bingjing');
+    expect(ice.name, '冰精兽灵');
+    expect(ice.isComplete, isTrue);
+
+    // 阶位说明：减伤 / 增伤 2 → 4 → 10 → 15（四阶起保持 15）
+    expect(ice.tiers.map((t) => t.dec).toList(), [
+      '受到冰攻伤害再次减少 <b>2%</b>，受到火攻伤害增加 <b>2%</b>',
+      '受到冰攻伤害再次减少 <b>4%</b>，受到火攻伤害增加 <b>4%</b>',
+      '受到冰攻伤害再次减少 <b>10%</b>，受到火攻伤害增加 <b>10%</b>',
+      '受到冰攻伤害再次减少 <b>15%</b>，受到火攻伤害增加 <b>15%</b>',
+      '受到冰攻伤害再次减少 <b>15%</b>，受到火攻伤害增加 <b>15%</b>',
+      '受到冰攻伤害再次减少 <b>15%</b>，受到火攻伤害增加 <b>15%</b>',
+      '受到冰攻伤害再次减少 <b>15%</b>，受到火攻伤害增加 <b>15%</b>',
+    ]);
+
+    // 效果一：一阶未解锁 → 二 / 三阶 15% → 四阶起 30%
+    expect(ice.tiers[0].effect1, '<i>4 级解锁</i>');
+    expect(ice.tiers[1].effect1, contains('减少 <b>15%</b>'));
+    expect(ice.tiers[2].effect1, contains('增加 <b>15%</b>'));
+    expect(ice.tiers[3].effect1, contains('减少 <b>30%</b>'));
+    expect(ice.tiers[6].effect1, contains('增加 <b>30%</b>'));
+
+    // 效果二：一 / 二 / 三阶未解锁 → 四阶起 冰冻 3/6/12/24%、爆炸 1/2/4/8%
+    for (final i in [0, 1, 2]) {
+      expect(ice.tiers[i].effect2, '<i>10 级解锁</i>');
+    }
+    const freeze = [3, 6, 12, 24];
+    const blast = [1, 2, 4, 8];
+    for (var i = 0; i < 4; i++) {
+      final fx = ice.tiers[3 + i].effect2;
+      expect(fx, contains('有 <b>${freeze[i]}%</b> 概率冰冻目标 <b>0.5 秒</b>'));
+      expect(fx, contains('有 <b>${blast[i]}%</b> 概率额外受到一次爆炸伤害'));
+      expect(fx, contains('普通攻击的 <b>150%</b> 伤害'));
     }
   });
 

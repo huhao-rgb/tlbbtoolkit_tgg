@@ -79,6 +79,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.runAsync(() => _snap(tester, 'pending'));
 
+    // 桌面 · 冰精切到七阶
+    await pumpAt(1180, 1600);
+    await tester.tap(find.text('冰精兽灵'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('七阶 · 20 级'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => _snap(tester, 'ice'));
+
     // 移动端 · 破御切到七阶
     await pumpAt(390, 1500);
     await tester.tap(find.text('七阶 · 20 级'));

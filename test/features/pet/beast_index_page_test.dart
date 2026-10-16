@@ -67,20 +67,29 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
 
-    // 兽灵技能图鉴：6 只兽灵 + 完整度 tag
+    // 兽灵技能图鉴：7 只兽灵 + 完整度 tag
     expect(find.text('兽灵技能图鉴'), findsOneWidget);
     expect(find.text('点击展开 · 同时仅一项'), findsOneWidget);
-    for (final name in ['破御兽灵', '破胆兽灵', '拼命兽灵', '痛击兽灵', '连击兽灵', '灵动兽灵']) {
+    for (final name in [
+      '破御兽灵',
+      '破胆兽灵',
+      '冰精兽灵',
+      '拼命兽灵',
+      '痛击兽灵',
+      '连击兽灵',
+      '灵动兽灵',
+    ]) {
       expect(find.text(name), findsOneWidget);
     }
-    expect(find.text('完整数据'), findsNWidgets(2)); // 破御 · 破胆
+    expect(find.text('完整数据'), findsNWidgets(3)); // 破御 · 破胆 · 冰精
     expect(find.text('待补'), findsNWidgets(4));
 
     // 首项（破御）默认展开：chips + 一阶内容
     expect(find.text('一阶 · 1-3 级'), findsOneWidget);
     expect(richContaining('一阶（兽灵 1-3 级）'), findsOneWidget);
-    // 其余 5 项仍收起
+    // 其余 6 项仍收起
     expect(richContaining('珍兽对拥有破胆效果的目标'), findsNothing);
+    expect(richContaining('受到冰攻伤害再次减少'), findsNothing);
     expect(richContaining('版本核心技能'), findsNothing);
 
     // 顶部 / 底部说明
@@ -100,6 +109,23 @@ void main() {
     expect(richContaining('额外降低目标 2% 的会心防御'), findsOneWidget);
     expect(richContaining('兽灵效果一 · 4 级解锁'), findsOneWidget);
     expect(richContaining('兽灵效果二 · 10 级解锁'), findsOneWidget);
+  });
+
+  testWidgets('冰精兽灵：展开后一阶 / 七阶数值正确渲染', (tester) async {
+    await pumpPage(tester);
+    await tapText(tester, '冰精兽灵');
+
+    // 一阶：减伤 / 增伤 2%，两个效果位未解锁
+    expect(richContaining('一阶（兽灵 1-3 级）'), findsOneWidget);
+    expect(richContaining('受到冰攻伤害再次减少 2%'), findsOneWidget);
+    expect(richContaining('兽灵效果一 · 4 级解锁'), findsOneWidget);
+
+    // 七阶：冰冻 24% / 爆炸 8% / 150% 伤害
+    await tapText(tester, '七阶 · 20 级');
+    expect(richContaining('七阶（兽灵 20 级）'), findsOneWidget);
+    expect(richContaining('有 24% 概率冰冻目标 0.5 秒'), findsOneWidget);
+    expect(richContaining('有 8% 概率额外受到一次爆炸伤害'), findsOneWidget);
+    expect(richContaining('普通攻击的 150% 伤害'), findsOneWidget);
   });
 
   testWidgets('切换阶位 chips 更新说明与效果位', (tester) async {
