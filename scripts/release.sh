@@ -7,11 +7,13 @@
 #   ./scripts/release.sh 1.0.4            # 交互式：预览草稿，确认后执行
 #   ./scripts/release.sh 1.0.4+5 --yes    # 跳过所有确认（CI / 信任流程）
 #   ./scripts/release.sh 1.0.4 --dry-run  # 只预览，不修改任何文件
+#   ./scripts/release.sh 1.0.4+5 --edit   # 预览后调用 $EDITOR 手工整理 CHANGELOG 条目
+#   ./scripts/release.sh 1.0.4+5 --notes-file notes.md   # 直接用现成文件作为 CHANGELOG 条目
 #
 # 规则：
 #   - 版本号格式：主.次.修订[+构建号]，如 1.0.4 或 1.0.4+5
 #   - tag 名 = v + 主.次.修订（去掉 +构建号，避免 + 在部分工具 / URL 中出问题）
-#   - CHANGELOG 新条目由自上一个 tag 以来的提交自动生成草稿，确认前可手动整理
+#   - CHANGELOG 新条目由自上一个 tag 以来的提交自动生成草稿，可用 --edit / --notes-file 手工整理
 #   - 提交信息沿用仓库惯例：chore: 修改版本号<版本号>
 #
 # 注意：脚本只改 pubspec.yaml 与 CHANGELOG.md，不跑 fvm / build_runner
@@ -29,13 +31,20 @@ error() { printf "${RED}%s${NC}\n" "$*" >&2; }
 VERSION=""
 YES=0
 DRY_RUN=0
-for arg in "$@"; do
-  case "$arg" in
-    --yes)     YES=1 ;;
-    --dry-run) DRY_RUN=1 ;;
-    -*)        error "未知参数: $arg"; exit 1 ;;
-    *)         VERSION="$arg" ;;
+EDIT_NOTES=0
+NOTES_FILE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --yes)       YES=1 ;;
+    --dry-run)   DRY_RUN=1 ;;
+    --edit)      EDIT_NOTES=1 ;;
+    --notes-file)
+      [ $# -ge 2 ] || { error "--notes-file 需要一个文件路径"; exit 1; }
+      NOTES_FILE="$2"; shift ;;
+    -*)          error "未知参数: $1"; exit 1 ;;
+    *)           VERSION="$1" ;;
   esac
+  shift
 done
 
 if [ -z "$VERSION" ]; then
@@ -124,7 +133,7 @@ build_draft() {
       perf:*|refactor:*) opt+=("$body") ;;
       *)         other+=("$body") ;;
     esac
-  done < <(git log "$RANGE" --pretty=format:%s)
+  done < <(git log "$RANGE" --pretty=tformat:%s)
 
   local draft="## [$VERSION] - $DATE"
   draft+=$'\n'
@@ -153,6 +162,16 @@ build_draft() {
 
 DRAFT=$(build_draft)
 
+# --notes-file：用现成文件内容替换自动草稿（文件里没写版本标题时自动补上）
+if [ -n "$NOTES_FILE" ]; then
+  [ -f "$NOTES_FILE" ] || { error "找不到日志文件：$NOTES_FILE"; exit 1; }
+  DRAFT=$(cat "$NOTES_FILE")
+  case "$DRAFT" in
+    "## ["*) ;;
+    *) DRAFT="## [$VERSION] - $DATE"$'\n\n'"$DRAFT" ;;
+  esac
+fi
+
 # ---------- 预览 ----------
 echo
 info "========== 发版预览 =========="
@@ -177,7 +196,7 @@ echo "      （Settings → Secrets and variables → Actions → Variables）�
 echo "      未配置时 CI 只会打一条 warning，打出的 APK【不含云同步功能】但不会失败，"
 echo "      所以发版前请确认它已配置。"
 echo
-echo "----- CHANGELOG 草稿（可先在其他终端编辑 CHANGELOG.md 微调） -----"
+echo "----- CHANGELOG 草稿（--edit 可在编辑器里整理；--notes-file 可用现成文件替代） -----"
 echo "$DRAFT"
 echo "----------------------------------------------------------------"
 echo
@@ -185,6 +204,24 @@ echo
 if [ "$DRY_RUN" -eq 1 ]; then
   warn "（--dry-run 模式：仅预览，未修改任何文件）"
   exit 0
+fi
+
+# ---------- 可选：调用编辑器手工整理草稿 ----------
+if [ "$EDIT_NOTES" -eq 1 ]; then
+  EDITOR_BIN="${VISUAL:-${EDITOR:-vi}}"
+  TMP_DRAFT=$(mktemp)
+  printf '%s\n' "$DRAFT" > "$TMP_DRAFT"
+  info "打开编辑器整理 CHANGELOG 条目（保存退出后继续）：$EDITOR_BIN"
+  # EDITOR 可能带参数（如 "code -w"），这里故意不加引号以便按词拆分
+  # shellcheck disable=SC2086
+  $EDITOR_BIN "$TMP_DRAFT" || true
+  DRAFT=$(cat "$TMP_DRAFT")
+  rm -f "$TMP_DRAFT"
+  echo
+  echo "----- 整理后的 CHANGELOG 条目 -----"
+  echo "$DRAFT"
+  echo "----------------------------------"
+  echo
 fi
 
 if [ "$YES" -eq 0 ]; then
@@ -210,11 +247,12 @@ insert_changelog() {
   n=$(grep -n '^## \[' CHANGELOG.md | head -1 | cut -d: -f1)
   if [ -z "$n" ]; then
     # 文件里还没有版本小节：草稿追加到末尾
-    { cat CHANGELOG.md; echo; cat "$tmp_draft"; } > "$tmp_out"
+    { cat CHANGELOG.md; printf '\n'; cat "$tmp_draft"; printf '\n'; } > "$tmp_out"
   else
     head -n "$((n - 1))" CHANGELOG.md > "$tmp_out"
     cat "$tmp_draft" >> "$tmp_out"
-    echo >> "$tmp_out"
+    # 草稿末尾无换行（命令替换会剥掉），补两个换行 = 收尾 + 与下一小节之间的空行
+    printf '\n\n' >> "$tmp_out"
     tail -n "+$n" CHANGELOG.md >> "$tmp_out"
   fi
   mv "$tmp_out" CHANGELOG.md
