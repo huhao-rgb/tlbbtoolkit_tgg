@@ -73,11 +73,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.runAsync(() => _snap(tester, 'expanded'));
 
-    // 桌面 · 展开痛击（待补态）；13 项里排第 11，视口要够高才在屏内
-    await pumpAt(1180, 2000);
-    await tester.tap(find.text('痛击'));
+    // 桌面 · 展开法魂并切到七阶（本批新增技能）
+    await pumpAt(1180, 2400);
+    await tester.tap(find.text('法魂'));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => _snap(tester, 'pending'));
+    await tester.tap(find.text('七阶 · 20 级'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => _snap(tester, 'newskill'));
 
     // 桌面 · 冰精切到七阶
     await pumpAt(1180, 1600);
@@ -95,11 +97,36 @@ void main() {
     await tester.pumpAndSettle();
     await tester.runAsync(() => _snap(tester, 'poison'));
 
-    // 桌面 · 类型筛选「手动技能」空态
-    await pumpAt(1180, 900);
+    // 桌面 · 类型筛选「手动技能」：29 项，首项灵狐之息展开
+    await pumpAt(1180, 1600);
     await tester.tap(find.text('手动技能'));
     await tester.pumpAndSettle();
     await tester.runAsync(() => _snap(tester, 'manual'));
+
+    // 桌面 · 手动技能「冰天雪地」切到七阶
+    // 注意：pumpAt 重建 widget 会重置筛选状态，需重新点「手动技能」
+    await pumpAt(1180, 2000);
+    await tester.tap(find.text('手动技能'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('冰天雪地'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('冰天雪地'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('七阶 · 20 级'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => _snap(tester, 'manualdetail'));
+
+    // 桌面 · 搜索「剧毒陷阱」命中 2 只
+    await pumpAt(1180, 1100);
+    await tester.enterText(find.byType(TextField), '剧毒陷阱');
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => _snap(tester, 'search'));
+
+    // 桌面 · 搜索无结果空态
+    await pumpAt(1180, 900);
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => _snap(tester, 'noresult'));
 
     // 移动端 · 破御切到七阶
     await pumpAt(390, 1500);

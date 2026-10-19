@@ -10,6 +10,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 
 /// 兽灵图鉴（对应原型 v1.13.0 `v-beast-index` · 兽灵手风琴版）。
 ///
@@ -32,6 +33,9 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   /// 技能类型筛选；null = 全部。
   BeastSpiritKind? _kind;
 
+  /// 搜索词（空 = 不过滤）。匹配技能名 / 定位 / 任意阶位文案。
+  String _query = '';
+
   /// 当前展开的兽灵 id；null = 全部收起。
   ///
   /// 默认展开首项（破御）：原型初始态虽无 `.open`，但整页内容全靠手风琴
@@ -42,18 +46,45 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   /// 各兽灵当前选中的阶位（收起后保留，对应原型 DOM 状态不重置）。
   final Map<String, int> _tierSel = <String, int>{};
 
+  /// 类型 + 关键词过滤后的兽灵。
+  List<BeastSpirit> _filtered(BeastSpiritKind? kind, String query) {
+    final q = query.trim();
+    return kBeastSpirits
+        .where((s) => kind == null || s.kind == kind)
+        .where((s) => q.isEmpty || _matches(s, q))
+        .toList(growable: false);
+  }
+
+  /// 是否命中关键词：技能名 / 定位 / 7 阶任意文案（去标记后包含匹配）。
+  bool _matches(BeastSpirit s, String q) {
+    if (s.name.contains(q) || s.sub.contains(q)) return true;
+    for (final t in s.tiers) {
+      if (_plainText(t.dec).contains(q) ||
+          _plainText(t.effect1).contains(q) ||
+          _plainText(t.effect2).contains(q)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// 当前筛选下可见的兽灵。
-  List<BeastSpirit> get _visible => _kind == null
-      ? kBeastSpirits
-      : kBeastSpirits.where((s) => s.kind == _kind).toList(growable: false);
+  List<BeastSpirit> get _visible => _filtered(_kind, _query);
 
   /// 切换类型筛选，并默认展开新列表首项（避免展开项被筛掉后一片空白）。
   void _selectKind(BeastSpiritKind? kind) {
     setState(() {
       _kind = kind;
-      final list = kind == null
-          ? kBeastSpirits
-          : kBeastSpirits.where((s) => s.kind == kind).toList(growable: false);
+      final list = _filtered(_kind, _query);
+      _open = list.isEmpty ? null : list.first.id;
+    });
+  }
+
+  /// 更新搜索词，并默认展开首个命中项。
+  void _search(String query) {
+    setState(() {
+      _query = query;
+      final list = _filtered(_kind, _query);
       _open = list.isEmpty ? null : list.first.id;
     });
   }
@@ -110,27 +141,55 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
                     ),
                     // .mat-sec h4 margin-bottom 10（标题含 tag 时行高更高，需留白）
                     const SizedBox(height: 10),
-                    // 类型筛选：对应小程序「兽灵被动技能 / 兽灵手动技能」页签
-                    Wrap(
-                      spacing: 9,
-                      runSpacing: 8,
-                      children: [
-                        _Chip(
-                          label: '全部',
-                          active: _kind == null,
-                          onTap: () => _selectKind(null),
-                        ),
-                        for (final k in BeastSpiritKind.values)
-                          _Chip(
-                            label: k.label,
-                            active: _kind == k,
-                            onTap: () => _selectKind(k),
-                          ),
-                      ],
+                    // 搜索框（技能名 / 效果关键词）+ 类型筛选 chips
+                    // （类型对应小程序「兽灵被动技能 / 兽灵手动技能」页签）
+                    LayoutBuilder(
+                      builder: (context, c) {
+                        final search = _SearchField(
+                          value: _query,
+                          onChanged: _search,
+                          onClear: () => _search(''),
+                        );
+                        final chips = Wrap(
+                          spacing: 9,
+                          runSpacing: 8,
+                          children: [
+                            _Chip(
+                              label: '全部',
+                              active: _kind == null,
+                              onTap: () => _selectKind(null),
+                            ),
+                            for (final k in BeastSpiritKind.values)
+                              _Chip(
+                                label: k.label,
+                                active: _kind == k,
+                                onTap: () => _selectKind(k),
+                              ),
+                          ],
+                        );
+                        // 窄屏：搜索框独占一行，chips 换行；宽屏：搜索框 280 + chips
+                        if (c.maxWidth < 640) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              search,
+                              const SizedBox(height: 10),
+                              chips,
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            SizedBox(width: 280, child: search),
+                            const SizedBox(width: 14),
+                            Expanded(child: chips),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     if (visible.isEmpty)
-                      _EmptyHint(kind: _kind)
+                      _EmptyHint(kind: _kind, query: _query)
                     else
                       Column(
                         children: [
@@ -164,16 +223,23 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   }
 }
 
-/// 类型空态（如「手动技能」暂未收录）。
+/// 空态：搜索无结果，或该类型（如「手动技能」）暂未收录。
 class _EmptyHint extends StatelessWidget {
-  const _EmptyHint({required this.kind});
+  const _EmptyHint({required this.kind, this.query = ''});
 
   final BeastSpiritKind? kind;
+
+  /// 当前搜索词；非空时优先提示「无匹配」。
+  final String query;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
+    final q = query.trim();
     final label = kind?.label ?? '';
+    final text = q.isEmpty
+        ? '$label数据待补（来源：小程序「兽灵$label」页签）'
+        : '没有匹配「$q」的技能，换个关键词试试';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 22),
@@ -183,10 +249,66 @@ class _EmptyHint extends StatelessWidget {
         border: Border.all(color: tg.goldTint(.26), width: 1),
       ),
       child: Text(
-        '$label数据待补（来源：小程序「兽灵$label」页签）',
+        text,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 12.5, height: 1.7, color: tg.t3),
       ),
+    );
+  }
+}
+
+/// 搜索框（技能名 / 定位 / 效果关键词），带「清空」。
+class _SearchField extends StatefulWidget {
+  const _SearchField({
+    required this.value,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final String value;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  State<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends State<_SearchField> {
+  late final TextEditingController _c = TextEditingController(
+    text: widget.value,
+  );
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return TgTextField(
+      controller: _c,
+      hintText: '搜索技能名或效果，如「冰精」「剧毒陷阱」「昏睡」…',
+      prefixIcon: 'search',
+      fontSize: 12.5,
+      height: 38,
+      horizontalPadding: 12,
+      radius: BorderRadius.circular(9),
+      onChanged: widget.onChanged,
+      suffix: widget.value.isEmpty
+          ? null
+          : InkWell(
+              onTap: () {
+                _c.clear();
+                widget.onClear();
+              },
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text('清空', style: TextStyle(fontSize: 11, color: tg.t3)),
+              ),
+            ),
     );
   }
 }
@@ -664,6 +786,13 @@ class _Tag extends StatelessWidget {
     );
   }
 }
+
+/// 去掉富文本标记，得到纯文本（供搜索匹配用）。
+String _plainText(String raw) => raw
+    .replaceAll('<b>', '')
+    .replaceAll('</b>', '')
+    .replaceAll('<i>', '')
+    .replaceAll('</i>', '');
 
 /// 文案标记解析：`<b>…</b>` → [boldColor] 加粗，`<i>…</i>` → 斜体弱化。
 ///
