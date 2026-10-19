@@ -189,7 +189,7 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
                     ),
                     const SizedBox(height: 12),
                     if (visible.isEmpty)
-                      _EmptyHint(kind: _kind, query: _query)
+                      _EmptyHint(query: _query)
                     else
                       Column(
                         children: [
@@ -223,21 +223,17 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   }
 }
 
-/// 空态：搜索无结果，或该类型（如「手动技能」）暂未收录。
+/// 空态：搜索无结果。
 class _EmptyHint extends StatelessWidget {
-  const _EmptyHint({required this.kind, this.query = ''});
+  const _EmptyHint({required this.query});
 
-  final BeastSpiritKind? kind;
-
-  /// 当前搜索词；非空时优先提示「无匹配」。
+  /// 当前搜索词。
   final String query;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
     final q = query.trim();
-    final label = kind?.label ?? '';
-    final text = q.isEmpty ? '$label数据待补' : '没有匹配「$q」的技能，换个关键词试试';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 22),
@@ -247,7 +243,7 @@ class _EmptyHint extends StatelessWidget {
         border: Border.all(color: tg.goldTint(.26), width: 1),
       ),
       child: Text(
-        text,
+        '没有匹配「$q」的技能，换个关键词试试',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 12.5, height: 1.7, color: tg.t3),
       ),
@@ -416,7 +412,7 @@ class _BeastAccItem extends StatefulWidget {
   final bool open;
   final VoidCallback onToggle;
 
-  /// 当前选中的阶位下标（仅完整数据兽灵使用）。
+  /// 当前选中的阶位下标。
   final int tierIndex;
   final ValueChanged<int> onTier;
 
@@ -538,17 +534,18 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tg = context.tg;
     return TgCardPadding(
       base: const EdgeInsets.fromLTRB(15, 2, 15, 15),
-      child: spirit.isComplete
-          ? _CompleteBody(spirit: spirit, tierIndex: tierIndex, onTier: onTier)
-          : _PendingBody(spirit: spirit, textColor: tg.t2),
+      child: _CompleteBody(
+        spirit: spirit,
+        tierIndex: tierIndex,
+        onTier: onTier,
+      ),
     );
   }
 }
 
-/// 完整数据兽灵：7 阶 chips + 阶位说明 / 两个效果位。
+/// 兽灵正文：7 阶 chips + 阶位说明 / 两个效果位。
 class _CompleteBody extends StatelessWidget {
   const _CompleteBody({
     required this.spirit,
@@ -624,46 +621,6 @@ class _CompleteBody extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// 待补兽灵：攻略共识正文 + `※` 注。
-class _PendingBody extends StatelessWidget {
-  const _PendingBody({required this.spirit, required this.textColor});
-
-  final BeastSpirit spirit;
-
-  /// 正文色（原型 `color:var(--t2)`）。
-  final Color textColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    final bodyStyle = TextStyle(fontSize: 12.5, height: 1.7, color: textColor);
-    final fxStyle = TextStyle(fontSize: 12.5, height: 1.6, color: tg.t2);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text.rich(
-          TextSpan(
-            children: _markupSpans(
-              spirit.pendingBody,
-              bodyStyle,
-              boldColor: textColor,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        _SoulFx(
-          spans: _markupSpans(
-            spirit.pendingNote,
-            fxStyle,
-            boldColor: tg.gold2,
-            italicColor: tg.t3,
           ),
         ),
       ],

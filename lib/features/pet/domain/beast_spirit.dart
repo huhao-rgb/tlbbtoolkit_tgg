@@ -14,26 +14,12 @@ library;
 
 import 'package:flutter/foundation.dart';
 
-/// 兽灵数据完整度（对应原型标题行右侧 tag）。
-enum BeastSpiritStatus {
-  /// 已收录 7 阶逐阶数据（`.tag-gold`）。
-  complete('完整数据'),
-
-  /// 逐阶数值待补，仅收录攻略共识（`.tag`）。
-  pending('待补');
-
-  const BeastSpiritStatus(this.label);
-
-  /// tag 文案。
-  final String label;
-}
-
 /// 兽灵技能类型（对应小程序顶部「兽灵被动技能 / 兽灵手动技能」两个页签）。
 enum BeastSpiritKind {
-  /// 被动技能（当前收录的全部兽灵均属此类）。
+  /// 被动技能。
   passive('被动技能'),
 
-  /// 手动技能（小程序「兽灵手动技能」页签，数据待补）。
+  /// 手动技能。
   manual('手动技能');
 
   const BeastSpiritKind(this.label);
@@ -76,11 +62,8 @@ class BeastSpirit {
     required this.id,
     required this.name,
     required this.sub,
-    required this.status,
     this.kind = BeastSpiritKind.passive,
     this.tiers = const [],
-    this.pendingBody = '',
-    this.pendingNote = '',
   });
 
   /// 稳定 id（对应原型 `#poyu` / `#podan` / …）。
@@ -92,23 +75,11 @@ class BeastSpirit {
   /// 一句话定位（如 `破防 · 会心削减`）。
   final String sub;
 
-  /// 数据完整度。
-  final BeastSpiritStatus status;
-
   /// 技能类型（被动 / 手动），对应小程序两个页签。
   final BeastSpiritKind kind;
 
-  /// 7 阶数据；[status] 为 [BeastSpiritStatus.pending] 时为空。
+  /// 7 阶数据（一阶 1-3 级 → 七阶 20 级）。
   final List<BeastSpiritTier> tiers;
-
-  /// 待补正文（含 `<b>…</b>`）；仅 [BeastSpiritStatus.pending] 使用。
-  final String pendingBody;
-
-  /// 待补攻略注（`※` 起头，走 `.soul-fx` 样式）；仅待补兽灵使用。
-  final String pendingNote;
-
-  /// 是否已收录 7 阶完整数据。
-  bool get isComplete => status == BeastSpiritStatus.complete;
 }
 
 /// 阶位结构中的一阶（对应「阶位结构 · 20 级 7 阶」进度条）。
@@ -140,7 +111,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'poyu',
     name: '破御',
     sub: '破防 · 会心削减',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -197,7 +167,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'podan',
     name: '破胆',
     sub: '普攻附伤 · 增伤',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -258,7 +227,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'bingjing',
     name: '冰精',
     sub: '冰攻减伤 · 冰冻控制',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -343,7 +311,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'huoling',
     name: '火灵',
     sub: '火攻减伤 · 爆炸反制',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -428,7 +395,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'dugu',
     name: '毒蛊',
     sub: '毒攻减伤 · 剧毒陷阱',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -521,7 +487,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'xuanshou',
     name: '玄兽',
     sub: '玄攻减伤 · 玄罡护体',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -614,7 +579,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'chidun',
     name: '迟钝',
     sub: '血上限 · 心法增伤',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -695,7 +659,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'jiaohua',
     name: '狡猾',
     sub: '命中闪避 · 叠层规避',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -764,7 +727,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'hanhou',
     name: '憨厚',
     sub: '内外功减伤 · 生存强化',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -833,7 +795,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'pinming',
     name: '拼命',
     sub: '会心强化 · 双刃增伤',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -912,7 +873,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'tongji',
     name: '痛击',
     sub: '无视内防 · 内功转化',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -977,7 +937,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'lianji',
     name: '连击',
     sub: '连击追加 · 狂暴连击',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1068,7 +1027,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'lingdong',
     name: '灵动',
     sub: '伤害暂缓 · 低血闪避',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1145,7 +1103,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'fahun',
     name: '法魂',
     sub: '内功强化 · 灵魂昏睡',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1214,7 +1171,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'manli',
     name: '蛮力',
     sub: '外功强化 · 肉身定身',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1283,7 +1239,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'jieli',
     name: '借力',
     sub: '力量增益 · 外攻共享',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1340,7 +1295,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'yihun',
     name: '移魂',
     sub: '定力增益 · 闪避共享',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1397,7 +1351,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'shunying',
     name: '瞬影',
     sub: '身法增益 · 命中会心共享',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1454,7 +1407,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'qiangshen',
     name: '强身',
     sub: '体力增益 · 会防共享',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1511,7 +1463,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'ningshen',
     name: '凝神',
     sub: '灵气增益 · 内攻共享',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1568,7 +1519,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'hanbingzhou',
     name: '寒冰咒',
     sub: '冰攻强化 · 减冰抗',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1625,7 +1575,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'liehuozhou',
     name: '烈火咒',
     sub: '火攻强化 · 减火抗',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1682,7 +1631,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'xueduzhou',
     name: '血毒咒',
     sub: '毒攻强化 · 减毒抗',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1739,7 +1687,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'xuanleizhou',
     name: '玄雷咒',
     sub: '玄攻强化 · 减玄抗',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1796,7 +1743,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'fanji',
     name: '反击',
     sub: '反击强化 · 反击增伤',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1853,7 +1799,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'fanzhen',
     name: '反震',
     sub: '反震强化 · 反震解控',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -1922,7 +1867,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'xiqi',
     name: '吸气',
     sub: '吸蓝强化 · 群体吸蓝',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2007,7 +1951,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'danu',
     name: '打怒',
     sub: '禁怒强化 · 群体打怒',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2084,7 +2027,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'zhongxin',
     name: '忠心',
     sub: '会心防护 · 伤害承担',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2165,7 +2107,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'lingqi',
     name: '灵气',
     sub: '解控强化 · 不良减免',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2242,7 +2183,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'mengji',
     name: '猛击',
     sub: '无视外防 · 外功转化',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2307,7 +2247,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'shipo',
     name: '识破',
     sub: '反隐强化 · 弱点识破',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2384,7 +2323,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'xuruo',
     name: '虚弱',
     sub: '虚弱之手 · 内外功削弱',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2465,7 +2403,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'pozhan',
     name: '破绽',
     sub: '破绽之眼 · 内外防削弱',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2546,7 +2483,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'shuaiban',
     name: '摔绊',
     sub: '定身强化 · 减速定身',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2629,7 +2565,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'binghun',
     name: '冰魂',
     sub: '冰抗属性 · 冰甲反伤',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2704,7 +2639,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'huohun',
     name: '火魂',
     sub: '火抗属性 · 火甲灼烧',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2783,7 +2717,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'duhun',
     name: '毒魂',
     sub: '毒抗属性 · 毒甲虚弱',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2862,7 +2795,6 @@ const List<BeastSpirit> kBeastSpirits = [
     id: 'xuanhun',
     name: '玄魂',
     sub: '玄抗属性 · 玄甲破防',
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -2938,7 +2870,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '灵狐之息',
     sub: '增伤减伤 · 攻击延长',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3016,7 +2947,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '同护',
     sub: '护盾强化 · 会心附伤',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3086,7 +3016,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '极冰凝杀',
     sub: '冰攻群攻 · 冷却延长',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3152,7 +3081,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '劫火焚杀',
     sub: '火攻群攻 · 脚底劫火',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3222,7 +3150,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '腐毒蚀杀',
     sub: '毒攻群攻 · 腐蚀增伤',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3288,7 +3215,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '玄雷击杀',
     sub: '玄攻群攻 · 麻痹传染',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3358,7 +3284,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '血爆',
     sub: '耗血群攻 · 低血护盾',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3440,7 +3365,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '冰爆',
     sub: '减速控制 · 冰封',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3498,7 +3422,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '净化',
     sub: '驱散不良 · 免疫',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3564,7 +3487,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '重生',
     sub: '延长重生 · 概率再触发',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3622,7 +3544,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '共生',
     sub: '主人回血 · 珍兽保命',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3688,7 +3609,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '治疗',
     sub: '珍兽回血 · 主人共享',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3754,7 +3674,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '肉墙',
     sub: '替伤减伤 · 会心防御',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3824,7 +3743,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '神佑',
     sub: '无敌加速 · 回血免伤',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3908,7 +3826,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '嗜血',
     sub: '增伤增受 · 追击连斩',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -3978,7 +3895,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '血祭',
     sub: '主人回血 · 附加伤害',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4044,7 +3960,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '伪装',
     sub: '隐身延长 · 满血伪装',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4122,7 +4037,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '附身',
     sub: '扣怒扣气 · 眩晕操控',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4201,7 +4115,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '解穴',
     sub: '免疫封穴 · 反制封穴',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4273,7 +4186,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '清醒',
     sub: '免疫昏睡 · 反制昏睡',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4345,7 +4257,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '明目',
     sub: '免疫失明 · 反制失明',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4417,7 +4328,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '轻灵',
     sub: '免疫僵硬 · 反制僵硬',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4489,7 +4399,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '固元',
     sub: '免疫散功 · 反制散功',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4561,7 +4470,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '洒脱',
     sub: '免疫定身 · 反制定身',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4633,7 +4541,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '冰天雪地',
     sub: '减冰抗 · 清冷却',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4699,7 +4606,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '烈火燎原',
     sub: '减火抗 · 清冷却',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4765,7 +4671,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '血毒万里',
     sub: '减毒抗 · 清冷却',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4831,7 +4736,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '五雷轰顶',
     sub: '减玄抗 · 清冷却',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4897,7 +4801,6 @@ const List<BeastSpirit> kBeastSpirits = [
     name: '咆哮',
     sub: '惊恐掉血 · 拉近拉远',
     kind: BeastSpiritKind.manual,
-    status: BeastSpiritStatus.complete,
     tiers: [
       BeastSpiritTier(
         name: '一阶',
@@ -4969,4 +4872,6 @@ const String kBeastIndexIntroNote =
     '手动技能在珍兽进入<b>怒意二阶</b>释放该技能时触发。';
 
 /// 图鉴底部说明（原型 `.calc-note`；表现层不解析富文本，保持纯文本）。
-const String kBeastIndexFootNote = '※ 共 68 只兽灵（被动 39 · 手动 29），逐级数值以游戏内为准。';
+const String kBeastIndexFootNote =
+    '※ 共 68 只兽灵（被动 39 · 手动 29），逐级数值以游戏内为准。'
+    '破御礼包例：「破御斩虚兽灵自选礼包」（2026-02 官方活动）。';

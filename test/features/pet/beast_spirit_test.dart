@@ -87,24 +87,18 @@ void main() {
     expect(kBeastTierSteps.last.lv, '20 级');
   });
 
-  test('68 只兽灵：全部完整数据、7 阶齐备且阶位与阶位结构一致', () {
+  test('68 只兽灵：7 阶齐备且阶位与阶位结构一致', () {
     expect(kBeastSpirits.map((s) => s.id), _allIds);
 
     for (final s in kBeastSpirits) {
-      expect(s.status.label, '完整数据', reason: s.name);
       expect(s.tiers.length, 7, reason: s.name);
       for (var i = 0; i < kBeastTierSteps.length; i++) {
         expect(s.tiers[i].name, kBeastTierSteps[i].name, reason: s.name);
         expect(s.tiers[i].lv, kBeastTierSteps[i].lv, reason: s.name);
       }
-      // 完整数据兽灵不使用待补字段
-      expect(s.pendingBody, isEmpty, reason: s.name);
-      expect(s.pendingNote, isEmpty, reason: s.name);
       // 每只都有一句话定位
       expect(s.sub, isNotEmpty, reason: s.name);
     }
-    // 待补归零
-    expect(kBeastSpirits.where((s) => !s.isComplete), isEmpty);
   });
 
   test('技能类型维度：被动 39 只、手动 29 只', () {

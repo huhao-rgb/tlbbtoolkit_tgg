@@ -46,7 +46,7 @@ const _sevenChips = [
   '七阶 · 20 级',
 ];
 
-/// 图鉴内 68 只兽灵（被动 39 + 手动 29，全部完整数据，顺序 = 手风琴顺序）。
+/// 图鉴内 68 只兽灵（被动 39 + 手动 29，顺序 = 手风琴顺序）。
 const _allNames = [
   '破御',
   '破胆',
@@ -141,7 +141,7 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
 
-    // 兽灵技能图鉴：68 只兽灵，全部为「完整数据」（待补已归零）
+    // 兽灵技能图鉴：68 只兽灵，条目不再带完整度标签
     expect(find.text('兽灵技能图鉴'), findsOneWidget);
     expect(find.text('点击展开 · 同时仅一项'), findsOneWidget);
     for (final name in _allNames) {
@@ -167,10 +167,12 @@ void main() {
     // 顶部 / 底部说明
     expect(richContaining('兽灵以珍兽技能为单位划分'), findsOneWidget);
     expect(find.textContaining('共 68 只兽灵（被动 39 · 手动 29）'), findsOneWidget);
+    expect(find.textContaining('破御礼包例：「破御斩虚兽灵自选礼包」'), findsOneWidget);
     // 数据来源相关字样已移除
     expect(find.textContaining('TLBB'), findsNothing);
     expect(find.textContaining('核验'), findsNothing);
     expect(find.textContaining('数据来源'), findsNothing);
+    expect(find.textContaining('叶子猪'), findsNothing);
   });
 
   testWidgets('首项默认展开：7 阶 chips + 阶位说明 + 两个效果位', (tester) async {
