@@ -73,19 +73,33 @@ void main() {
     await tester.pumpAndSettle();
     await tester.runAsync(() => _snap(tester, 'expanded'));
 
-    // 桌面 · 展开拼命（待补态）
-    await pumpAt(1180, 1100);
-    await tester.tap(find.text('拼命兽灵'));
+    // 桌面 · 展开痛击（待补态）；13 项里排第 11，视口要够高才在屏内
+    await pumpAt(1180, 2000);
+    await tester.tap(find.text('痛击'));
     await tester.pumpAndSettle();
     await tester.runAsync(() => _snap(tester, 'pending'));
 
     // 桌面 · 冰精切到七阶
     await pumpAt(1180, 1600);
-    await tester.tap(find.text('冰精兽灵'));
+    await tester.tap(find.text('冰精'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('七阶 · 20 级'));
     await tester.pumpAndSettle();
     await tester.runAsync(() => _snap(tester, 'ice'));
+
+    // 桌面 · 毒蛊切到七阶（长文本效果二）
+    await pumpAt(1180, 1900);
+    await tester.tap(find.text('毒蛊'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('七阶 · 20 级'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => _snap(tester, 'poison'));
+
+    // 桌面 · 类型筛选「手动技能」空态
+    await pumpAt(1180, 900);
+    await tester.tap(find.text('手动技能'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => _snap(tester, 'manual'));
 
     // 移动端 · 破御切到七阶
     await pumpAt(390, 1500);

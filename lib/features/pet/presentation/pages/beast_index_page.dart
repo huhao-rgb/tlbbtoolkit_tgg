@@ -16,9 +16,9 @@ import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 /// 页面结构：
 /// - `.calc-note` 说明 → 兽灵以珍兽技能为单位划分，20 级 7 阶、两个效果位；
 /// - `阶位结构 · 20 级 7 阶`：7 段金色进度条 + 阶位 / 等级区间；
-/// - `兽灵技能图鉴`：手风琴（`.bsacc-item`）罗列 7 只兽灵，**同时仅一项展开**；
-///   已收录完整数据的破御 / 破胆 / 冰精按 7 阶 chips 切换「阶位说明 + 两个效果位」，
-///   其余 4 只展示攻略共识（待补）。
+/// - `兽灵技能图鉴`：类型 chips（全部 / 被动技能 / 手动技能，对应小程序两个
+///   页签）+ 手风琴（`.bsacc-item`）罗列兽灵，**同时仅一项展开**；已收录完整
+///   数据的兽灵按 7 阶 chips 切换「阶位说明 + 两个效果位」，其余展示攻略共识。
 ///
 /// 与 v1.11.1 版（流派筛选 + 星级卡片网格 + 成长档位弹窗）为**整体替换**。
 class BeastIndexPage extends StatefulWidget {
@@ -29,17 +29,38 @@ class BeastIndexPage extends StatefulWidget {
 }
 
 class _BeastIndexPageState extends State<BeastIndexPage> {
-  /// 当前展开的手风琴下标；null = 全部收起。
+  /// 技能类型筛选；null = 全部。
+  BeastSpiritKind? _kind;
+
+  /// 当前展开的兽灵 id；null = 全部收起。
   ///
-  /// 默认展开第一项（破御兽灵）：原型初始态虽无 `.open`，但整页内容全靠手风琴
-  /// 承载，首屏全收起过于空，故默认展开首项。
-  int? _open = 0;
+  /// 默认展开首项（破御）：原型初始态虽无 `.open`，但整页内容全靠手风琴
+  /// 承载，首屏全收起过于空，故默认展开首项。用 id 而非下标记录，切换筛选后
+  /// 不会因为下标错位而展开到别的兽灵。
+  String? _open = kBeastSpirits.first.id;
 
   /// 各兽灵当前选中的阶位（收起后保留，对应原型 DOM 状态不重置）。
   final Map<String, int> _tierSel = <String, int>{};
 
+  /// 当前筛选下可见的兽灵。
+  List<BeastSpirit> get _visible => _kind == null
+      ? kBeastSpirits
+      : kBeastSpirits.where((s) => s.kind == _kind).toList(growable: false);
+
+  /// 切换类型筛选，并默认展开新列表首项（避免展开项被筛掉后一片空白）。
+  void _selectKind(BeastSpiritKind? kind) {
+    setState(() {
+      _kind = kind;
+      final list = kind == null
+          ? kBeastSpirits
+          : kBeastSpirits.where((s) => s.kind == kind).toList(growable: false);
+      _open = list.isEmpty ? null : list.first.id;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final visible = _visible;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
@@ -89,26 +110,45 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
                     ),
                     // .mat-sec h4 margin-bottom 10（标题含 tag 时行高更高，需留白）
                     const SizedBox(height: 10),
-                    Column(
+                    // 类型筛选：对应小程序「兽灵被动技能 / 兽灵手动技能」页签
+                    Wrap(
+                      spacing: 9,
+                      runSpacing: 8,
                       children: [
-                        for (var i = 0; i < kBeastSpirits.length; i++) ...[
-                          _BeastAccItem(
-                            spirit: kBeastSpirits[i],
-                            open: _open == i,
-                            onToggle: () =>
-                                setState(() => _open = _open == i ? null : i),
-                            tierIndex: _tierSel[kBeastSpirits[i].id] ?? 0,
-                            onTier: (t) => setState(
-                              () => _tierSel[kBeastSpirits[i].id] = t,
-                            ),
+                        _Chip(
+                          label: '全部',
+                          active: _kind == null,
+                          onTap: () => _selectKind(null),
+                        ),
+                        for (final k in BeastSpiritKind.values)
+                          _Chip(
+                            label: k.label,
+                            active: _kind == k,
+                            onTap: () => _selectKind(k),
                           ),
-                          // .bsacc-item margin-bottom 10；末项与底部说明取 14
-                          SizedBox(
-                            height: i == kBeastSpirits.length - 1 ? 14 : 10,
-                          ),
-                        ],
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    if (visible.isEmpty)
+                      _EmptyHint(kind: _kind)
+                    else
+                      Column(
+                        children: [
+                          for (final (i, s) in visible.indexed) ...[
+                            _BeastAccItem(
+                              spirit: s,
+                              open: _open == s.id,
+                              onToggle: () => setState(
+                                () => _open = _open == s.id ? null : s.id,
+                              ),
+                              tierIndex: _tierSel[s.id] ?? 0,
+                              onTier: (t) => setState(() => _tierSel[s.id] = t),
+                            ),
+                            // .bsacc-item margin-bottom 10；末项与底部说明取 14
+                            SizedBox(height: i == visible.length - 1 ? 14 : 10),
+                          ],
+                        ],
+                      ),
                     // 底部说明（.calc-note）
                     const _CalcNote(text: kBeastIndexFootNote),
                     const SizedBox(height: TgSpacing.s34),
@@ -120,6 +160,33 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
           ),
         );
       },
+    );
+  }
+}
+
+/// 类型空态（如「手动技能」暂未收录）。
+class _EmptyHint extends StatelessWidget {
+  const _EmptyHint({required this.kind});
+
+  final BeastSpiritKind? kind;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final label = kind?.label ?? '';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 22),
+      decoration: BoxDecoration(
+        color: tg.card,
+        borderRadius: BorderRadius.circular(TgRadius.r12),
+        border: Border.all(color: tg.goldTint(.26), width: 1),
+      ),
+      child: Text(
+        '$label数据待补（来源：小程序「兽灵$label」页签）',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12.5, height: 1.7, color: tg.t3),
+      ),
     );
   }
 }
@@ -390,7 +457,7 @@ class _CompleteBody extends StatelessWidget {
           runSpacing: 8,
           children: [
             for (var i = 0; i < spirit.tiers.length; i++)
-              _TierChip(
+              _Chip(
                 label: '${spirit.tiers[i].name} · ${spirit.tiers[i].lv}',
                 active: i == tierIndex,
                 onTap: () => onTier(i),
@@ -509,22 +576,18 @@ class _SoulFx extends StatelessWidget {
 }
 
 /// 阶位 chip（`.chip` / `.chip.active`）。
-class _TierChip extends StatefulWidget {
-  const _TierChip({
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
+class _Chip extends StatefulWidget {
+  const _Chip({required this.label, required this.active, required this.onTap});
 
   final String label;
   final bool active;
   final VoidCallback onTap;
 
   @override
-  State<_TierChip> createState() => _TierChipState();
+  State<_Chip> createState() => _ChipState();
 }
 
-class _TierChipState extends State<_TierChip> {
+class _ChipState extends State<_Chip> {
   bool _hover = false;
 
   @override

@@ -7,7 +7,7 @@ import 'package:tlbbtoolkit/features/pet/presentation/pages/beast_index_page.dar
 /// 以完整主题（含 TgColors extension）泵入兽灵图鉴页。
 Future<void> pumpPage(
   WidgetTester tester, {
-  Size size = const Size(1180, 1600),
+  Size size = const Size(1180, 2000),
 }) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
@@ -42,8 +42,25 @@ const _sevenChips = [
   '七阶 · 20 级',
 ];
 
+/// 图鉴内 13 只兽灵（10 只完整数据在前，3 只待补在后）。
+const _allNames = [
+  '破御',
+  '破胆',
+  '冰精',
+  '火灵',
+  '毒蛊',
+  '玄兽',
+  '迟钝',
+  '狡猾',
+  '憨厚',
+  '拼命',
+  '痛击',
+  '连击',
+  '灵动',
+];
+
 void main() {
-  testWidgets('默认渲染：页头 + 阶位结构 + 6 只兽灵手风琴（首项展开）', (tester) async {
+  testWidgets('默认渲染：页头 + 阶位结构 + 13 只兽灵手风琴（首项展开）', (tester) async {
     await pumpPage(tester);
 
     // 页头（副标题已随 v1.13.0 更新）
@@ -67,30 +84,28 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
 
-    // 兽灵技能图鉴：7 只兽灵 + 完整度 tag
+    // 兽灵技能图鉴：13 只兽灵 + 完整度 tag
     expect(find.text('兽灵技能图鉴'), findsOneWidget);
     expect(find.text('点击展开 · 同时仅一项'), findsOneWidget);
-    for (final name in [
-      '破御兽灵',
-      '破胆兽灵',
-      '冰精兽灵',
-      '拼命兽灵',
-      '痛击兽灵',
-      '连击兽灵',
-      '灵动兽灵',
-    ]) {
+    for (final name in _allNames) {
       expect(find.text(name), findsOneWidget);
     }
-    expect(find.text('完整数据'), findsNWidgets(3)); // 破御 · 破胆 · 冰精
-    expect(find.text('待补'), findsNWidgets(4));
+    expect(find.text('完整数据'), findsNWidgets(10)); // 前 10 只
+    expect(find.text('待补'), findsNWidgets(3)); // 痛击 · 连击 · 灵动
+
+    // 类型筛选 chips（对应小程序两个页签）
+    expect(find.text('全部'), findsOneWidget);
+    expect(find.text('被动技能'), findsOneWidget);
+    expect(find.text('手动技能'), findsOneWidget);
 
     // 首项（破御）默认展开：chips + 一阶内容
     expect(find.text('一阶 · 1-3 级'), findsOneWidget);
     expect(richContaining('一阶（兽灵 1-3 级）'), findsOneWidget);
-    // 其余 6 项仍收起
+    // 其余 12 项仍收起
     expect(richContaining('珍兽对拥有破胆效果的目标'), findsNothing);
     expect(richContaining('受到冰攻伤害再次减少'), findsNothing);
-    expect(richContaining('版本核心技能'), findsNothing);
+    expect(richContaining('受到火攻伤害再次减少'), findsNothing);
+    expect(richContaining('内功宝宝的主要输出技能'), findsNothing);
 
     // 顶部 / 底部说明
     expect(richContaining('兽灵以珍兽技能为单位划分'), findsOneWidget);
@@ -113,7 +128,7 @@ void main() {
 
   testWidgets('冰精兽灵：展开后一阶 / 七阶数值正确渲染', (tester) async {
     await pumpPage(tester);
-    await tapText(tester, '冰精兽灵');
+    await tapText(tester, '冰精');
 
     // 一阶：减伤 / 增伤 2%，两个效果位未解锁
     expect(richContaining('一阶（兽灵 1-3 级）'), findsOneWidget);
@@ -126,6 +141,20 @@ void main() {
     expect(richContaining('有 24% 概率冰冻目标 0.5 秒'), findsOneWidget);
     expect(richContaining('有 8% 概率额外受到一次爆炸伤害'), findsOneWidget);
     expect(richContaining('普通攻击的 150% 伤害'), findsOneWidget);
+  });
+
+  testWidgets('毒蛊兽灵：剧毒陷阱与玄罡文案正确渲染', (tester) async {
+    await pumpPage(tester);
+    await tapText(tester, '毒蛊');
+    await tapText(tester, '七阶 · 20 级');
+
+    expect(richContaining('七阶（兽灵 20 级）'), findsOneWidget);
+    expect(richContaining('受到毒攻伤害再次减少 15%'), findsOneWidget);
+    expect(
+      richContaining('有 15% 概率在目标脚底产生一个半径 3 米持续 6 秒的剧毒陷阱'),
+      findsOneWidget,
+    );
+    expect(richContaining('获得玄罡效果'), findsOneWidget);
   });
 
   testWidgets('切换阶位 chips 更新说明与效果位', (tester) async {
@@ -148,40 +177,66 @@ void main() {
     await pumpPage(tester);
 
     // 首项默认展开，点击自身可收起
-    await tapText(tester, '破御兽灵');
+    await tapText(tester, '破御');
     expect(find.text('一阶 · 1-3 级'), findsNothing);
 
     // 重新展开并切到五阶
-    await tapText(tester, '破御兽灵');
+    await tapText(tester, '破御');
     expect(find.text('一阶 · 1-3 级'), findsOneWidget);
     await tapText(tester, '五阶 · 13-15 级');
 
     // 展开破胆 → 破御收起（chips 只剩破胆一组）
-    await tapText(tester, '破胆兽灵');
+    await tapText(tester, '破胆');
     expect(richContaining('珍兽对拥有破胆效果的目标'), findsOneWidget);
     expect(find.text('一阶 · 1-3 级'), findsOneWidget);
 
     // 再次点击破胆 → 全部收起
-    await tapText(tester, '破胆兽灵');
+    await tapText(tester, '破胆');
     expect(find.text('一阶 · 1-3 级'), findsNothing);
     expect(richContaining('珍兽对拥有破胆效果的目标'), findsNothing);
 
     // 重新展开破御 → 仍停留在五阶（原型 DOM 状态不重置）
-    await tapText(tester, '破御兽灵');
+    await tapText(tester, '破御');
     expect(richContaining('五阶（兽灵 13-15 级）'), findsOneWidget);
+  });
+
+  testWidgets('类型筛选：被动技能保留全部，手动技能显示空态', (tester) async {
+    await pumpPage(tester);
+
+    // 默认「全部」：13 项
+    expect(find.text('破御'), findsOneWidget);
+    expect(find.text('灵动'), findsOneWidget);
+
+    // 「被动技能」：当前收录全部属被动，仍 13 项
+    await tapText(tester, '被动技能');
+    expect(find.text('破御'), findsOneWidget);
+    expect(find.text('灵动'), findsOneWidget);
+    expect(find.text('完整数据'), findsNWidgets(10));
+
+    // 「手动技能」：暂无收录 → 空态（手风琴整体消失）
+    await tapText(tester, '手动技能');
+    expect(find.text('破御'), findsNothing);
+    expect(find.text('灵动'), findsNothing);
+    expect(find.textContaining('手动技能数据待补'), findsOneWidget);
+
+    // 切回「全部」：恢复 13 项，并默认展开首项
+    await tapText(tester, '全部');
+    expect(find.text('破御'), findsOneWidget);
+    expect(find.text('灵动'), findsOneWidget);
+    expect(richContaining('一阶（兽灵 1-3 级）'), findsOneWidget);
   });
 
   testWidgets('待补兽灵展示攻略共识正文与 ※ 注', (tester) async {
     await pumpPage(tester);
-    await tapText(tester, '拼命兽灵');
+    await tapText(tester, '痛击');
 
-    expect(richContaining('版本核心技能'), findsOneWidget);
-    expect(richContaining('核心三件套'), findsOneWidget);
-    expect(find.textContaining('拼命为兽灵版本输出宝宝第一优先级'), findsOneWidget);
+    expect(richContaining('内功宝宝的主要输出技能'), findsOneWidget);
+    expect(richContaining('内功流（凝神/痛击向）核心'), findsOneWidget);
+    expect(find.textContaining('内功珍兽 + 内功门派主人'), findsOneWidget);
     // 待补项无 chips（破御已随之收起）
     expect(find.text('一阶 · 1-3 级'), findsNothing);
 
-    await tapText(tester, '灵动兽灵');
+    await tapText(tester, '灵动');
     expect(richContaining('减少珍兽受到的伤害'), findsOneWidget);
     expect(find.textContaining('灵动拼命必备'), findsOneWidget);
   });
@@ -196,10 +251,14 @@ void main() {
 
   testWidgets('移动端窄屏不溢出', (tester) async {
     // 首项默认展开
-    await pumpPage(tester, size: const Size(390, 1600));
+    await pumpPage(tester, size: const Size(390, 2000));
     expect(tester.takeException(), isNull);
 
     await tapText(tester, '七阶 · 20 级');
+    expect(tester.takeException(), isNull);
+
+    // 类型筛选 chips 在窄屏折行也不溢出
+    await tapText(tester, '手动技能');
     expect(tester.takeException(), isNull);
   });
 }
