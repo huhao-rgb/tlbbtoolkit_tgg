@@ -237,9 +237,7 @@ class _EmptyHint extends StatelessWidget {
     final tg = context.tg;
     final q = query.trim();
     final label = kind?.label ?? '';
-    final text = q.isEmpty
-        ? '$label数据待补（来源：小程序「兽灵$label」页签）'
-        : '没有匹配「$q」的技能，换个关键词试试';
+    final text = q.isEmpty ? '$label数据待补' : '没有匹配「$q」的技能，换个关键词试试';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 22),
@@ -488,8 +486,6 @@ class _BeastAccItemState extends State<_BeastAccItem> {
                                 style: TextStyle(fontSize: 11, color: tg.t3),
                               ),
                             ),
-                            const SizedBox(width: 11),
-                            _Tag(s.status.label, gold: s.isComplete),
                           ],
                         ),
                       ),
@@ -755,12 +751,11 @@ class _ChipState extends State<_Chip> {
   }
 }
 
-/// 标签（`.tag`；[gold] 时为 `.tag-gold`）。
+/// 标签（`.tag`）：小节标题右侧的弱化说明。
 class _Tag extends StatelessWidget {
-  const _Tag(this.text, {this.gold = false});
+  const _Tag(this.text);
 
   final String text;
-  final bool gold;
 
   @override
   Widget build(BuildContext context) {
@@ -768,20 +763,12 @@ class _Tag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: gold ? tg.goldTint(.08) : Colors.transparent,
         borderRadius: BorderRadius.circular(TgRadius.sm),
-        border: Border.all(
-          color: gold ? tg.goldTint(.4) : tg.borderHi,
-          width: 1,
-        ),
+        border: Border.all(color: tg.borderHi, width: 1),
       ),
       child: Text(
         text,
-        style: TextStyle(
-          fontSize: 11,
-          height: 1.7,
-          color: gold ? tg.gold2 : tg.t2,
-        ),
+        style: TextStyle(fontSize: 11, height: 1.7, color: tg.t2),
       ),
     );
   }

@@ -233,7 +233,7 @@ abstract final class ToolCatalog {
     category: ToolGroup.pet,
     title: '兽灵图鉴',
     crumb: '珍兽 / 图鉴',
-    pageSubtitle: '珍兽觉醒缔约 · 兽灵附体强化存活与输出 · 依据官方公告与玩家实测整理（2025-03 上线）',
+    pageSubtitle: '珍兽觉醒缔约 · 兽灵附体强化存活与输出（2025-03 上线）',
     cardDesc: '20 级 7 阶 · 兽灵技能逐阶效果速查',
     keywords: [
       '兽灵',

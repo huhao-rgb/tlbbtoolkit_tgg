@@ -1063,12 +1063,19 @@ void main() {
     }
   });
 
-  test('图鉴说明文案：数据来源与触发差异', () {
+  test('图鉴说明文案：触发差异，且不含数据来源字样', () {
     expect(kBeastIndexIntroNote, contains('<b>20 级 · 7 阶</b>'));
     expect(kBeastIndexIntroNote, contains('效果一 4 级解锁、效果二 10 级解锁'));
     expect(kBeastIndexIntroNote, contains('被动技能在珍兽进入<b>怒意三阶</b>抽取到该技能时触发'));
     expect(kBeastIndexIntroNote, contains('手动技能在珍兽进入<b>怒意二阶</b>释放该技能时触发'));
-    expect(kBeastIndexIntroNote, contains('「兽灵被动技能 / 兽灵手动技能」'));
     expect(kBeastIndexFootNote, startsWith('※ 共 68 只兽灵（被动 39 · 手动 29）'));
+
+    // 来源相关字样已全部移除
+    for (final text in [kBeastIndexIntroNote, kBeastIndexFootNote]) {
+      expect(text, isNot(contains('TLBB')));
+      expect(text, isNot(contains('小程序')));
+      expect(text, isNot(contains('核验')));
+      expect(text, isNot(contains('来源')));
+    }
   });
 }

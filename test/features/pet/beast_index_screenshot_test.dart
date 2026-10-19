@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/beast_index_page.dart';
 
-/// 兽灵图鉴整页快照（桌面 / 移动端、收起 / 展开 / 待补四种状态）。
+/// 兽灵图鉴整页快照（桌面 / 移动端、被动 / 手动、搜索等状态）。
 ///
 /// 产物写入 `build/beast_index_*.png`，用于对照原型 v1.13.0 目视核对。
 Future<void> _loadFonts() async {

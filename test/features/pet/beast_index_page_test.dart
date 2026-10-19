@@ -123,12 +123,9 @@ void main() {
   testWidgets('默认渲染：页头 + 阶位结构 + 68 只兽灵手风琴（首项展开）', (tester) async {
     await pumpPage(tester);
 
-    // 页头（副标题已随 v1.13.0 更新）
+    // 页头（副标题已去掉来源说明）
     expect(find.text('兽灵图鉴'), findsOneWidget);
-    expect(
-      find.text('珍兽觉醒缔约 · 兽灵附体强化存活与输出 · 依据官方公告与玩家实测整理（2025-03 上线）'),
-      findsOneWidget,
-    );
+    expect(find.text('珍兽觉醒缔约 · 兽灵附体强化存活与输出（2025-03 上线）'), findsOneWidget);
 
     // 阶位结构 · 20 级 7 阶
     expect(find.text('阶位结构 · 20 级 7 阶'), findsOneWidget);
@@ -150,7 +147,7 @@ void main() {
     for (final name in _allNames) {
       expect(find.text(name), findsOneWidget);
     }
-    expect(find.text('完整数据'), findsNWidgets(68));
+    expect(find.text('完整数据'), findsNothing);
     expect(find.text('待补'), findsNothing);
 
     // 类型筛选 chips（对应小程序两个页签）
@@ -170,6 +167,10 @@ void main() {
     // 顶部 / 底部说明
     expect(richContaining('兽灵以珍兽技能为单位划分'), findsOneWidget);
     expect(find.textContaining('共 68 只兽灵（被动 39 · 手动 29）'), findsOneWidget);
+    // 数据来源相关字样已移除
+    expect(find.textContaining('TLBB'), findsNothing);
+    expect(find.textContaining('核验'), findsNothing);
+    expect(find.textContaining('数据来源'), findsNothing);
   });
 
   testWidgets('首项默认展开：7 阶 chips + 阶位说明 + 两个效果位', (tester) async {
@@ -274,7 +275,7 @@ void main() {
     expect(find.text('破御'), findsOneWidget);
     expect(find.text('玄魂'), findsOneWidget);
     expect(find.text('灵狐之息'), findsNothing);
-    expect(find.text('完整数据'), findsNWidgets(39));
+    expect(find.text('完整数据'), findsNothing);
 
     // 「手动技能」：29 项（首项灵狐之息默认展开）
     await tapText(tester, '手动技能');
@@ -282,7 +283,7 @@ void main() {
     expect(find.text('玄魂'), findsNothing);
     expect(find.text('灵狐之息'), findsOneWidget);
     expect(find.text('咆哮'), findsOneWidget);
-    expect(find.text('完整数据'), findsNWidgets(29));
+    expect(find.text('完整数据'), findsNothing);
     expect(richContaining('珍兽造成的伤害增加 1%'), findsOneWidget);
 
     // 切回「全部」：恢复 68 项，并默认展开首项
@@ -346,7 +347,7 @@ void main() {
     expect(textOnly('毒蛊'), findsOneWidget);
     expect(textOnly('玄兽'), findsOneWidget);
     expect(textOnly('冰精'), findsNothing);
-    expect(find.text('完整数据'), findsNWidgets(2));
+    expect(find.text('完整数据'), findsNothing);
 
     // 搜不到 → 空态提示
     await tester.enterText(find.byType(TextField), 'zzz不存在');
@@ -358,7 +359,7 @@ void main() {
     await tapText(tester, '清空');
     expect(textOnly('破御'), findsOneWidget);
     expect(textOnly('玄魂'), findsOneWidget);
-    expect(find.text('完整数据'), findsNWidgets(68));
+    expect(find.text('完整数据'), findsNothing);
   });
 
   testWidgets('页脚展示', (tester) async {
