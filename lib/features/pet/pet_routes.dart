@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/tool_hub_page.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/beast_index_page.dart';
-import 'package:tlbbtoolkit/features/pet/presentation/pages/beast_skill_page.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/beast_soul_page.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/pet_calc_page.dart';
 import 'package:tlbbtoolkit/features/pet/presentation/pages/pet_prob_page.dart';
@@ -16,7 +15,7 @@ part 'pet_routes.g.dart';
 ///
 /// 分类根 `/pet` 是「珍兽工具」hub，其下二级页与首页 / 侧栏目录一致：
 /// - 珍兽：资质计算 / 技能释放概率 / 套装图鉴（`PetCalcPage` 等真实页面）；
-/// - 兽灵 · 兽魂：兽魂查询 / 兽灵图鉴 / 兽灵技能效果。原为独立一级页（`/beast`），
+/// - 兽灵 · 兽魂：兽魂查询 / 兽灵图鉴。原为独立一级页（`/beast`），
 ///   原型 v1.11.1 起并入珍兽，location 保持 `/pet/beast/*`。
 @TypedGoRoute<PetHubRoute>(
   path: '/pet',
@@ -27,7 +26,6 @@ part 'pet_routes.g.dart';
     TypedGoRoute<PetSuitRoute>(path: 'suit', name: '珍兽套装图鉴'),
     TypedGoRoute<BeastSoulRoute>(path: 'beast/soul', name: '兽魂查询'),
     TypedGoRoute<BeastIndexRoute>(path: 'beast/index', name: '兽灵图鉴'),
-    TypedGoRoute<BeastSkillRoute>(path: 'beast/skill', name: '兽灵技能效果'),
   ],
 )
 class PetHubRoute extends GoRouteData with $PetHubRoute {
@@ -81,13 +79,4 @@ class BeastIndexRoute extends GoRouteData with $BeastIndexRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const BeastIndexPage();
-}
-
-/// 兽灵技能效果。
-class BeastSkillRoute extends GoRouteData with $BeastSkillRoute {
-  const BeastSkillRoute();
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const BeastSkillPage();
 }

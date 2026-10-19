@@ -211,8 +211,11 @@ void main() {
 
     expect(infoBarTitle('珍兽工具'), findsOneWidget);
     expect(find.text('珍兽套装图鉴'), findsOneWidget);
-    // 兽灵 · 兽魂一级页已移除：3 个兽灵工具并入珍兽 hub。
+    // 兽灵 · 兽魂一级页已移除：2 个兽灵工具并入珍兽 hub。
+    expect(find.text('兽魂查询'), findsOneWidget);
     expect(find.text('兽灵图鉴'), findsOneWidget);
+    // 「兽灵技能效果」页已下线，不再出现在 hub 中。
+    expect(find.text('兽灵技能效果'), findsNothing);
     // hub 是一级页面：无返回按钮。
     expect(find.byKey(_backButtonKey), findsNothing);
   });
@@ -289,7 +292,7 @@ void main() {
     await tester.tap(bottomTab('珍兽'));
     await tester.pumpAndSettle();
 
-    // 兽灵 3 个工具已并入珍兽 hub（一级页移除）。
+    // 兽灵 2 个工具已并入珍兽 hub（一级页移除）。
     await revealCenter(tester, find.text('兽魂查询'));
     await tester.tap(find.text('兽魂查询'));
     await tester.pumpAndSettle();

@@ -44,12 +44,6 @@ RouteBase get $petHubRoute => GoRouteData.$route(
       hasOverriddenOnExit: false,
       factory: $BeastIndexRoute._fromState,
     ),
-    GoRouteData.$route(
-      path: 'beast/skill',
-      name: '兽灵技能效果',
-      hasOverriddenOnExit: false,
-      factory: $BeastSkillRoute._fromState,
-    ),
   ],
 );
 
@@ -160,27 +154,6 @@ mixin $BeastIndexRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/pet/beast/index');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $BeastSkillRoute on GoRouteData {
-  static BeastSkillRoute _fromState(GoRouterState state) =>
-      const BeastSkillRoute();
-
-  @override
-  String get location => GoRouteData.$location('/pet/beast/skill');
 
   @override
   void go(BuildContext context) => context.go(location);

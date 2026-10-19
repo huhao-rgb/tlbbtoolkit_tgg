@@ -24,8 +24,8 @@ enum ToolGroup {
     hubCrumb: '珍兽 PET',
     hubSubtitle: '资质、技能、套装、兽魂、图鉴 —— 从选宠到成品的全套工具',
   ),
-  // 兽灵 · 兽魂：一级页已移除，6 个珍兽工具中属兽灵系统的 3 个（兽魂查询 /
-  // 兽灵图鉴 / 兽灵技能效果）仍以此为 [ToolDef.group]，用于卡片图钉取紫色
+  // 兽灵 · 兽魂：一级页已移除，5 个珍兽工具中属兽灵系统的 2 个（兽魂查询 /
+  // 兽灵图鉴）仍以此为 [ToolDef.group]，用于卡片图钉取紫色
   // （原型 `.tile.beast`）；归属分类见 [category]。
   beast(
     path: 'beast',
@@ -318,19 +318,6 @@ abstract final class ToolCatalog {
     icon: 'gem',
   );
 
-  static const ToolDef beastSkill = ToolDef(
-    id: 'beast-skill',
-    group: ToolGroup.beast,
-    category: ToolGroup.pet,
-    title: '兽灵技能效果',
-    crumb: '珍兽 / 技能效果',
-    pageSubtitle: '点击展开 Lv.1-5 等级数值表',
-    cardDesc: 'Lv.1-5 等级数值表 · 触发条件',
-    keywords: ['兽灵', '技能', '等级', '效果', '数值', '冷却'],
-    location: '/pet/beast/skill',
-    icon: 'spark',
-  );
-
   // ---- 职业 job ----
   static const ToolDef jobWudao = ToolDef(
     id: 'job-wudao',
@@ -430,14 +417,13 @@ abstract final class ToolCatalog {
     icon: 'user',
   );
 
-  /// 全部 14 个工具（首页网格顺序）。
+  /// 全部 13 个工具（首页网格顺序）。
   static const List<ToolDef> all = [
     petCalc,
     petProb,
     petSuit,
     beastSoul,
     beastIndex,
-    beastSkill,
     jobSect,
     jobWudao,
     jobSkill,
