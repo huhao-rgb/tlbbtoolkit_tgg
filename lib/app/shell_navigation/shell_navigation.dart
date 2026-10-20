@@ -130,31 +130,45 @@ class AppShellNavigation extends ConsumerWidget {
 
         switch (layout) {
           case DeviceLayout.mobile:
-            return Scaffold(
-              body: Stack(
-                children: [
-                  // 内容区保留顶部安全区（不被状态栏遮挡），内容在下可滚动，
-                  // 毛玻璃顶栏 / 底栏均悬浮覆盖其上。
-                  Positioned.fill(
-                    child: SafeArea(bottom: false, child: navigationShell),
-                  ),
-                  // 顶栏从屏幕顶部（含状态栏区域）铺开，实现沉浸式状态栏；
-                  // 栏内内容由 AppInfoBar 按安全区内缩，见其 build。
-                  Positioned(top: 0, left: 0, right: 0, child: infoBar),
-                  // 底栏同样悬浮（不再撑开 Scaffold 底栏插槽）：滚动内容可滑入
-                  // 其下方被模糊，形成与顶栏一致的毛玻璃；页面底部按
-                  // [Breakpoints.tabbarOverlayHeight] 预留空间，滚到底不被遮挡。
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: _MobileTabBar(
-                      currentIndex: navigationShell.currentIndex,
-                      onSelected: _onTabSelected,
+            // 底栏挂在 Scaffold 之外、以屏幕为基准贴底：Scaffold 默认
+            // resizeToAvoidBottomInset 会按键盘高度缩短 body（body 内也读不到
+            // viewInsets），底栏若放在 body 的 Stack 里就会被顶到键盘上方。
+            // 移到外层 Stack 后，键盘展开时底栏留在屏幕底部（被键盘盖住），
+            // 内容区仍由 Scaffold 自动避让键盘。
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: Scaffold(
+                    body: Stack(
+                      children: [
+                        // 内容区保留顶部安全区（不被状态栏遮挡），内容在下可滚动，
+                        // 毛玻璃顶栏悬浮覆盖其上。
+                        Positioned.fill(
+                          child: SafeArea(
+                            bottom: false,
+                            child: navigationShell,
+                          ),
+                        ),
+                        // 顶栏从屏幕顶部（含状态栏区域）铺开，实现沉浸式状态栏；
+                        // 栏内内容由 AppInfoBar 按安全区内缩，见其 build。
+                        Positioned(top: 0, left: 0, right: 0, child: infoBar),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                // 底栏悬浮（不占 Scaffold 底栏插槽）：滚动内容可滑入其下方被
+                // 模糊，形成与顶栏一致的毛玻璃；页面底部按
+                // [Breakpoints.tabbarOverlayHeight] 预留空间，滚到底不被遮挡。
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: _MobileTabBar(
+                    currentIndex: navigationShell.currentIndex,
+                    onSelected: _onTabSelected,
+                  ),
+                ),
+              ],
             );
           case DeviceLayout.desktop:
             return Scaffold(

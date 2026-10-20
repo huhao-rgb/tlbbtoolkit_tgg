@@ -267,6 +267,26 @@ void main() {
     );
   });
 
+  testWidgets('键盘弹起：底部 tab 不跟随上移，仍贴屏幕底边', (tester) async {
+    tester.view.physicalSize =
+        const Size(390, 844) * tester.view.devicePixelRatio;
+    addTearDown(tester.view.resetPhysicalSize);
+    await pumpApp(tester);
+
+    final tabbar = find.byKey(_tabBarKey);
+    final screenH =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(tester.getRect(tabbar).bottom, screenH);
+
+    // 模拟软键盘弹起（viewInsets 为物理像素，Flutter 侧按 DPR 折算）。
+    tester.view.viewInsets = const FakeViewPadding(bottom: 900);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+
+    // 底栏挂在 Scaffold 之外：键盘缩短 body 时不跟着上移。
+    expect(tester.getRect(tabbar).bottom, screenH);
+  });
+
   testWidgets('hub 内进入工具二级页，返回回到该 hub', (tester) async {
     await pumpApp(tester);
 
