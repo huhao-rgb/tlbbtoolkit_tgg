@@ -71,60 +71,65 @@ class _TgTextFieldState extends State<TgTextField> {
     final tg = context.tg;
     return Focus(
       onFocusChange: (focused) => setState(() => _focused = focused),
-      child: Container(
-        height: widget.height,
-        padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
-        decoration: BoxDecoration(
-          color: widget.background ?? tg.inset,
-          borderRadius: widget.radius ?? TgRadius.input,
-          border: Border.all(
-            color: _focused ? tg.goldTint(.55) : tg.border,
-            width: 1,
+      // 把整框（图标 + 输入区 + 后缀按钮）纳入输入框的点击区域：
+      // 点「清空 / 粘贴」等后缀时不算点到外部，焦点与键盘保持不变
+      // （见 TapOutsideUnfocus）。
+      child: TextFieldTapRegion(
+        child: Container(
+          height: widget.height,
+          padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
+          decoration: BoxDecoration(
+            color: widget.background ?? tg.inset,
+            borderRadius: widget.radius ?? TgRadius.input,
+            border: Border.all(
+              color: _focused ? tg.goldTint(.55) : tg.border,
+              width: 1,
+            ),
+            boxShadow: _focused ? TgShadows.focusRing : null,
           ),
-          boxShadow: _focused ? TgShadows.focusRing : null,
-        ),
-        child: Row(
-          children: [
-            if (widget.prefixIcon != null) ...[
-              TgIcon(widget.prefixIcon!, size: 17, color: tg.t3),
-              const SizedBox(width: 9),
-            ],
-            Expanded(
-              child: TextField(
-                controller: widget.controller,
-                onChanged: widget.onChanged,
-                onSubmitted: widget.onSubmitted,
-                keyboardType: widget.keyboardType,
-                textInputAction: widget.textInputAction,
-                maxLength: widget.maxLength,
-                style: TgType.body14.copyWith(
-                  color: tg.t1,
-                  fontSize: widget.fontSize,
-                ),
-                cursorColor: tg.gold,
-                // 清除主题 inputDecorationTheme 默认（filled/边框/最小高/内距）
-                decoration: InputDecoration(
-                  isCollapsed: true,
-                  isDense: true,
-                  filled: false,
-                  constraints: const BoxConstraints(),
-                  contentPadding: EdgeInsets.zero,
-                  counterText: '', // 隐藏 maxLength 计数
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  errorBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                  hintText: widget.hintText,
-                  hintStyle: TgType.body14.copyWith(
-                    color: tg.t3,
+          child: Row(
+            children: [
+              if (widget.prefixIcon != null) ...[
+                TgIcon(widget.prefixIcon!, size: 17, color: tg.t3),
+                const SizedBox(width: 9),
+              ],
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  onChanged: widget.onChanged,
+                  onSubmitted: widget.onSubmitted,
+                  keyboardType: widget.keyboardType,
+                  textInputAction: widget.textInputAction,
+                  maxLength: widget.maxLength,
+                  style: TgType.body14.copyWith(
+                    color: tg.t1,
                     fontSize: widget.fontSize,
+                  ),
+                  cursorColor: tg.gold,
+                  // 清除主题 inputDecorationTheme 默认（filled/边框/最小高/内距）
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    isDense: true,
+                    filled: false,
+                    constraints: const BoxConstraints(),
+                    contentPadding: EdgeInsets.zero,
+                    counterText: '', // 隐藏 maxLength 计数
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    hintText: widget.hintText,
+                    hintStyle: TgType.body14.copyWith(
+                      color: tg.t3,
+                      fontSize: widget.fontSize,
+                    ),
                   ),
                 ),
               ),
-            ),
-            if (widget.suffix != null) widget.suffix!,
-          ],
+              if (widget.suffix != null) widget.suffix!,
+            ],
+          ),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:tlbbtoolkit/core/platform/app_window.dart';
+import 'package:tlbbtoolkit/shared/widgets/tap_outside_unfocus.dart';
 import 'package:tlbbtoolkit/shared/widgets/window_title_bar.dart';
 import 'package:tlbbtoolkit/features/settings/presentation/providers/settings_providers.dart';
 import 'package:tlbbtoolkit/app/router/app_router.dart';
@@ -58,7 +59,8 @@ class TlbbApp extends ConsumerWidget {
                 ? Brightness.light
                 : Brightness.dark,
           ),
-          child: child ?? const SizedBox.shrink(),
+          // 统一两端：点击输入框以外区域即收起键盘（移动端默认不会）。
+          child: TapOutsideUnfocus(child: child ?? const SizedBox.shrink()),
         );
         if (!isDesktopWindow) return body;
         return Column(
