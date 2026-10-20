@@ -196,7 +196,7 @@ class HomeItems extends _$HomeItems {
 
 | 层 | 位置 | 放什么 |
 | --- | --- | --- |
-| 全局共享 | `lib/shared/widgets/` | 与业务无关、跨 feature 复用的原子组件：`TgCard` / `TgCardPadding`（响应式卡片壳，`decoration` 可省 = 通用卡片外观）、`TgPageFoot`（页脚：64×1 分隔线 + 居中说明文案，可两行）、`TgNoteBar`（说明条：`gold` / `plain` / `danger` 三配色，纯文本或富文本）、`TgBarRow`（占比条行：label + 6px 轨道 + 金渐变 + 尾部值）、`TgPageHead` / `TgSelect` / `TgTextField` / `TgSwitch` / `TgSegmented` / `TgIcon` / `TgModalShell` / `TgImageGallery` / `TgScrollTopButton` / `AppAsyncView` |
+| 全局共享 | `lib/shared/widgets/` | 与业务无关、跨 feature 复用的原子组件：`TgCard` / `TgCardPadding`（响应式卡片壳，`decoration` 可省 = 通用卡片外观）、`TgPageFoot`（页脚：64×1 分隔线 + 居中说明文案，可两行）、`TgNoteBar`（说明条：`gold` / `plain` / `danger` 三配色，纯文本或富文本）、`TgBarRow`（占比条行：label + 6px 轨道 + 金渐变 + 尾部值）、`TgPageHead` / `TgSelect` / `TgTextField` / `TgSwitch` / `TgSegmented` / `TgIcon` / `TgModalShell` / `TgImageGallery` / `TgScrollTopButton` / `SliverTopbarSpacer`（吸顶内容的顶栏遮挡占位）/ `AppAsyncView` |
 | 模块内共享 | `lib/features/<feature>/presentation/widgets/` | 只在本 feature 多个页面成型、且带业务语义的组件（job 的 `job_common.dart` / `job_mini_button.dart`；misc 的 `misc_common.dart` / `misc_detail_widgets.dart`） |
 | 页面私有 | 页面文件内 `_Xxx` | 绑定该页数据模型、只此一处使用的组件 |
 

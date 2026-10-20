@@ -9,6 +9,7 @@ import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/sliver_topbar_spacer.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_bar_row.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
@@ -287,18 +288,18 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
           ],
         ];
         // 页面内边距（compact / 桌面两套）。
+        //
+        // 顶部预留的悬浮顶栏高度改由滚动体最前面的 [SliverTopbarSpacer] 占位
+        // （等高、透明、pinned）：这样吸顶的搜索框会停在顶栏下沿而不是被
+        // 顶栏盖住；这里把 `top` 相应减掉，初始排版与之前一致。
         final basePad = compact
             ? const EdgeInsets.fromLTRB(
                 TgSpacing.pagePaddingMobileH,
-                20 + Breakpoints.topbarOverlayHeight,
+                20,
                 TgSpacing.pagePaddingMobileH,
                 48 + Breakpoints.tabbarOverlayHeight, // 预留悬浮底栏
               )
-            : TgSpacing.pagePadding.copyWith(
-                top:
-                    TgSpacing.pagePadding.top +
-                    Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
-              );
+            : TgSpacing.pagePadding.copyWith(top: TgSpacing.pagePadding.top);
         // 宽视口把内容限宽 1180 并居中：换算为 sliver 的横向 padding。
         final avail = math.max(
           0.0,
@@ -318,6 +319,9 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
                 child: CustomScrollView(
                   controller: _scroll,
                   slivers: [
+                    // 顶栏遮挡区占位（透明 pinned），使下方吸顶的搜索框停在
+                    // 悬浮顶栏下沿，而不是被顶栏盖住（见 SliverTopbarSpacer）。
+                    const SliverTopbarSpacer(),
                     SliverPadding(
                       padding: pad,
                       sliver: SliverMainAxisGroup(
@@ -1181,7 +1185,24 @@ class _DetailTableSliver extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _SearchBox(kw: kw, onKw: onKw, onClear: onClearKw),
+                    ],
+                  ),
+                ),
+                // 搜索框吸顶：整表上滑时它固定在悬浮顶栏下沿，随时可改关键字。
+                // 卡片内左右内边距请见 [_PinnedSearchHeaderDelegate]。
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _PinnedSearchHeaderDelegate(
+                    extent: _kSearchHeaderExtent,
+                    background: tg.card,
+                    borderColor: tg.border,
+                    child: _SearchBox(kw: kw, onKw: onKw, onClear: onClearKw),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       const SizedBox(height: 6),
                       if (rows.isNotEmpty && cols.isNotEmpty)
                         Container(
@@ -1228,6 +1249,73 @@ class _DetailTableSliver extends StatelessWidget {
       },
     );
   }
+}
+
+/// 吸顶搜索框区域高度：上留白 8 + 搜索框 38 + 底部留白 6（与原间距一致）。
+const double _kSearchHeaderTopGap = 8;
+const double _kSearchHeaderExtent = _kSearchHeaderTopGap + 38 + 6;
+
+/// 吸顶搜索框的头：把搜索框包在一条卡片同底色的横条里。
+///
+/// - 未吸顶时与普通内容无异（透明留白，无分隔线）；
+/// - 吸顶后（`shrinkOffset > 0`）用卡片底色压住下方滚过的行，并在搜索框下加
+///   1px 分隔线，让「固定在顶栏下沿」这件事一眼可辨。
+///
+/// 横向内边距由外层 `SliverPadding`（卡片内距）负责，这里只管纵向节奏。
+class _PinnedSearchHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _PinnedSearchHeaderDelegate({
+    required this.extent,
+    required this.background,
+    required this.borderColor,
+    required this.child,
+  });
+
+  final double extent;
+  final Color background;
+  final Color borderColor;
+  final Widget child;
+
+  @override
+  double get minExtent => extent;
+
+  @override
+  double get maxExtent => extent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final stuck = shrinkOffset > 0;
+    return SizedBox(
+      height: extent,
+      child: ColoredBox(
+        color: background,
+        child: Stack(
+          children: [
+            Padding(padding: const EdgeInsets.only(top: 8), child: child),
+            // 分隔线叠在底部留白里，不额外占高度（否则会超出 extent）。
+            if (stuck)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 1,
+                child: ColoredBox(color: borderColor),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_PinnedSearchHeaderDelegate oldDelegate) =>
+      oldDelegate.extent != extent ||
+      oldDelegate.background != background ||
+      oldDelegate.borderColor != borderColor ||
+      oldDelegate.child != child;
 }
 
 /// 搜索框（`pm-search`）。

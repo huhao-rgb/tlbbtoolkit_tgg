@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_snapshot.dart';
 import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
@@ -635,5 +636,50 @@ void main() {
     await tester.pumpAndSettle();
     expect(pos.pixels, 0);
     expect(opacity(), 0);
+  });
+
+  testWidgets('搜索框吸顶：明细上滑后固定在悬浮顶栏下沿，可继续筛选', (tester) async {
+    // 手机尺寸：走移动端内边距（顶栏高度靠 SliverTopbarSpacer 占位）。
+    await pumpPage(tester, size: const Size(390, 844));
+
+    final scrollable = find.byType(Scrollable).first;
+    final search = find.byType(TgTextField);
+
+    // 滚到明细表，让吸顶搜索框进入构建范围。
+    await tester.scrollUntilVisible(search, 400, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    expect(search, findsOneWidget);
+
+    // 继续下拖：搜索框吸附在悬浮顶栏下沿（60px 顶栏 + 8 上留白）。
+    await tester.drag(scrollable, const Offset(0, -400));
+    await tester.pumpAndSettle();
+    final stuckTop = tester.getRect(search).top;
+    expect(
+      stuckTop,
+      inInclusiveRange(
+        Breakpoints.topbarOverlayHeight,
+        Breakpoints.topbarOverlayHeight + 16,
+      ),
+      reason: '吸顶后紧贴悬浮顶栏下沿（不被顶栏盖住）',
+    );
+
+    // 再拖一段：位置固定在原处，说明是吸顶而不是继续跟随滚动。
+    await tester.drag(scrollable, const Offset(0, -1200));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getRect(search).top,
+      moreOrLessEquals(stuckTop, epsilon: 0.5),
+    );
+
+    // 吸顶层必须在数据行之上：点击搜索框中心应聚焦输入框，而不是误触下方的行。
+    await tester.tap(search);
+    await tester.pumpAndSettle();
+    expect(find.text('珍兽详情'), findsNothing, reason: '点击吸顶搜索框不应触发行的详情跳转');
+
+    // 吸顶状态下仍可输入关键字并即时过滤。
+    await tester.enterText(search, '谨慎');
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+    expect(find.text('清空'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
