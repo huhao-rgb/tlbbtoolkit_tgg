@@ -149,23 +149,78 @@ mobile（<900）                    desktop（≥900）
 
 ## 发版流程
 
-版本号、tag 与 GitHub Release 由脚本 + GitHub Actions 自动完成。
+一条命令完成：改版本号 → 写 `CHANGELOG` → 提交 → 打 tag → 推送，CI 接着构建并发布。
+**发版日志默认是自动草稿，发之前建议手工过一遍**（见第 2 步）。
+
+### 0. 前置条件
+
+- 在 `main` 分支，且工作区干净——脚本发现未提交改动会直接退出；
+- 版本号形如 `主.次.修订[+构建号]`（如 `1.1.1+7`），且**不能**与 `pubspec.yaml` 当前值相同；
+- 仓库变量 `SYNC_BASE_URL` 已配置（Settings → Secrets and variables → Actions → Variables）。
+  未配置时 CI 只打 warning 不失败，但打出的 APK **不含云同步功能**。
+
+### 1. 先预览草稿
 
 ```sh
-# 交互式：自动生成 CHANGELOG 草稿 → 确认后改版本号、提交、打 tag 并推送
-./scripts/release.sh 1.0.4+5
-
-# 跳过确认（CI / 信任流程）
-./scripts/release.sh 1.0.4+5 --yes
-
-# 只预览将要执行的操作，不修改任何文件
-./scripts/release.sh 1.0.4 --dry-run
+./scripts/release.sh 1.1.1+7 --dry-run
 ```
 
-脚本会：更新 `pubspec.yaml` 版本号 → 在 `CHANGELOG.md` 顶部插入新版本条目（由
-自上一个 tag 以来的提交自动生成草稿，确认前可手动整理）→ 提交（`chore: 修改版本号…`）
-→ 打 `v1.0.4` 形式的 tag（去掉 `+构建号`）→ 推送 `main` 与 tag。
+只打印将要执行的操作和 `CHANGELOG` 草稿，**不写任何文件**。草稿取自「上一个 tag 以来的提交」，
+按前缀归类：`feat:` → 新增，`fix:` → 修复，`perf:` / `refactor:` → 优化，其余 → 其他；
+`chore: 修改版本号…` 与合并提交会被跳过。
 
-推送 `v*` tag 后，[`.github/workflows/release.yml`](.github/workflows/release.yml) 会自动
-构建 Release APK（`build/app/outputs/flutter-apk/app-release.apk`）并创建 GitHub Release，
-发行说明取自 `CHANGELOG.md` 中对应版本小节，无需手动操作。
+### 2. 整理发版日志（三选一）
+
+| 方式 | 命令 | 说明 |
+| --- | --- | --- |
+| 编辑器整理 | `./scripts/release.sh 1.1.1+7 --edit` | 预览后打开 `$VISUAL`/`$EDITOR`（未设置则 `vi`），在草稿上增删改 |
+| 现成文件 | `./scripts/release.sh 1.1.1+7 --notes-file notes.md` | 用文件内容整段替换草稿；文件里没写 `## [版本] - 日期` 标题时自动补上 |
+| 原样接受 | `./scripts/release.sh 1.1.1+7` | 草稿够用，直接确认 |
+
+`--edit` 的操作顺序：在编辑器里改 → 保存退出（vi：`i` 编辑，`Esc`，`:wq` 回车）→ 脚本打印
+「整理后的 CHANGELOG 条目」→ 询问 `确认无误？` → **输入完整的 `yes` 回车**。
+`y`、`YES`、直接回车都会判定为取消，不改任何文件。加 `--yes` 跳过这道确认，可与 `--edit` 组合。
+
+整理时顺手把 `## [未发布]` 里已包含在本版的内容清掉，避免和新条目重复。
+
+> ⚠️ 不要在别的终端直接改 `CHANGELOG.md`：脚本插入的是它内存里的草稿，你的改动不会被采用。
+> 想手写就用 `--notes-file`。
+
+### 3. 脚本做了什么
+
+1. 更新 `pubspec.yaml` 的 `version:`；
+2. 把条目插到 `CHANGELOG.md` 第一个版本小节（通常是 `## [未发布]`）之前；
+3. 提交 `chore: 修改版本号<版本号>`；
+4. 打 tag `v<主.次.修订>`——**去掉 `+构建号`**，如 `1.1.1+7` → `v1.1.1`；
+5. 推送 `main` 与 tag。
+
+脚本只动 `pubspec.yaml` 和 `CHANGELOG.md`，不跑 `fvm` / `build_runner`（版本号变化不影响生成物）。
+
+### 4. CI 做了什么
+
+推送 `v*` tag 触发 [`.github/workflows/release.yml`](.github/workflows/release.yml)：
+拉依赖 → `build_runner` 校验生成物 → 构建 Release APK → 从 `CHANGELOG.md` 抽取
+`## [<版本>` 开头的小节作为发行说明 → 创建（已存在则更新）GitHub Release。
+产物：`build/app/outputs/flutter-apk/app-release.apk`。
+
+### 5. 发布后自检
+
+- Actions 里该 tag 的 workflow 全绿；
+- Release 正文是你整理后的内容（CI 读的是 `CHANGELOG.md`，不是终端里的草稿）；
+- 只是正文措辞要改：在 GitHub Release 页面直接编辑即可；想让仓库记录跟着对齐，
+  再补一个 `docs:` 提交更新 `CHANGELOG.md`。
+
+### 6. 打包失败 / 需要撤稿
+
+tag 一旦推上去就会自动构建，失败时按情况处理：
+
+```sh
+# 删除已推送的 tag（GitHub 上残留的 Release 与失败 run 需到网页删除）
+git push origin :refs/tags/v1.1.1
+git tag -d v1.1.1
+```
+
+- **版本号已提交、包没发出去**：撤掉 `CHANGELOG.md` 里那条没发布的小节（`git revert` 或手工删除），
+  别让日志留下「已发布」的假象；修好代码再发；
+- **重发要换新的构建号**（如失败的是 `1.1.1+6`，重发用 `1.1.1+7`）：脚本会拒绝与
+  `pubspec.yaml` 相同的版本号，同名 tag 也会冲突。
