@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.widget.ImageView
+import io.flutter.embedding.android.FlutterActivity
 
 /**
  * 全屏启动图 Activity（原生层渲染）。
