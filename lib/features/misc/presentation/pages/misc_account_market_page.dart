@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
+import 'package:tlbbtoolkit/shared/widgets/pinned_search_header.dart';
+import 'package:tlbbtoolkit/shared/widgets/sliver_topbar_spacer.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_bar_row.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
@@ -50,6 +53,10 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
   String _area = '';
   String _server = '';
   AccountLevelBand _band = AccountLevelBand.all;
+
+  /// 明细标题关键字（防抖后生效，见 [_onKw]）。
+  String _kw = '';
+  Timer? _kwTimer;
 
   // 数据源：初始为空，进入页面后自动从接口拉取。
   List<AccountListing> _items = const [];
@@ -96,8 +103,23 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
     });
   }
 
+  /// 明细搜索：防抖 180ms 后再过滤（与珍兽行情页一致）。
+  void _onKw(String v) {
+    _kwTimer?.cancel();
+    _kwTimer = Timer(const Duration(milliseconds: 180), () {
+      if (!mounted) return;
+      setState(() => _kw = v.trim());
+    });
+  }
+
+  void _clearKw() {
+    _kwTimer?.cancel();
+    setState(() => _kw = '');
+  }
+
   @override
   void dispose() {
+    _kwTimer?.cancel();
     _scroll.dispose();
     super.dispose();
   }
@@ -269,18 +291,18 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
           ],
         ];
         // 页面内边距（compact / 桌面两套）。
+        //
+        // 顶部预留的悬浮顶栏高度由滚动体最前面的 [SliverTopbarSpacer] 占位
+        // （等高、透明、pinned）：这样吸顶的搜索框会停在顶栏下沿而不是被
+        // 顶栏盖住；这里把 `top` 相应减掉，初始排版与之前一致。
         final basePad = compact
             ? const EdgeInsets.fromLTRB(
                 TgSpacing.pagePaddingMobileH,
-                20 + Breakpoints.topbarOverlayHeight,
+                20,
                 TgSpacing.pagePaddingMobileH,
                 48 + Breakpoints.tabbarOverlayHeight, // 预留悬浮底栏
               )
-            : TgSpacing.pagePadding.copyWith(
-                top:
-                    TgSpacing.pagePadding.top +
-                    Breakpoints.topbarOverlayHeight, // 预留悬浮顶栏
-              );
+            : TgSpacing.pagePadding.copyWith(top: TgSpacing.pagePadding.top);
         // 宽视口把内容限宽 1180 并居中：换算为 sliver 的横向 padding。
         final avail = math.max(
           0.0,
@@ -300,6 +322,9 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
                 child: CustomScrollView(
                   controller: _scroll,
                   slivers: [
+                    // 顶栏遮挡区占位（透明 pinned），使下方吸顶的搜索框停在
+                    // 悬浮顶栏下沿，而不是被顶栏盖住（见 SliverTopbarSpacer）。
+                    const SliverTopbarSpacer(),
                     SliverPadding(
                       padding: pad,
                       sliver: SliverMainAxisGroup(
@@ -313,6 +338,9 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
                               key: const ValueKey('acc-detail-table'),
                               data: data,
                               filter: _filter,
+                              kw: _kw,
+                              onKw: _onKw,
+                              onClearKw: _clearKw,
                               onDetail: _openDetail,
                             ),
                           SliverToBoxAdapter(
@@ -416,7 +444,9 @@ class _FilterBar extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, w) {
         // 窄屏（移动端）收窄筛选卡左右内边距，提升横向内容容纳；桌面保持 18。
-        final h = w.maxWidth < 640 ? TgSpacing.cardPaddingMobileH : TgSpacing.cardPaddingDeskH;
+        final h = w.maxWidth < 640
+            ? TgSpacing.cardPaddingMobileH
+            : TgSpacing.cardPaddingDeskH;
         return Container(
           padding: EdgeInsets.fromLTRB(h, 16, h, 16),
           decoration: BoxDecoration(
@@ -1134,17 +1164,23 @@ class _DetailTableSliver extends StatelessWidget {
     super.key,
     required this.data,
     required this.filter,
+    required this.kw,
+    required this.onKw,
+    required this.onClearKw,
     required this.onDetail,
   });
 
   final List<AccountListing> data;
   final AccountMarketFilter filter;
+  final String kw;
+  final ValueChanged<String> onKw;
+  final VoidCallback onClearKw;
   final ValueChanged<AccountListing> onDetail;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final rows = amDetailRows(data, filter);
+    final rows = amDetailRows(data, filter, kw);
     return SliverLayoutBuilder(
       builder: (context, constraints) {
         final layout = _accLayoutOf(constraints.crossAxisExtent);
@@ -1191,7 +1227,29 @@ class _DetailTableSliver extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+                // 搜索框吸顶：整表上滑时它固定在悬浮顶栏下沿，随时可改关键字。
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: PinnedSearchHeaderDelegate(
+                    background: tg.card,
+                    borderColor: tg.border,
+                    child: TgSearchBox(
+                      hintText: '搜索关键字：职业 / 区服 / 属性 / 标题 …',
+                      kw: kw,
+                      onKw: onKw,
+                      onClear: onClearKw,
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 6),
                       if (rows.isNotEmpty && cols.isNotEmpty)
                         Container(
                           decoration: BoxDecoration(

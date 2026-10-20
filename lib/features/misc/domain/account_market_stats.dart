@@ -331,12 +331,26 @@ List<AmBestItem> amBestItems(List<AccountListing> d) {
   return best.take(8).toList(growable: false);
 }
 
-/// 明细：筛选 + 按价格升序（原型 `renderAmTable`）。
+/// 明细：筛选 + 标题关键字过滤，按价格升序（原型 `renderAmTable`）。
+///
+/// [kw] 为空时不过滤；非空时在上述可搜字段里做不区分大小写的子串匹配
+/// （与珍兽行情页 `pmDetailRows` 口径一致）。
 List<AccountListing> amDetailRows(
   List<AccountListing> data,
-  AccountMarketFilter filter,
-) {
-  final rows = amFiltered(data, filter).toList()
-    ..sort((a, b) => a.price - b.price);
+  AccountMarketFilter filter, [
+  String kw = '',
+]) {
+  var rows = amFiltered(data, filter);
+  if (kw.isNotEmpty) {
+    final k = kw.toLowerCase();
+    rows = rows
+        .where((x) {
+          final hay = '${x.title} ${x.job} ${x.server} ${x.area} ${x.atk}'
+              .toLowerCase();
+          return hay.contains(k);
+        })
+        .toList(growable: false);
+  }
+  rows = rows.toList()..sort((a, b) => a.price - b.price);
   return rows;
 }

@@ -177,5 +177,38 @@ void main() {
         expect(rows[i].price <= rows[i + 1].price, isTrue);
       }
     });
+
+    test('明细关键字过滤：命中标题/职业/区服/属性，且不支持关键字时还原全部', () {
+      final all = amDetailRows(kAccountMarketData, const AccountMarketFilter());
+      expect(all, hasLength(132));
+
+      final job = kAccountMarketData.first.job;
+      final hit = amDetailRows(
+        kAccountMarketData,
+        const AccountMarketFilter(),
+        job,
+      );
+      expect(hit, isNotEmpty);
+      expect(hit.length, lessThan(all.length));
+      for (final r in hit) {
+        expect(
+          '${r.title} ${r.job} ${r.server} ${r.area} ${r.atk}'.contains(job),
+          isTrue,
+        );
+      }
+      // 仍按价格升序。
+      for (var i = 0; i + 1 < hit.length; i++) {
+        expect(hit[i].price <= hit[i + 1].price, isTrue);
+      }
+
+      expect(
+        amDetailRows(
+          kAccountMarketData,
+          const AccountMarketFilter(),
+          '不存在的关键字XYZ',
+        ),
+        isEmpty,
+      );
+    });
   });
 }

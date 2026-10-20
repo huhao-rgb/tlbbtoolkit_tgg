@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
+import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/features/misc/data/account_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/account_market_snapshot.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart';
@@ -10,6 +11,7 @@ import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_account_detail_page.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_account_market_page.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 
 /// 默认 mock：注入 132 条快照数据（页面进入即自动拉取，模拟接口成功）。
 Future<AccountMarketFetchResult> _defaultFetch() async =>
@@ -461,5 +463,82 @@ void main() {
     await tester.pumpAndSettle();
     expect(pos.pixels, 0);
     expect(opacity(), 0);
+  });
+
+  testWidgets('明细搜索：输入关键字后行数减少且出现「清空」', (tester) async {
+    await pumpPage(tester);
+
+    final search = find.byType(TgTextField);
+    expect(search, findsOneWidget);
+    expect(find.text('搜索关键字：职业 / 区服 / 属性 / 标题 …'), findsOneWidget);
+
+    final before = find.text('共 ${kAccountMarketData.length} 条');
+    expect(before, findsOneWidget);
+    expect(find.text('清空'), findsNothing, reason: '无关键字时不显示清空');
+
+    final job = kAccountMarketData.first.job;
+    await tester.enterText(search, job);
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+
+    final expected = kAccountMarketData
+        .where(
+          (x) => '${x.title} ${x.job} ${x.server} ${x.area} ${x.atk}'.contains(
+            job,
+          ),
+        )
+        .length;
+    expect(find.text('共 $expected 条'), findsOneWidget);
+    expect(expected, lessThan(kAccountMarketData.length));
+    expect(find.text('清空'), findsOneWidget);
+
+    // 点「清空」恢复全部行。
+    await tester.tap(find.text('清空'));
+    await tester.pumpAndSettle();
+    expect(find.text('共 ${kAccountMarketData.length} 条'), findsOneWidget);
+  });
+
+  testWidgets('搜索框吸顶：明细上滑后固定在悬浮顶栏下沿，可继续筛选', (tester) async {
+    // 手机尺寸：走移动端内边距（顶栏高度靠 SliverTopbarSpacer 占位）。
+    await pumpPage(tester, size: const Size(390, 844));
+
+    final scrollable = find.byType(Scrollable).first;
+    final search = find.byType(TgTextField);
+
+    // 滚到明细表，让吸顶搜索框进入构建范围。
+    await tester.scrollUntilVisible(search, 400, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    expect(search, findsOneWidget);
+
+    // 继续下拖：搜索框吸附在悬浮顶栏下沿（60px 顶栏 + 8 上留白）。
+    await tester.drag(scrollable, const Offset(0, -400));
+    await tester.pumpAndSettle();
+    final stuckTop = tester.getRect(search).top;
+    expect(
+      stuckTop,
+      inInclusiveRange(
+        Breakpoints.topbarOverlayHeight,
+        Breakpoints.topbarOverlayHeight + 16,
+      ),
+      reason: '吸顶后紧贴悬浮顶栏下沿（不被顶栏盖住）',
+    );
+
+    // 再拖一段：位置固定在原处，说明是吸顶而不是继续跟随滚动。
+    await tester.drag(scrollable, const Offset(0, -1200));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getRect(search).top,
+      moreOrLessEquals(stuckTop, epsilon: 0.5),
+    );
+
+    // 吸顶层在数据行之上：点击搜索框不应误触下方行的详情跳转。
+    await tester.tap(search);
+    await tester.pumpAndSettle();
+    expect(find.text('账号详情'), findsNothing);
+
+    // 吸顶状态下仍可输入关键字并即时过滤。
+    await tester.enterText(search, '玄');
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+    expect(find.text('清空'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
