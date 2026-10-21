@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:tlbbtoolkit/gen/assets.gen.dart';
+
 /// 天工阁全幅启动图（Flutter 层冷启动闪屏）。
 ///
 /// 背景：Android 12+ 原生系统启动屏只能显示「图标 + 背景色」，无法展示
@@ -73,15 +75,14 @@ class _AppSplashGateState extends State<AppSplashGate> {
 class _SplashArt extends StatelessWidget {
   const _SplashArt();
 
-  /// 与 splash.png 四边一致的底色，避免异形屏/横屏出现黑边。
+  /// 与 splash 图四边一致的底色，避免异形屏/横屏出现黑边。
   static const Color _bg = Color(0xFF0A0805);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: _bg,
-      child: Image.asset(
-        'assets/splash/splash.png',
+      child: Assets.splash.splash.image(
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,

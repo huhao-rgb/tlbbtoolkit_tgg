@@ -117,6 +117,7 @@ class _DetailInfo extends StatelessWidget {
           t.title,
           style: TextStyle(
             fontFamily: TgFonts.serif,
+            fontWeight: FontWeight.w500,
             fontSize: 18,
             color: tg.t1,
             letterSpacing: 1,
@@ -132,6 +133,7 @@ class _DetailInfo extends StatelessWidget {
               amP(t.price),
               style: TextStyle(
                 fontFamily: TgFonts.serif,
+                fontWeight: FontWeight.w500,
                 fontSize: 26,
                 color: tg.gold2,
                 letterSpacing: 1,

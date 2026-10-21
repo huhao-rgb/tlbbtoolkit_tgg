@@ -321,7 +321,10 @@ abstract final class TgFonts {
   /// 正文无衬线（已随应用打包）。
   static const String sans = 'Noto Sans SC';
 
-  /// 标题衬线（Noto Serif SC，已打包 assets/fonts；品牌名 / 页面标题 / 大数字 / 徽章字）
+  /// 标题衬线（Noto Serif SC，已打包 assets/fonts；品牌名 / 页面标题 / 大数字 / 徽章字）。
+  ///
+  /// 只打包 500 / 600 两档，没有 400：用 serif 时请显式写 `fontWeight`
+  /// （默认 400 会落到 500 上）。
   static const String serif = 'Noto Serif SC';
 }
 

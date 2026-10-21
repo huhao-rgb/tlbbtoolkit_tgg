@@ -34,9 +34,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   flutter_riverpod: ^3.4.2
   # Riverpod 代码生成注解（配合 riverpod_generator）
   riverpod_annotation: ^4.0.6
@@ -104,6 +101,16 @@ flutter:
 
   # 设计规范字体（OFL 许可）：正文 Noto Sans SC / 标题 Noto Serif SC。
   # 见 lib/app/theme/design_tokens.dart 的 TgFonts.sans / .serif。
+  #
+  # ⚠️ 这里的 TTF 是**字体子集**（按源码用字 + GB2312 全集裁剪，约 9 MB；
+  # 全量字体约 49 MB，会直接把 APK 撑大 ~38 MB）。全量原始字体放在
+  # tools/fonts/（不参与打包），由 scripts/subset_fonts.py 生成：
+  #     pip install fonttools && python3 scripts/subset_fonts.py
+  # 改了界面文案、且用字超出 GB2312 时需重跑；CI 用 --check 校验覆盖。
+  #
+  # 衬线只打包 500 / 600 两档：设计规范里 serif 只用于标题（500）与强调（600），
+  # 无 400 用字（省一个 ~2.3 MB 的字体文件）。万一出现 w400 的 serif 样式，
+  # Flutter 会就近匹配到 500。
   fonts:
     - family: Noto Sans SC
       fonts:
@@ -113,8 +120,6 @@ flutter:
           weight: 500
     - family: Noto Serif SC
       fonts:
-        - asset: assets/fonts/NotoSerifSC-Regular.ttf
-          weight: 400
         - asset: assets/fonts/NotoSerifSC-Medium.ttf
           weight: 500
         - asset: assets/fonts/NotoSerifSC-SemiBold.ttf

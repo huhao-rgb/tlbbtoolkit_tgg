@@ -35,6 +35,7 @@ class MiscSectionHead extends StatelessWidget {
       title,
       style: TextStyle(
         fontFamily: TgFonts.serif,
+        fontWeight: FontWeight.w500,
         fontSize: 15,
         color: tg.t1,
         letterSpacing: 1,
@@ -153,6 +154,7 @@ class MiscStatCell extends StatelessWidget {
             value,
             style: TextStyle(
               fontFamily: TgFonts.serif,
+              fontWeight: FontWeight.w500,
               fontSize: 22,
               color: tg.gold2,
               letterSpacing: 1,

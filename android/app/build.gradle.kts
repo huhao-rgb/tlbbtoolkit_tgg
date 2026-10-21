@@ -81,6 +81,21 @@ android {
             }
         }
     }
+
+}
+
+// 压缩 native 库（libflutter.so / libapp.so 等）——仅 release。
+// AGP 默认把它们「存储」进 APK（不压缩、4K 对齐、安装后直接 mmap），以换取更快的
+// 冷启动；但这两个是 AOT 产物，deflate 后能小 40%+（20.2 MB -> 8.9 MB），对通过
+// GitHub Release 下载 APK 的分发方式，下载体积远比首启几毫秒更值钱。
+// 代价：安装时解压到 /data/app/.../lib，占用磁盘约为 APK + 解压后大小。
+// 只作用于 release：debug 包本来就大，且每次 flutter run 都要重装，压缩只会拖慢开发。
+androidComponents {
+    onVariants { variant ->
+        if (variant.buildType == "release") {
+            variant.packaging.jniLibs.useLegacyPackaging.set(true)
+        }
+    }
 }
 
 flutter {

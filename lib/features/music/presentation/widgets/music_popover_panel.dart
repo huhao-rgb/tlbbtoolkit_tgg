@@ -131,6 +131,7 @@ class _Head extends StatelessWidget {
             '怀旧音律',
             style: TextStyle(
               fontFamily: TgFonts.serif,
+              fontWeight: FontWeight.w500,
               fontSize: 14.5,
               letterSpacing: 2,
               color: tg.gold,

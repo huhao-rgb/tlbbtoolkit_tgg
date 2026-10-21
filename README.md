@@ -57,8 +57,13 @@ fvm flutter test
 >
 > ```sh
 > fvm flutter build apk --release \
+>   --target-platform android-arm64 \
 >   --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
 > ```
+>
+> ⚠️ **必须带 `--target-platform android-arm64`**：不带时 Flutter 会把
+> arm64-v8a / armeabi-v7a / x86_64 三套引擎与 AOT 产物全部打进同一个 APK
+> （`.so` 合计约 60 MB，仅 arm64 约 20 MB）。32 位真机与 x86 模拟器没有实际用户。
 >
 > 🧪 **真实链路端到端测试**（打到真实云端，验证加密/合并/冲突在真网络上成立）：
 > 默认**跳过**，只有注入 `SYNC_BASE_URL` 时才执行，CI 与离线开发不受影响。

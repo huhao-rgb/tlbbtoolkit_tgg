@@ -28,7 +28,7 @@
 | 全量测试 | `fvm flutter test` |
 | 单文件测试 | `fvm flutter test test/features/job/job_wudao_page_test.dart` |
 | 运行 App | `fvm flutter run` |
-| Release APK | `fvm flutter build apk --release`（约 60s） |
+| Release APK | `fvm flutter build apk --release --target-platform android-arm64`（约 60s；不带 `--target-platform` 会打进三套 ABI，`.so` 从约 20 MB 涨到约 60 MB） |
 
 **改完代码的标准验证序列**：`fvm dart run build_runner build` → `fvm flutter analyze` → `fvm flutter test`。
 
@@ -92,6 +92,11 @@ presentation ──► domain ◄── data
 | **清理 `build` / `.dart_tool` 后** | 必须重新 `fvm flutter pub get`。 |
 | **`.fvmrc` 是 YAML 陷阱** | FVM 4.x 只读 `fvm_config.json`（JSON）。`.fvmrc` 若存在会被当 JSON 解析导致 `FormatException`。 |
 | **数据表靠 `dart format off` 保命** | `job_skill` / `job_wudao` / `job_artifact` / `job_sect_info` 四个 domain 文件的人工紧凑数据表（一行一个门派 / 一条记录，最长单行 3000+ 字符）由 `// dart format off` … `// dart format on` 豁免。**不要删这两行注释**，否则一跑格式化会被展开成上千行（实测 1024 行 → 5418 行）。 |
+| **`assets/fonts/*.ttf` 是子集** | 4 个 Noto 字体按「源码用字 ∪ GB2312」裁剪过（全量 5 个文件 48.6 MB → 打包 4 个子集 9.0 MB）。全量原始字体在 `tools/fonts/`（**不参与打包**，不要挪回 `assets/`）。改了中文文案且用字超出 GB2312 时跑 `pip install fonttools && python3 scripts/subset_fonts.py`，`--check` 可校验覆盖；未覆盖的字会走系统字体回退（字形风格会略有出入）。 |
+| **衬线只打包 500 / 600** | 设计规范里 serif 只用于标题（500）与强调（600），没有 400 用字，故 `NotoSerifSC-Regular.ttf` 不打包（省 ~2.3 MB）。代码里**不要写「serif + 默认字重」的 `TextStyle`**——默认是 400，会落到 500 上；需要哪档就显式写 `fontWeight`。要恢复 400 时把该文件加回 `pubspec.yaml` 与 `scripts/subset_fonts.py` 的 `SHIP_FONTS`。 |
+| **发版只打 arm64** | `flutter build apk --release` 默认把 arm64-v8a / armeabi-v7a / x86_64 三套引擎全打进一个包（`.so` 约 60 MB）。发版一律带 `--target-platform android-arm64`（约 20 MB），CI 已固化。 |
+| **构建告警 `Expected to find fonts for (packages/cupertino_icons/...)`** | 项目从未使用 Cupertino 图标，`cupertino_icons` 依赖已移除，这条 tree-shake 告警可忽略（只是少了 1 KB 字体，不影响任何渲染）。 |
+| **release 的 `.so` 是压缩存储的** | `androidComponents.onVariants { variant.packaging.jniLibs.useLegacyPackaging.set(true) }`（仅 release 变体），AGP 因此合并出 `android:extractNativeLibs="true"`，安装时把 lib 解压到 `/data/app/.../lib`。收益：APK 33 MB → 22.4 MB（`libflutter.so` + `libapp.so` 20.2 MB → 8.9 MB）；代价：**安装后磁盘占用反而变大**（APK + 解压后的 lib），首启多一次解压。debug 变体保持不压缩，`flutter run` 重装不受影响。 |
 | **pub 源必须与 `pubspec.lock` 一致** | `pubspec.lock` 里每个包都记了 `url`（本仓库统一为 `https://pub.dev`）。若当前环境的 `PUB_HOSTED_URL` 与 lock 记录的源不同（例如本机设了国内镜像），pub 会判定 lock 失效并**整体重新解析依赖**，静默升级到新版本。v1.1.2 黑屏事故即由此触发（`shared_preferences_android` 被升到 2.5.1）。CI 已固定 `PUB_HOSTED_URL` + `--enforce-lockfile`；**本地若设了镜像源，请把它去掉**，否则 `fvm flutter pub get` 会改写 lock。 |
 | **R8 会破坏 Pigeon JNI 插件** | `shared_preferences_android` 2.5.x 起改用 Pigeon JNI：Dart 侧按「类名 + 方法签名」反射调用 Java，类名与签名不能被混淆。`android/app/proguard-rules.pro` 已 `-keep` 相关类（含 `kotlin.coroutines.*`），**不要删**，否则 release 包启动即黑屏（只影响 release，debug 正常）。 |
 

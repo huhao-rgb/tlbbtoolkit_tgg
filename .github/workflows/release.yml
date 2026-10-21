@@ -88,7 +88,13 @@ jobs:
           else
             echo "::warning::未配置仓库变量 SYNC_BASE_URL —— 本次构建的包将不含云同步功能"
           fi
-          flutter build apk --release --dart-define=SYNC_BASE_URL="$SYNC_BASE_URL"
+          # --target-platform android-arm64：只打 arm64-v8a。
+          # Flutter 默认把 arm64-v8a / armeabi-v7a / x86_64 三套引擎与 AOT 产物全部
+          # 打进一个 APK（三套 .so 合计约 60 MB）。32 位真机与模拟器用的 x86_64
+          # 没有实际用户，只保留 arm64 后 .so 约 20 MB。
+          flutter build apk --release \
+            --target-platform android-arm64 \
+            --dart-define=SYNC_BASE_URL="$SYNC_BASE_URL"
 
       - name: 校验 APK 签名（防止误发 debug 包）
         env:

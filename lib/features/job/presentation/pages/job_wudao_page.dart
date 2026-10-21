@@ -356,6 +356,7 @@ class _LayerTitle extends StatelessWidget {
             cn,
             style: TextStyle(
               fontFamily: TgFonts.serif,
+              fontWeight: FontWeight.w500,
               fontSize: 12.5,
               letterSpacing: 1,
               color: tg.t2,

@@ -1698,8 +1698,8 @@ class $AssetsSkillIconsGen {
 class $AssetsSplashGen {
   const $AssetsSplashGen();
 
-  /// File path: assets/splash/splash.png
-  AssetGenImage get splash => const AssetGenImage('assets/splash/splash.png');
+  /// File path: assets/splash/splash.webp
+  AssetGenImage get splash => const AssetGenImage('assets/splash/splash.webp');
 
   /// List of all assets
   List<AssetGenImage> get values => [splash];

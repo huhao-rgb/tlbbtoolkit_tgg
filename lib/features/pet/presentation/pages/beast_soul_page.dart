@@ -349,6 +349,7 @@ class _CharTile extends StatelessWidget {
         char,
         style: TextStyle(
           fontFamily: TgFonts.serif,
+          fontWeight: FontWeight.w500,
           fontSize: fontSize,
           height: 1,
           color: accent.icoFg,

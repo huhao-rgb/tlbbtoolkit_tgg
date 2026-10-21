@@ -944,6 +944,7 @@ class _BestRow extends StatelessWidget {
         '${index + 1}',
         style: TextStyle(
           fontFamily: TgFonts.serif,
+          fontWeight: FontWeight.w500,
           fontSize: 12,
           color: tg.gold2,
         ),
