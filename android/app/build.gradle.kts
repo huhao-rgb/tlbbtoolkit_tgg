@@ -8,14 +8,33 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// 读取签名配置（android/key.properties，不提交到版本库）。
-// 缺失时回退 debug 签名，保证在无密钥环境下 `flutter build apk --debug` 等
-// 非正式构建不中断；正式 release 构建需要 key.properties + keystore。
+// 读取签名配置。两个来源，按优先级：
+//   1. android/key.properties + keystore 文件（本机，均不提交到版本库）；
+//   2. ANDROID_KEYSTORE_PATH / ANDROID_STORE_PASSWORD / ANDROID_KEY_ALIAS /
+//      ANDROID_KEY_PASSWORD 环境变量（CI，keystore 由 Secrets 临时还原到 runner）。
+// 都缺失时回退 debug 签名，保证无密钥环境下 `flutter build apk --debug` 等不中断。
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
-if (keystorePropertiesFile.exists()) {
+val hasKeystoreProperties = keystorePropertiesFile.exists()
+if (hasKeystoreProperties) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+
+fun signingValue(propertyKey: String, envKey: String): String? =
+    keystoreProperties.getProperty(propertyKey)?.takeIf { it.isNotBlank() }
+        ?: System.getenv(envKey)?.takeIf { it.isNotBlank() }
+
+val releaseKeyAlias = signingValue("keyAlias", "ANDROID_KEY_ALIAS")
+val releaseKeyPassword = signingValue("keyPassword", "ANDROID_KEY_PASSWORD")
+val releaseStorePassword = signingValue("storePassword", "ANDROID_STORE_PASSWORD")
+val releaseStoreFile = signingValue("storeFile", "ANDROID_KEYSTORE_PATH")
+    ?.let { file(it) }
+    ?.takeIf { it.exists() }
+
+val hasReleaseSigning = releaseStoreFile != null &&
+    releaseKeyAlias != null &&
+    releaseKeyPassword != null &&
+    releaseStorePassword != null
 
 android {
     namespace = "me.huhao.tools.tlbbtoolkit"
@@ -43,19 +62,21 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+            storeFile = releaseStoreFile
+            storePassword = releaseStorePassword
         }
     }
 
     buildTypes {
         release {
-            // 存在签名配置时使用正式签名；否则回退 debug 签名（如 CI/无密钥环境）。
-            signingConfig = if (keystorePropertiesFile.exists()) {
+            // 有正式签名配置就用它；否则回退 debug 签名（本地无密钥时的便捷构建）。
+            // CI 通过环境变量注入，并由 workflow 在构建后校验证书指纹，避免误发 debug 包。
+            signingConfig = if (hasReleaseSigning) {
                 signingConfigs.getByName("release")
             } else {
+                logger.warn("未找到正式签名配置，release 构建将回退 debug 签名（不可用于分发）")
                 signingConfigs.getByName("debug")
             }
         }

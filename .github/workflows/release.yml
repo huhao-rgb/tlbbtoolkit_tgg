@@ -1,10 +1,12 @@
 name: Release
 
 # 推送 v* 开头的 tag 时触发（由 scripts/release.sh 创建）
+# workflow_dispatch 用于手动试跑：只构建 + 校验签名，不创建 Release。
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write # 创建 Release 需要
@@ -30,12 +32,49 @@ jobs:
       - name: 代码生成（安全校验，产物应与入库文件一致）
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: 还原正式签名 keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=0
+          for name in KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            value=""
+            case "$name" in
+              KEYSTORE_BASE64)       value="$KEYSTORE_BASE64" ;;
+              ANDROID_STORE_PASSWORD) value="$ANDROID_STORE_PASSWORD" ;;
+              ANDROID_KEY_ALIAS)     value="$ANDROID_KEY_ALIAS" ;;
+              ANDROID_KEY_PASSWORD)  value="$ANDROID_KEY_PASSWORD" ;;
+            esac
+            if [ -z "$value" ]; then
+              echo "::error::缺少 Secrets 配置：$name"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          if [ ! -s "$RUNNER_TEMP/release.jks" ]; then
+            echo "::error::keystore 解码为空，请检查 ANDROID_KEYSTORE_BASE64"
+            exit 1
+          fi
+          echo "keystore 已还原到 $RUNNER_TEMP/release.jks（仅本次运行可见）"
+
       - name: 构建 Release APK
         env:
           # 云同步地址走仓库变量（Settings → Secrets and variables → Actions → Variables，
           # 名字 SYNC_BASE_URL，值形如 https://<envId>.service.tcloudbase.com）。
           # 未配置时展开为空串 → 客户端判定为「未配置云同步」并降级（不报错）。
           SYNC_BASE_URL: ${{ vars.SYNC_BASE_URL }}
+          # 正式签名走 Secrets，永不以文件形式进入仓库。
+          # Gradle 侧见 android/app/build.gradle.kts 的 signingValue()。
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -n "$SYNC_BASE_URL" ]; then
             echo "云同步地址：$SYNC_BASE_URL"
@@ -43,6 +82,37 @@ jobs:
             echo "::warning::未配置仓库变量 SYNC_BASE_URL —— 本次构建的包将不含云同步功能"
           fi
           flutter build apk --release --dart-define=SYNC_BASE_URL="$SYNC_BASE_URL"
+
+      - name: 校验 APK 签名（防止误发 debug 包）
+        env:
+          # 可选：仓库变量 ANDROID_CERT_SHA256（冒号分隔的大写指纹），配置后额外校验
+          # 证书指纹必须匹配，防止 Secrets 里换成了别的 keystore。
+          EXPECTED_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ 2>/dev/null | sort -V | tail -1)apksigner"
+          if [ ! -x "$APKSIGNER" ]; then
+            echo "::error::未找到 apksigner（$APKSIGNER）"
+            exit 1
+          fi
+
+          SIG="$("$APKSIGNER" verify --print-certs "$APK")"
+          echo "$SIG"
+
+          if echo "$SIG" | grep -q "CN=Android Debug"; then
+            echo "::error::APK 使用的是 debug 证书，请检查 Secrets（ANDROID_KEYSTORE_*）"
+            exit 1
+          fi
+
+          if [ -n "$EXPECTED_SHA256" ]; then
+            want="$(echo "$EXPECTED_SHA256" | tr -d ':' | tr 'a-f' 'A-F')"
+            got="$(echo "$SIG" | grep 'certificate SHA-256 digest' | head -1 | awk -F': ' '{print $NF}' | tr -d ' ' | tr 'a-f' 'A-F')"
+            if [ "$want" != "$got" ]; then
+              echo "::error::证书指纹不匹配：期望 $want，实际 $got"
+              exit 1
+            fi
+            echo "证书指纹校验通过：$got"
+          fi
 
       - name: 提取本次版本更新日志
         run: |
@@ -57,6 +127,8 @@ jobs:
           fi
 
       - name: 创建 GitHub Release
+        # 只有推送 v* tag 才发布；workflow_dispatch 手动试跑仅构建与校验签名。
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ github.ref_name }}
@@ -64,3 +136,7 @@ jobs:
           files: |
             build/app/outputs/flutter-apk/app-release.apk
           fail_on_unmatched_files: true
+
+      - name: 清理签名材料
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"

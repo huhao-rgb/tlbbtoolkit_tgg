@@ -157,7 +157,8 @@ mobile（<900）                    desktop（≥900）
 - 在 `main` 分支，且工作区干净——脚本发现未提交改动会直接退出；
 - 版本号形如 `主.次.修订[+构建号]`（如 `1.1.1+7`），且**不能**与 `pubspec.yaml` 当前值相同；
 - 仓库变量 `SYNC_BASE_URL` 已配置（Settings → Secrets and variables → Actions → Variables）。
-  未配置时 CI 只打 warning 不失败，但打出的 APK **不含云同步功能**。
+  未配置时 CI 只打 warning 不失败，但打出的 APK **不含云同步功能**；
+- 签名用到的 4 个 Secrets 已配置（见下节「正式签名」），缺失时 CI **直接失败**，不会产出 debug 签名的包。
 
 ### 1. 先预览草稿
 
@@ -199,9 +200,42 @@ mobile（<900）                    desktop（≥900）
 ### 4. CI 做了什么
 
 推送 `v*` tag 触发 [`.github/workflows/release.yml`](.github/workflows/release.yml)：
-拉依赖 → `build_runner` 校验生成物 → 构建 Release APK → 从 `CHANGELOG.md` 抽取
-`## [<版本>` 开头的小节作为发行说明 → 创建（已存在则更新）GitHub Release。
+拉依赖 → `build_runner` 校验生成物 → 从 Secrets 还原 keystore → 构建 Release APK →
+校验签名证书（是 debug 证书则失败）→ 从 `CHANGELOG.md` 抽取
+`## [<版本>` 开头的小节作为发行说明 → 创建（已存在则更新）GitHub Release → 删除临时 keystore。
 产物：`build/app/outputs/flutter-apk/app-release.apk`。
+
+### 4.1 正式签名（keystore 不入库）
+
+签名材料**只存在两个地方**：本机 `android/key.properties` + `android/app/upload-keystore.jks`
+（均被 `.gitignore` 排除），以及 GitHub 仓库的 Secrets。仓库里既没有 `.jks` 也没有口令。
+
+配置一次即可，在 Settings → Secrets and variables → Actions → **Secrets** 里新建 4 条：
+
+| Secret 名 | 值 |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | `base64 -i android/app/upload-keystore.jks \| tr -d '\n' \| pbcopy`（macOS）的输出 |
+| `ANDROID_STORE_PASSWORD` | `key.properties` 里的 `storePassword` |
+| `ANDROID_KEY_ALIAS` | `key.properties` 里的 `keyAlias` |
+| `ANDROID_KEY_PASSWORD` | `key.properties` 里的 `keyPassword` |
+
+CI 侧：`base64 -d` 还原到 `$RUNNER_TEMP/release.jks`（`umask 077`，仅本次运行可见）→
+以 `ANDROID_*` 环境变量传给 Gradle → 构建 → `apksigner` 校验证书 → `if: always()` 删除。
+**keystore 不写进工作区、不生成 `key.properties`，也不会进日志或缓存。**
+
+> 可选加固：再配一条仓库**变量** `ANDROID_CERT_SHA256`（证书 SHA-256 指纹，大小写/冒号不敏感）。
+> 配置后 CI 会比对该指纹，防止 Secrets 里被换成别的 keystore 而静默发出不兼容的包。
+> 当前证书指纹可用
+> `keytool -list -v -keystore android/app/upload-keystore.jks -alias upload | grep SHA256` 查到。
+
+Gradle 侧（[`android/app/build.gradle.kts`](android/app/build.gradle.kts)）签名参数按优先级取：
+
+1. `android/key.properties`（本机开发）；
+2. `ANDROID_KEYSTORE_PATH` / `ANDROID_STORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD` 环境变量（CI）；
+3. 都缺失 → 回退 debug 签名并打 warning，只适合本地调试，**不可用于分发**。
+
+> ⚠️ 换签名证书 = 换了 App 身份：已安装的用户必须卸载重装、商店需重新上传。
+> 请把 `upload-keystore.jks` 与口令另行离线备份，**丢了就无法再发布升级包**。
 
 ### 5. 发布后自检
 
