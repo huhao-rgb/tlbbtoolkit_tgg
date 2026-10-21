@@ -13,6 +13,7 @@
 # 规则：
 #   - 版本号格式：主.次.修订[+构建号]，如 1.0.4 或 1.0.4+5
 #   - tag 名 = v + 主.次.修订（去掉 +构建号，避免 + 在部分工具 / URL 中出问题）
+#   - 因不含构建号，同一修订号只能发一次版；tag 已存在时脚本在改动文件前直接失败
 #   - CHANGELOG 新条目由自上一个 tag 以来的提交自动生成草稿，可用 --edit / --notes-file 手工整理
 #   - 提交信息沿用仓库惯例：chore: 修改版本号<版本号>
 #
@@ -69,6 +70,20 @@ if [ "$BRANCH" != "main" ]; then
     warn "当前分支为 ${BRANCH}（发版建议在 main 分支，--dry-run 仅预览不阻止）"
   else
     error "当前分支为 ${BRANCH}，发版应在 main 分支进行"
+    exit 1
+  fi
+fi
+
+# tag 名由修订号决定（不含构建号），同一修订号的第二次发版必然撞 tag。
+# 必须在改动任何文件之前拦住，否则会留下「提交已生成、tag 没打成、也没推送」的半成品状态。
+if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+  EXISTING_TAG_SHA=$(git rev-parse --short "refs/tags/${TAG}^{commit}")
+  if [ "$DRY_RUN" -eq 1 ]; then
+    warn "tag ${TAG} 已存在（指向 ${EXISTING_TAG_SHA}），实际执行时会被拦下"
+  else
+    error "tag ${TAG} 已存在（指向 ${EXISTING_TAG_SHA}），同一修订号只能发布一次。"
+    error "  → 仅构建号不同、要重新发同一修订号：git tag -f -a ${TAG} -m \"${TAG} 发布\" && git push -f origin ${TAG}"
+    error "  → 正常发新版本：递增修订号（如 1.1.3）后重跑本脚本"
     exit 1
   fi
 fi
