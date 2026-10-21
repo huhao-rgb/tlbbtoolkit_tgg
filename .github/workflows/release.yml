@@ -15,6 +15,10 @@ jobs:
   build-and-release:
     name: 构建 Release APK 并发布
     runs-on: ubuntu-latest
+    env:
+      # 必须与 pubspec.lock 中记录的 source 一致，否则 pub 会判定 lock 失效并
+      # **整体重新解析依赖**，静默升级到新版本（v1.1.2 黑屏事故的起因）。
+      PUB_HOSTED_URL: https://pub.dev
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -27,7 +31,10 @@ jobs:
           cache: true
 
       - name: 拉取依赖
-        run: flutter pub get
+        # --enforce-lockfile：lock 与 pubspec.yaml / 当前 pub 源不一致时立即失败，
+        # 而不是静默重新解析。依赖漂移往往只在 release 包（R8 混淆）里才炸，
+        # 提前失败远好过发一个启动黑屏的包。
+        run: flutter pub get --enforce-lockfile
 
       - name: 代码生成（安全校验，产物应与入库文件一致）
         run: dart run build_runner build --delete-conflicting-outputs

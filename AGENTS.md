@@ -92,6 +92,8 @@ presentation ──► domain ◄── data
 | **清理 `build` / `.dart_tool` 后** | 必须重新 `fvm flutter pub get`。 |
 | **`.fvmrc` 是 YAML 陷阱** | FVM 4.x 只读 `fvm_config.json`（JSON）。`.fvmrc` 若存在会被当 JSON 解析导致 `FormatException`。 |
 | **数据表靠 `dart format off` 保命** | `job_skill` / `job_wudao` / `job_artifact` / `job_sect_info` 四个 domain 文件的人工紧凑数据表（一行一个门派 / 一条记录，最长单行 3000+ 字符）由 `// dart format off` … `// dart format on` 豁免。**不要删这两行注释**，否则一跑格式化会被展开成上千行（实测 1024 行 → 5418 行）。 |
+| **pub 源必须与 `pubspec.lock` 一致** | `pubspec.lock` 里每个包都记了 `url`（本仓库统一为 `https://pub.dev`）。若当前环境的 `PUB_HOSTED_URL` 与 lock 记录的源不同（例如本机设了国内镜像），pub 会判定 lock 失效并**整体重新解析依赖**，静默升级到新版本。v1.1.2 黑屏事故即由此触发（`shared_preferences_android` 被升到 2.5.1）。CI 已固定 `PUB_HOSTED_URL` + `--enforce-lockfile`；**本地若设了镜像源，请把它去掉**，否则 `fvm flutter pub get` 会改写 lock。 |
+| **R8 会破坏 Pigeon JNI 插件** | `shared_preferences_android` 2.5.x 起改用 Pigeon JNI：Dart 侧按「类名 + 方法签名」反射调用 Java，类名与签名不能被混淆。`android/app/proguard-rules.pro` 已 `-keep` 相关类（含 `kotlin.coroutines.*`），**不要删**，否则 release 包启动即黑屏（只影响 release，debug 正常）。 |
 
 ---
 

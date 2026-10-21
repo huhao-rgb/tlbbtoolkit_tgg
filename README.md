@@ -205,6 +205,17 @@ mobile（<900）                    desktop（≥900）
 `## [<版本>` 开头的小节作为发行说明 → 创建（已存在则更新）GitHub Release → 删除临时 keystore。
 产物：`build/app/outputs/flutter-apk/app-release.apk`。
 
+> ⚠️ **拉依赖用 `flutter pub get --enforce-lockfile`，且 job 级固定
+> `PUB_HOSTED_URL: https://pub.dev`**（与 `pubspec.lock` 里记录的 source 一致）。
+> 两者缺一不可：源不一致会让 pub 判定整个 lock 失效并**重新解析全部依赖**，
+> 静默升级到刚发布的新版本 —— v1.1.2 的黑屏事故就是这么来的
+> （`shared_preferences_android` 被升到 2.5.1，改用 Pigeon JNI，被 R8 混淆击穿）。
+>
+> 本机若设了国内镜像（`export PUB_HOSTED_URL=https://pub.flutter-io.cn`），
+> **请去掉它**，否则本地 `fvm flutter pub get` 会因源不匹配改写 `pubspec.lock`，
+> 又把仓库带偏。确实需要换源时，必须**连同 `pubspec.lock` 一起重新生成并提交**，
+> 且同步修改 workflow 里的 `PUB_HOSTED_URL`。
+
 ### 4.1 正式签名（keystore 不入库）
 
 签名材料**只存在两个地方**：本机 `android/key.properties` + `android/app/upload-keystore.jks`
