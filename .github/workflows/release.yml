@@ -129,11 +129,25 @@ jobs:
 
       - name: 提取本次版本更新日志
         run: |
-          VER="${GITHUB_REF_NAME#v}"
-          # 匹配 "## [1.0.4" 或 "## [1.0.4+5" 开头的小节，输出到下一个版本小节为止
+          # tag 名是 v<主.次.修订>（不含构建号），而 CHANGELOG 小节带构建号
+          # （## [1.1.2+9]）。版本号一律以本次 tag 提交里的 pubspec.yaml 为准；
+          # 退回到 tag 名只用于 tag 名本身带构建号的情况。
+          VER=$(sed -n 's/^version: //p' pubspec.yaml | head -1)
+          if [ -z "$VER" ]; then VER="${GITHUB_REF_NAME#v}"; fi
+          echo "本次版本：$VER"
+
+          # 按字面比较小节标题里的版本号（不走正则，避免 + . 等元字符误匹配），
+          # 输出该小节内容直到下一个版本小节。
           awk -v ver="$VER" '
-            /^## \[/ { in_section = ($0 ~ "^## \\[" ver "(\\+|\\])"); if (in_section) print }
-            in_section && !/^## \[/ { print }
+            /^## \[/ {
+              line = $0
+              sub(/^## \[/, "", line)
+              sub(/\].*$/, "", line)
+              in_section = (line == ver)
+              if (in_section) print
+              next
+            }
+            in_section { print }
           ' CHANGELOG.md > RELEASE_NOTES.md
           if [ ! -s RELEASE_NOTES.md ]; then
             echo "# ${GITHUB_REF_NAME}" > RELEASE_NOTES.md
