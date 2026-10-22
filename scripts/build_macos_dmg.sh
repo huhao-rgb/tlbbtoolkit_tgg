@@ -52,7 +52,7 @@ if [ -z "${PRODUCT_NAME}" ]; then
 fi
 
 APP_PATH="build/macos/Build/Products/Release/${PRODUCT_NAME}.app"
-STAGE="${ROOT}/build/macos/dmg-stage"
+BG_DIR="${ROOT}/build/macos/dmg"
 OUT="${ROOT}/dist/TiangongGe-${VERSION}-macos-universal.dmg"
 
 echo "==> 版本 ${VERSION}，应用 ${PRODUCT_NAME}"
@@ -78,21 +78,47 @@ else
   echo "==> 未设置 MACOS_SIGN_IDENTITY：沿用 Flutter 的 ad-hoc 签名（用户首次打开需手动放行）"
 fi
 
-echo "==> 准备 DMG 内容"
-rm -rf "${STAGE}"
-mkdir -p "${STAGE}"
-# 用 ditto 而非 cp -R：保留扩展属性与资源分叉，避免签名信息丢失。
-ditto "${APP_PATH}" "${STAGE}/${PRODUCT_NAME}.app"
-ln -s /Applications "${STAGE}/Applications"
-cp scripts/macos_dmg_readme.txt "${STAGE}/安装说明.txt"
+echo "==> 生成安装窗口背景"
+swift scripts/macos_dmg_background.swift "${BG_DIR}"
 
-echo "==> 生成 DMG"
-mkdir -p dist
-rm -f "${OUT}"
-if ! diskutil image create from --format UDZO --volumeName "${PRODUCT_NAME}" "${STAGE}" "${OUT}" >/dev/null 2>&1; then
-  # macOS 26 之前没有 diskutil image create from，退回 hdiutil。
-  hdiutil create -volname "${PRODUCT_NAME}" -srcfolder "${STAGE}" -ov -format UDZO "${OUT}" >/dev/null
+echo "==> 准备 dmgbuild"
+DMGBUILD="${DMGBUILD:-}"
+if [ -z "${DMGBUILD}" ]; then
+  if python3 -c "import dmgbuild" >/dev/null 2>&1; then
+    DMGBUILD="python3 -m dmgbuild"
+  elif [ -x "${ROOT}/.venv-dmg/bin/dmgbuild" ]; then
+    DMGBUILD="${ROOT}/.venv-dmg/bin/dmgbuild"
+  else
+    echo "    安装 dmgbuild（只在首次需要，约 10 秒）"
+    python3 -m venv "${ROOT}/.venv-dmg" >/dev/null 2>&1 \
+      && "${ROOT}/.venv-dmg/bin/pip" install -q dmgbuild >/dev/null 2>&1 \
+      && DMGBUILD="${ROOT}/.venv-dmg/bin/dmgbuild" \
+      || true
+  fi
 fi
+
+mkdir -p "${ROOT}/dist"
+rm -f "${OUT}"
+
+if [ -n "${DMGBUILD}" ]; then
+  echo "==> 生成 DMG（带自定义背景与图标布局）"
+  # shellcheck disable=SC2086 # DMGBUILD 允许带参数
+  ${DMGBUILD} -s scripts/macos_dmg_settings.py \
+    -D "app_path=${ROOT}/${APP_PATH}" \
+    -D "app_name=${PRODUCT_NAME}.app" \
+    -D "background=${BG_DIR}/background.png" \
+    "天工阁 v${VERSION}" "${OUT}"
+else
+  echo "::warning::未安装 dmgbuild，退回到无背景的纯 hdiutil 打包"
+  STAGE="${ROOT}/build/macos/dmg-stage"
+  rm -rf "${STAGE}"
+  mkdir -p "${STAGE}"
+  ditto "${APP_PATH}" "${STAGE}/${PRODUCT_NAME}.app"
+  ln -s /Applications "${STAGE}/Applications"
+  hdiutil create -volname "天工阁 v${VERSION}" -srcfolder "${STAGE}" \
+    -ov -format UDZO "${OUT}" >/dev/null
+fi
+
 hdiutil verify "${OUT}" >/dev/null
 echo "    DMG 校验通过"
 

@@ -61,3 +61,6 @@ server/**/.env.*
 
 # 安装器单文件产物
 /dist/
+
+# 打包 DMG 时脚本自动创建的 dmgbuild 虚拟环境
+/.venv-dmg/

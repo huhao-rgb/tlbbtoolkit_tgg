@@ -230,13 +230,17 @@ bash scripts/build_macos_dmg.sh              # 构建 + 打包
 bash scripts/build_macos_dmg.sh --skip-build # 只重新打包已有产物
 ```
 
+DMG 窗口的背景图与图标坐标由 `scripts/macos_dmg_background.swift`（生成背景）和
+`scripts/macos_dmg_settings.py`（dmgbuild 布局）决定；脚本首次运行会自动建
+`.venv-dmg` 装 dmgbuild，失败时退回无背景的 hdiutil 打包。
+
 产物（附在 Release 里）：
 
 | 文件 | 说明 |
 | --- | --- |
 | `TiangongGe-Setup-<版本>-win64.exe` | Windows 单文件安装程序 |
 | `TiangongGe-Installer-<版本>-win64.zip` | Windows 安装器目录（含 `payload.zip`），便于排查问题 |
-| `TiangongGe-<版本>-macos-universal.dmg` | macOS 磁盘映像（arm64 + x86_64，内含拖拽安装与说明） |
+| `TiangongGe-<版本>-macos-universal.dmg` | macOS 磁盘映像（arm64 + x86_64，带自定义安装窗口） |
 
 > macOS 包没有 Apple 开发者签名，用户首次打开需在「系统设置 → 隐私与安全性」里放行，
 > 或执行 `xattr -dr com.apple.quarantine "/Applications/天工阁.app"`。详见
