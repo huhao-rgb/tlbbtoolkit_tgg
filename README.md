@@ -210,6 +210,18 @@ mobile（<900）                    desktop（≥900）
 `## [<版本>` 开头的小节作为发行说明 → 创建（已存在则更新）GitHub Release → 删除临时 keystore。
 产物：`build/app/outputs/flutter-apk/app-release.apk`。
 
+同一个 tag 还会触发 [`.github/workflows/installer-release.yml`](.github/workflows/installer-release.yml)
+构建 Windows 安装包（`windows-latest`）：构建主程序 → 打包 payload → 构建安装器 →
+封装单文件 Setup → **附加到同一个 GitHub Release**。Release 由本流程先创建，安装器流水线
+先等它出现（最多 10 分钟）再上传；若始终没出现则自行按 `CHANGELOG` 创建。
+
+Windows 产物（附在 Release 里）：
+
+| 文件 | 说明 |
+| --- | --- |
+| `TiangongGe-Setup-<版本>-win64.exe` | 面向用户的单文件安装程序 |
+| `TiangongGe-Installer-<版本>-win64.zip` | 安装器目录（含 `payload.zip`），便于排查问题 |
+
 > ⚠️ **拉依赖用 `flutter pub get --enforce-lockfile`，且 job 级固定
 > `PUB_HOSTED_URL: https://pub.dev`**（与 `pubspec.lock` 里记录的 source 一致）。
 > 两者缺一不可：源不一致会让 pub 判定整个 lock 失效并**重新解析全部依赖**，
