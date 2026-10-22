@@ -58,3 +58,6 @@ app.*.map.json
 server/**/node_modules/
 server/**/.env
 server/**/.env.*
+
+# 安装器单文件产物
+/dist/

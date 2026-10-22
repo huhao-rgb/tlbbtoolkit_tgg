@@ -1,0 +1,99 @@
+name: Installer Release
+
+# 手动触发，或推送 v* tag 时构建 Windows 安装器。
+# 产物是安装器目录的 zip；单文件 Setup.exe 外壳后续在此步骤之后追加。
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-installer:
+    name: 构建 Windows 安装器
+    runs-on: windows-latest
+    env:
+      # 必须与 pubspec.lock 中记录的 source 一致，避免 pub 静默重解析依赖。
+      PUB_HOSTED_URL: https://pub.dev
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # 与 fvm_config.json 锁定版本一致
+          flutter-version: '3.47.0'
+          cache: true
+
+      - name: 读取主工程版本号
+        id: version
+        shell: pwsh
+        run: |
+          $match = Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9]+\.[0-9]+\.[0-9]+)' |
+            Select-Object -First 1
+          if (-not $match) { throw '无法从 pubspec.yaml 读取版本号' }
+          $version = $match.Matches[0].Groups[1].Value
+          "value=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "天工阁版本：$version"
+
+      - name: 主程序依赖
+        run: flutter pub get --enforce-lockfile
+
+      - name: 构建主程序（Windows Release）
+        run: flutter build windows --release
+
+      - name: 安装器依赖
+        working-directory: installer
+        run: flutter pub get --enforce-lockfile
+
+      - name: 打包 payload.zip
+        working-directory: installer
+        run: >
+          dart run tool/package_payload.dart
+          --input ../build/windows/x64/runner/Release
+          --output assets/payload/payload.zip
+
+      - name: 构建安装器
+        working-directory: installer
+        run: >
+          flutter build windows --release
+          --dart-define=APP_VERSION=${{ steps.version.outputs.value }}
+
+      - name: 归档安装器目录
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive `
+            -Path installer/build/windows/x64/runner/Release/* `
+            -DestinationPath "dist/TiangongGe-Installer-${{ steps.version.outputs.value }}-win64.zip" `
+            -Force
+
+      - name: 安装 NSIS
+        run: choco install nsis --no-progress -y
+
+      - name: 封装单文件 Setup.exe
+        working-directory: installer
+        shell: pwsh
+        run: |
+          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          if (-not (Test-Path $makensis)) { $makensis = "C:\Program Files\NSIS\makensis.exe" }
+          if (-not (Test-Path $makensis)) { throw "未找到 makensis" }
+
+          $source = (Resolve-Path "build\windows\x64\runner\Release").Path
+          $icon = (Resolve-Path "windows\runner\resources\app_icon.ico").Path
+          $out = Join-Path (Get-Location) "..\dist\TiangongGe-Setup-${{ steps.version.outputs.value }}-win64.exe"
+          & $makensis "/DAPP_VERSION=${{ steps.version.outputs.value }}" "/DSOURCE_DIR=$source" "/DOUTPUT_FILE=$out" "/DICON_FILE=$icon" tool\setup_sfx.nsi
+          if ($LASTEXITCODE -ne 0) { throw "makensis 失败" }
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: TiangongGe-Installer-win64
+          path: |
+            dist/*.zip
+            dist/*.exe
+          retention-days: 14

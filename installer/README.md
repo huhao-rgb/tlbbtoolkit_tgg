@@ -40,11 +40,17 @@ pwsh -File tool\build_windows.ps1
 
 1. `fvm flutter build windows --release` 构建主程序；
 2. `tool/package_payload.dart` 把 `..\build\windows\x64\runner\Release` 打成 `assets/payload/payload.zip`；
-3. 用 `--dart-define=APP_VERSION=<主工程版本>` 构建安装器。
+3. 用 `--dart-define=APP_VERSION=<主工程版本>` 构建安装器；
+4. 如果安装了 NSIS（`choco install nsis`），再把安装器目录封装成单文件
+   `dist\TiangongGe-Setup-<版本>-win64.exe`。
 
-产物：`build\windows\x64\runner\Release\tiangongge_installer.exe`（连同同目录的
-DLL、`data/` 一起分发）。需要单文件 Setup.exe 时，可在这一步之后用 Inno / 7-Zip SFX
-再包一层；安装逻辑与 UI 都在本工程内，外壳只负责解压并启动它。
+产物：
+
+- 目录版：`build\windows\x64\runner\Release\`（exe + DLL + `data/` + payload）；
+- 单文件版：`dist\TiangongGe-Setup-<版本>-win64.exe`（NSIS 静默解压后启动自绘向导）。
+
+单文件外壳解压期间没有界面（约数秒），随后进入安装向导；`-SkipSfx` 可跳过封装，
+`-SkipApp` / `-SkipInstaller` 用于只重跑其中一步。
 
 ## 安装行为
 

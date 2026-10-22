@@ -49,3 +49,6 @@ app.*.map.json
 
 # 构建时由 tool/package_payload.dart 生成，不入库
 /assets/payload/*.zip
+
+# 单文件 Setup.exe 产物
+/dist/
