@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tiangongge_installer/src/app.dart';
 import 'package:tiangongge_installer/src/engine/install_engine.dart';
+import 'package:tiangongge_installer/src/engine/process_guard.dart';
 import 'package:tiangongge_installer/src/engine/shell_integration.dart';
 import 'package:tiangongge_installer/src/flow.dart';
 
@@ -11,7 +12,28 @@ Future<void> setSurface(WidgetTester tester) async {
   addTearDown(tester.view.reset);
 }
 
-Widget buildApp({bool uninstall = false}) {
+class _FakeProcessGuard implements ProcessGuard {
+  _FakeProcessGuard({required this.running});
+
+  bool running;
+  int closeCalls = 0;
+
+  @override
+  Future<List<int>> findRunning(String exeName) async =>
+      running ? const [1234] : const [];
+
+  @override
+  Future<bool> isRunning(String exeName) async => running;
+
+  @override
+  Future<bool> closeAll(String exeName) async {
+    closeCalls++;
+    running = false;
+    return true;
+  }
+}
+
+Widget buildApp({bool uninstall = false, ProcessGuard? guard}) {
   const shell = NoopShellIntegration();
   final controller = InstallerController(
     engine: DemoInstallEngine(shell),
@@ -19,6 +41,7 @@ Widget buildApp({bool uninstall = false}) {
     version: '1.13.0',
     startUninstall: uninstall,
     diskReader: (_) async => null,
+    processGuard: guard ?? const NoopProcessGuard(),
   );
   return InstallerApp(controller: controller, windowControlsEnabled: false);
 }
@@ -85,6 +108,56 @@ void main() {
     expect(find.text('天下无不散之筵席，江湖再见'), findsOneWidget);
   });
 
+  testWidgets('主程序运行时会先提示关闭，取消与继续都可用', (tester) async {
+    await setSurface(tester);
+    const shell = NoopShellIntegration();
+    final guard = _FakeProcessGuard(running: true);
+    final controller = InstallerController(
+      engine: DemoInstallEngine(shell),
+      shell: shell,
+      version: '1.13.0',
+      diskReader: (_) async => null,
+      processGuard: guard,
+    );
+    await tester.pumpWidget(
+      InstallerApp(controller: controller, windowControlsEnabled: false),
+    );
+    await tester.pumpAndSettle();
+
+    controller.next();
+    await tester.pumpAndSettle();
+    controller.toggleAgreed();
+    controller.next();
+    await tester.pumpAndSettle();
+    controller.next();
+    await tester.pumpAndSettle();
+
+    controller.next(); // 安装
+    await tester.pumpAndSettle();
+    expect(find.text('天工阁正在运行'), findsOneWidget);
+    expect(controller.index, 3);
+
+    await tester.tap(find.text('取消'));
+    await tester.pumpAndSettle();
+    expect(find.text('天工阁正在运行'), findsNothing);
+    expect(controller.index, 3);
+
+    await tester.tap(find.text('安装'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('关闭程序并继续'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+
+    expect(guard.closeCalls, 1);
+    expect(controller.blockedByRunningApp, isFalse);
+    expect(controller.index, 4);
+
+    // 消化演示引擎的计时器
+    for (var i = 0; i < 32; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+  });
+
   testWidgets('组件开关会同步到安装请求状态', (tester) async {
     await setSurface(tester);
     const shell = NoopShellIntegration();
@@ -93,6 +166,7 @@ void main() {
       shell: shell,
       version: '1.13.0',
       diskReader: (_) async => null,
+      processGuard: const NoopProcessGuard(),
     );
     await tester.pumpWidget(
       InstallerApp(controller: controller, windowControlsEnabled: false),

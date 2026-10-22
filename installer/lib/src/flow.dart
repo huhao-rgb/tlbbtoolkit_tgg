@@ -7,6 +7,7 @@ import 'package:tiangongge_installer/src/engine/disk_space.dart';
 import 'package:tiangongge_installer/src/engine/install_engine.dart';
 import 'package:tiangongge_installer/src/engine/models.dart';
 import 'package:tiangongge_installer/src/engine/paths.dart';
+import 'package:tiangongge_installer/src/engine/process_guard.dart';
 import 'package:tiangongge_installer/src/engine/shell_integration.dart';
 
 enum WizardKind { install, uninstall }
@@ -19,7 +20,9 @@ class InstallerController extends ChangeNotifier {
     required this.version,
     bool startUninstall = false,
     Future<DiskSpace?> Function(String path)? diskReader,
+    ProcessGuard? processGuard,
   }) : _diskReader = diskReader ?? readDiskSpace,
+       _processGuard = processGuard ?? createProcessGuard(),
        kind = startUninstall ? WizardKind.uninstall : WizardKind.install,
        installDir = startUninstall
            ? detectInstalledDir()
@@ -31,6 +34,7 @@ class InstallerController extends ChangeNotifier {
   final ShellIntegration shell;
   final String version;
   final Future<DiskSpace?> Function(String path) _diskReader;
+  final ProcessGuard _processGuard;
 
   WizardKind kind;
   int index = 0;
@@ -47,6 +51,10 @@ class InstallerController extends ChangeNotifier {
   bool busy = false;
   Object? error;
   DiskSpace? disk;
+
+  /// 目标程序正在运行，等待用户确认关闭。
+  bool blockedByRunningApp = false;
+  void Function()? _afterClose;
 
   StreamSubscription<InstallProgress>? _subscription;
   bool _disposed = false;
@@ -116,13 +124,46 @@ class InstallerController extends ChangeNotifier {
         case 2:
           _goTo(index + 1);
         case 3:
-          _goTo(4);
-          unawaited(_startInstall());
+          unawaited(
+            _guardThen(() {
+              _goTo(4);
+              unawaited(_startInstall());
+            }),
+          );
       }
     } else if (index == 0) {
-      _goTo(1);
-      unawaited(_startUninstall());
+      unawaited(
+        _guardThen(() {
+          _goTo(1);
+          unawaited(_startUninstall());
+        }),
+      );
     }
+  }
+
+  Future<void> _guardThen(void Function() action) async {
+    if (await _processGuard.isRunning(AppPaths.appExeName)) {
+      _afterClose = action;
+      blockedByRunningApp = true;
+      _notify();
+      return;
+    }
+    action();
+  }
+
+  Future<void> closeRunningApp() async {
+    await _processGuard.closeAll(AppPaths.appExeName);
+    final action = _afterClose;
+    _afterClose = null;
+    blockedByRunningApp = false;
+    _notify();
+    action?.call();
+  }
+
+  void dismissRunningApp() {
+    _afterClose = null;
+    blockedByRunningApp = false;
+    _notify();
   }
 
   void back() {
@@ -255,9 +296,9 @@ class InstallerController extends ChangeNotifier {
   Future<void> retry() async {
     error = null;
     if (kind == WizardKind.install) {
-      await _startInstall();
+      await _guardThen(() => unawaited(_startInstall()));
     } else {
-      await _startUninstall();
+      await _guardThen(() => unawaited(_startUninstall()));
     }
   }
 

@@ -180,6 +180,12 @@ class _InstallerShellState extends State<InstallerShell> with WindowListener {
                 _footer(controller),
               ],
             ),
+            if (controller.blockedByRunningApp)
+              _RunningAppOverlay(
+                kind: controller.kind,
+                onCancel: controller.dismissRunningApp,
+                onConfirm: () => unawaited(controller.closeRunningApp()),
+              ),
             Positioned(
               left: 0,
               right: 0,
@@ -415,4 +421,75 @@ Future<void> setUpWindow({required String title}) async {
     await windowManager.show();
     await windowManager.focus();
   });
+}
+
+class _RunningAppOverlay extends StatelessWidget {
+  const _RunningAppOverlay({
+    required this.kind,
+    required this.onCancel,
+    required this.onConfirm,
+  });
+
+  final WizardKind kind;
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  @override
+  Widget build(BuildContext context) {
+    final action = kind == WizardKind.install ? '安装' : '卸载';
+    return Positioned.fill(
+      child: ColoredBox(
+        color: const Color(0xB3000000),
+        child: Center(
+          child: Container(
+            width: 476,
+            padding: const EdgeInsets.fromLTRB(26, 24, 26, 20),
+            decoration: BoxDecoration(
+              color: T.winBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: T.goldBorder),
+              boxShadow: const [
+                BoxShadow(color: Color(0x99000000), blurRadius: 40),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const AnimatedRing(warning: true, size: 44),
+                    const SizedBox(width: 14),
+                    Text(
+                      '天工阁正在运行',
+                      style: T.sans(size: 17, weight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '需要先关闭正在运行的 天工阁（tlbbtoolkit.exe），才能继续$action。\n'
+                  '未保存的设置可能会丢失。',
+                  style: T.sans(size: 12.5, color: T.t3, height: 1.8),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    AppButton(label: '取消', onPressed: onCancel),
+                    const SizedBox(width: 10),
+                    AppButton(
+                      label: '关闭程序并继续',
+                      kind: AppButtonKind.primary,
+                      onPressed: onConfirm,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

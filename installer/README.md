@@ -39,7 +39,8 @@ pwsh -File tool\build_windows.ps1
 脚本按顺序执行：
 
 1. `fvm flutter build windows --release` 构建主程序；
-2. `tool/package_payload.dart` 把 `..\build\windows\x64\runner\Release` 打成 `assets/payload/payload.zip`；
+2. `tool/package_payload.dart` 把 `..\build\windows\x64\runner\Release` 打成 `assets/payload/payload.zip`
+   （内部按 store 模式，不做二次压缩，压缩交给外层 NSIS）；
 3. 用 `--dart-define=APP_VERSION=<主工程版本>` 构建安装器；
 4. 如果安装了 NSIS（`choco install nsis`），再把安装器目录封装成单文件
    `dist\TiangongGe-Setup-<版本>-win64.exe`。
@@ -52,9 +53,13 @@ pwsh -File tool\build_windows.ps1
 单文件外壳解压期间没有界面（约数秒），随后进入安装向导；`-SkipSfx` 可跳过封装，
 `-SkipApp` / `-SkipInstaller` 用于只重跑其中一步。
 
+payload 以 store 模式打包：外层 NSIS 的 LZMA 负责压缩，安装器解压时只做字节拷贝，
+避免「LZMA 解压 + zip 解压」两次解压。
+
 ## 安装行为
 
 - 按用户安装：`%LOCALAPPDATA%\Programs\TiangongGe`，**不触发 UAC**；
+- 安装 / 卸载前检测 `tlbbtoolkit.exe` 是否在运行，弹窗提示关闭（Windows 用 Toolhelp32 枚举，macOS 预览用 `pgrep`）；
 - 用户数据：`%APPDATA%\TiangongGe`；
 - 快捷方式：桌面（可选）与开始菜单；
 - 卸载项：`HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\{8F3C...}`；

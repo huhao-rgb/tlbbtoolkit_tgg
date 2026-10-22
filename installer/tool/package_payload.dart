@@ -31,7 +31,9 @@ Future<void> main(List<String> args) async {
   await encoder.zipDirectory(
     input,
     filename: output,
-    level: ZipFileEncoder.gzip,
+    // 内层不再压缩：外层 NSIS LZMA 会压缩整个目录，内层再 deflate 只会
+    // 让安装时多一次解压。store(0) 让安装器只需按字节拷贝。
+    level: ZipFileEncoder.store,
     onProgress: (percent) {
       final rounded = percent.round();
       if (rounded >= lastReported + 10) {

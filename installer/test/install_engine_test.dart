@@ -24,7 +24,7 @@ void main() {
         ),
       )
       ..addFile(ArchiveFile('offline/market.db', 8, 'offline!'.codeUnits));
-    final bytes = ZipEncoder().encode(archive);
+    final bytes = ZipEncoder().encode(archive, level: 0);
     payloadPath = p.join(tmp.path, 'payload.zip');
     File(payloadPath).writeAsBytesSync(bytes);
   });
