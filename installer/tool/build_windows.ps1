@@ -2,7 +2,9 @@ param(
   [switch]$SkipApp,
   [switch]$SkipInstaller,
   [switch]$SkipSfx,
-  [string]$AppBuildDir = "..\build\windows\x64\runner\Release"
+  [string]$AppBuildDir = "..\build\windows\x64\runner\Release",
+  # 云同步地址：默认取环境变量 SYNC_BASE_URL（与 CI 的仓库变量同名）
+  [string]$SyncBaseUrl = $env:SYNC_BASE_URL
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,6 +17,23 @@ function Invoke-Checked {
   if ($LASTEXITCODE -ne 0) { throw $Message }
 }
 
+# 编译期常量漏传不会报错，只会静默隐藏云同步入口，所以做一次字节级校验。
+function Assert-Embedded {
+  param([string]$File, [string]$Needle)
+  if (-not (Test-Path $File)) { throw "找不到 $File" }
+  $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path $File))
+  $target = [System.Text.Encoding]::UTF8.GetBytes($Needle)
+  for ($i = 0; $i -le $bytes.Length - $target.Length; $i++) {
+    if ($bytes[$i] -ne $target[0]) { continue }
+    $hit = $true
+    for ($j = 1; $j -lt $target.Length; $j++) {
+      if ($bytes[$i + $j] -ne $target[$j]) { $hit = $false; break }
+    }
+    if ($hit) { return }
+  }
+  throw "$Needle 未编入 $File"
+}
+
 # 版本号以主工程 pubspec.yaml 为准，避免安装器与主程序版本漂移
 $pubspec = Get-Content "..\pubspec.yaml" -Raw
 if ($pubspec -notmatch '(?m)^version:\s*([0-9]+\.[0-9]+\.[0-9]+)') {
@@ -25,7 +44,19 @@ Write-Host "天工阁版本：$version" -ForegroundColor Cyan
 
 if (-not $SkipApp) {
   Write-Host "[1/4] 构建主程序…" -ForegroundColor Cyan
-  Invoke-Checked { fvm flutter build windows --release } "主程序构建失败"
+  # SYNC_BASE_URL 是编译期常量（String.fromEnvironment），漏传会让云同步入口消失。
+  if ($SyncBaseUrl) {
+    Write-Host "  云同步地址：$SyncBaseUrl" -ForegroundColor DarkCyan
+  } else {
+    Write-Host "  未提供 SYNC_BASE_URL —— 本次构建的包不含云同步功能" -ForegroundColor Yellow
+  }
+  Invoke-Checked {
+    fvm flutter build windows --release "--dart-define=SYNC_BASE_URL=$SyncBaseUrl"
+  } "主程序构建失败"
+  if ($SyncBaseUrl) {
+    Assert-Embedded "$AppBuildDir\data\app.so" $SyncBaseUrl
+    Write-Host "  校验通过：SYNC_BASE_URL 已编入 app.so" -ForegroundColor DarkCyan
+  }
 }
 
 Write-Host "[2/4] 打包 payload.zip…" -ForegroundColor Cyan

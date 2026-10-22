@@ -33,8 +33,13 @@ fvm flutter run -d macos      # Windows 用 -d windows
 
 ```powershell
 cd installer
+$env:SYNC_BASE_URL = 'https://<envId>.service.tcloudbase.com'   # 云同步地址，可省略
 pwsh -File tool\build_windows.ps1
 ```
+
+`SYNC_BASE_URL` 是**编译期**常量（`String.fromEnvironment`），只 `export` 环境变量不会生效，
+必须在构建命令里带 `--dart-define`。脚本默认读取同名环境变量，也可显式传 `-SyncBaseUrl`；
+传了地址就会在构建后校验它确实被编进 `data/app.so`，漏传则只打警告（产物不含云同步）。
 
 脚本按顺序执行：
 
