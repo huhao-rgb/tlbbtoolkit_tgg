@@ -221,12 +221,26 @@ mobile（<900）                    desktop（≥900）
 > 流水线里会用字节级比对确认地址确实编进了 `data/app.so`，缺失时直接失败。Release 由本流程先创建，安装器流水线
 先等它出现（最多 10 分钟）再上传；若始终没出现则自行按 `CHANGELOG` 创建。
 
-Windows 产物（附在 Release 里）：
+同版本还会触发 [`.github/workflows/macos-release.yml`](.github/workflows/macos-release.yml)
+构建 macOS DMG（`macos-latest`），同样附加到该 Release。**未签名、未公证**：
+
+```sh
+# 本地打包（macOS 上执行）
+bash scripts/build_macos_dmg.sh              # 构建 + 打包
+bash scripts/build_macos_dmg.sh --skip-build # 只重新打包已有产物
+```
+
+产物（附在 Release 里）：
 
 | 文件 | 说明 |
 | --- | --- |
-| `TiangongGe-Setup-<版本>-win64.exe` | 面向用户的单文件安装程序 |
-| `TiangongGe-Installer-<版本>-win64.zip` | 安装器目录（含 `payload.zip`），便于排查问题 |
+| `TiangongGe-Setup-<版本>-win64.exe` | Windows 单文件安装程序 |
+| `TiangongGe-Installer-<版本>-win64.zip` | Windows 安装器目录（含 `payload.zip`），便于排查问题 |
+| `TiangongGe-<版本>-macos-universal.dmg` | macOS 磁盘映像（arm64 + x86_64，内含拖拽安装与说明） |
+
+> macOS 包没有 Apple 开发者签名，用户首次打开需在「系统设置 → 隐私与安全性」里放行，
+> 或执行 `xattr -dr com.apple.quarantine "/Applications/天工阁.app"`。详见
+> [docs/download.md](docs/download.md)。
 
 > ⚠️ **拉依赖用 `flutter pub get --enforce-lockfile`，且 job 级固定
 > `PUB_HOSTED_URL: https://pub.dev`**（与 `pubspec.lock` 里记录的 source 一致）。
