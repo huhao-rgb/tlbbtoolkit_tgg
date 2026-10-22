@@ -274,3 +274,13 @@ git tag -d v1.1.1
   别让日志留下「已发布」的假象；修好代码再发；
 - **重发要换新的构建号**（如失败的是 `1.1.1+6`，重发用 `1.1.1+7`）：脚本会拒绝与
   `pubspec.yaml` 相同的版本号，同名 tag 也会冲突。
+
+## 许可证
+
+本仓库原创代码以 **MIT** 许可发布，见 [LICENSE](LICENSE)。
+
+第三方字体、Dart/Flutter 依赖以及《天龙八部》相关的名称、图标与数值素材遵循各自的条款，
+详见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+
+Windows 发行包的签名由 SignPath Foundation 提供，见
+[代码签名策略](docs/code-signing-policy.md)。

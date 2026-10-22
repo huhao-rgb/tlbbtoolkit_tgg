@@ -65,6 +65,10 @@ payload 以 store 模式打包：外层 NSIS 的 LZMA 负责压缩，安装器�
 - 卸载项：`HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\{8F3C...}`；
 - 卸载器：安装时把安装器运行时复制到 `<安装目录>\.uninstaller`，控制面板卸载指向它。
 
+## 许可证
+
+与仓库其余部分一致，遵循根目录 [MIT 许可](../LICENSE)。
+
 ## 已知边界
 
 - 卸载器自身目录在点击“关闭”后由隐藏的 PowerShell 延迟删除（按用户安装没有管理员权限，
