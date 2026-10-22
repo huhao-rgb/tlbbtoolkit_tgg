@@ -283,4 +283,5 @@ git tag -d v1.1.1
 详见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
 
 Windows 发行包的签名由 SignPath Foundation 提供，见
-[代码签名策略](docs/code-signing-policy.md)。
+[代码签名策略](docs/code-signing-policy.md)；下载与安装说明见 [docs/download.md](docs/download.md)，
+隐私说明见 [docs/privacy-policy.md](docs/privacy-policy.md)。
