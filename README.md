@@ -216,9 +216,10 @@ mobile（<900）                    desktop（≥900）
 构建 Windows 安装包（`windows-latest`）：构建主程序 → 打包 payload → 构建安装器 →
 封装单文件 Setup → **附加到同一个 GitHub Release**。
 
-> ⚠️ Windows 主程序同样要注入 `--dart-define=SYNC_BASE_URL="$(vars.SYNC_BASE_URL)"`：
+> ⚠️ Windows 与 macOS 主程序都要注入 `--dart-define=SYNC_BASE_URL="$(vars.SYNC_BASE_URL)"`：
 > 它是**编译期**常量，漏传不会报错，只会让打出的包静默隐藏云同步入口。
-> 流水线里会用字节级比对确认地址确实编进了 `data/app.so`，缺失时直接失败。Release 由本流程先创建，安装器流水线
+> 两条流水线都会做字节级比对（Windows 查 `data/app.so`，macOS 查
+> `App.framework/Versions/A/App`），缺失时直接失败。Release 由本流程先创建，安装器流水线
 先等它出现（最多 10 分钟）再上传；若始终没出现则自行按 `CHANGELOG` 创建。
 
 同版本还会触发 [`.github/workflows/macos-release.yml`](.github/workflows/macos-release.yml)

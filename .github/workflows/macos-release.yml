@@ -48,6 +48,9 @@ jobs:
 
       - name: 构建并打包 DMG
         env:
+          # 云同步地址是**编译期**常量（String.fromEnvironment），必须在这里注入，
+          # 否则打出的 macOS 包云同步入口会被隐藏。脚本会在构建后做字节级校验。
+          SYNC_BASE_URL: ${{ vars.SYNC_BASE_URL }}
           # 有证书时填这两个仓库变量即可自动签名/公证，无需改脚本。
           MACOS_SIGN_IDENTITY: ${{ vars.MACOS_SIGN_IDENTITY }}
           MACOS_NOTARY_PROFILE: ${{ vars.MACOS_NOTARY_PROFILE }}
