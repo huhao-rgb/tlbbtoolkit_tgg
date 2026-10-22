@@ -1,12 +1,17 @@
 name: Installer Release
 
-# 手动触发，或推送 v* tag 时构建 Windows 安装器。
-# 产物是安装器目录的 zip；单文件 Setup.exe 外壳后续在此步骤之后追加。
+# 手动触发、安装器目录变更，或推送 v* tag 时构建 Windows 安装器。
+# 产物为安装器目录 zip 与单文件 Setup.exe。
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+    paths:
+      - 'installer/**'
+      - '.github/workflows/installer-release.yml'
 
 permissions:
   contents: read
