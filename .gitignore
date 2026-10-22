@@ -64,3 +64,8 @@ server/**/.env.*
 
 # 打包 DMG 时脚本自动创建的 dmgbuild 虚拟环境
 /.venv-dmg/
+
+# 本地签名配置（真实 Team ID 不入库；模板见同目录 *.xcconfig.example）
+ios/Flutter/Signing.xcconfig
+macos/Runner/Configs/Signing.xcconfig
+macos/Runner/Signing/

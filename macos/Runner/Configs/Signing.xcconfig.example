@@ -1,0 +1,22 @@
+// 签名配置模板：复制为同目录下的 Signing.xcconfig 并填入自己的 Team ID。
+//
+//   cp macos/Runner/Configs/Signing.xcconfig.example \
+//      macos/Runner/Configs/Signing.xcconfig
+//
+// Signing.xcconfig 已被 .gitignore 忽略，**不要提交真实 Team ID**。
+// Team ID 可在 `security find-identity -v -p codesigning` 或
+// Xcode 的 Settings → Accounts 里看到（10 位大写字母数字）。
+//
+// ⚠️ macOS 与 iOS 不同：这里必须填真实团队，不能留空。
+// ad-hoc 签名（CODE_SIGN_IDENTITY = "-"）无法确定 keychain access group，
+// 配对凭据写入会抛 PlatformException(-34018, A required entitlement is not present.)。
+// 免费个人团队（Personal Team）即可满足，无需付费开发者账号。
+//
+// 留空时行为与本文件不存在相同：沿用 Debug/Release.xcconfig 里的 ad-hoc 兜底
+// （能构建、能用一次性同步码，但云同步不可用）。
+
+// 你的团队 ID
+DEVELOPMENT_TEAM =
+
+// 用真实证书替代 ad-hoc；自动签名会在首次构建时签发
+CODE_SIGN_IDENTITY = Apple Development

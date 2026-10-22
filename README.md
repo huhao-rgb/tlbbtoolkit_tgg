@@ -80,6 +80,34 @@ fvm flutter test
 > Variables）。**未配置该变量时流水线只打一条 warning、照常出包**，但包里不含云同步功能。
 > 地址粘贴时多一个末尾斜杠会被自动归一化（否则会拼成 `//reg` 而 404）。
 
+## 签名配置（macOS / iOS）
+
+**Team ID 不进仓库**：签名参数放在被 `.gitignore` 忽略的本地 xcconfig 里。
+
+```sh
+# 一次性配置（换成你自己的 10 位 Team ID）
+./scripts/setup-macos-signing.sh <TEAM_ID>
+
+# 验证 macOS 端能真正写入钥匙串（云同步的前提）
+fvm flutter test integration_test/secure_storage_smoke_test.dart -d macos
+```
+
+脚本会生成（均不入库）：
+
+| 文件 | 作用 |
+| --- | --- |
+| `ios/Flutter/Signing.xcconfig` | iOS 的 `DEVELOPMENT_TEAM` |
+| `macos/Runner/Configs/Signing.xcconfig` | macOS 的团队 + 真实签名身份 |
+| `macos/Runner/Signing/*.entitlements` | 在仓库版基础上追加 `keychain-access-groups` |
+
+**为什么 macOS 必须签名**：ad-hoc 签名（`CODE_SIGN_IDENTITY = "-"`）无法确定
+keychain access group，配对凭据写入会抛
+`PlatformException(-34018, A required entitlement is not present.)`，云同步因此不可用。
+免费的个人团队（Personal Team）即可满足，无需付费开发者账号。
+
+**不配也能构建**：未生成本地配置时，`Debug/Release.xcconfig` 会回落到 ad-hoc
+（macOS 能用一次性同步码，只是云同步不可用），因此 clone 后直接构建不会失败。
+
 ## 目录结构
 
 ```

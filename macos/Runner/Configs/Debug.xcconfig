@@ -1,2 +1,13 @@
 #include "../../Flutter/Flutter-Debug.xcconfig"
 #include "Warnings.xcconfig"
+
+// 默认使用仓库内的 entitlements（不含 keychain-access-groups，ad-hoc 也能构建）。
+// 配置了本地签名后，Signing.xcconfig 会把目录指到 Runner/Signing 下带钥匙串授权的版本。
+TGG_ENTITLEMENTS_DIR = Runner
+CODE_SIGN_ENTITLEMENTS = $(TGG_ENTITLEMENTS_DIR)/DebugProfile.entitlements
+
+// 兜底：没有团队签名时按 ad-hoc 构建（保证未配置签名的机器仍能 build）
+CODE_SIGN_IDENTITY = -
+
+// 本地签名配置（Team ID 不入库；模板见 Signing.xcconfig.example）
+#include? "Signing.xcconfig"

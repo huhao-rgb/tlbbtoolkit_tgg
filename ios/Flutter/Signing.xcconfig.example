@@ -1,0 +1,14 @@
+// 签名配置模板：复制为同目录下的 Signing.xcconfig 并填入自己的 Team ID。
+//
+//   cp ios/Flutter/Signing.xcconfig.example ios/Flutter/Signing.xcconfig
+//
+// Signing.xcconfig 已被 .gitignore 忽略，**不要提交真实 Team ID**。
+// Team ID 可在 `security find-identity -v -p codesigning` 或
+// Xcode 的 Settings → Accounts 里看到（10 位大写字母数字）。
+//
+// 留空也能构建：iOS 的签名身份来自 pbxproj
+// （CODE_SIGN_IDENTITY[sdk=iphoneos*] = iPhone Developer），
+// 只有真机签名需要团队；模拟器与 `flutter test` 不受影响。
+
+// 你的团队 ID
+DEVELOPMENT_TEAM =
