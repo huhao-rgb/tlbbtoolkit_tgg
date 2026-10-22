@@ -290,4 +290,4 @@ echo
 info "✅ 发版完成：$TAG"
 info "推送 tag 已自动触发 GitHub Actions（.github/workflows/release.yml），"
 info "将自动构建 Release APK 并创建 GitHub Release，无需手动操作。"
-echo "  APK 产物: build/app/outputs/flutter-apk/app-release.apk"
+echo "  APK 产物: build/app/outputs/flutter-apk/TiangongGe-<版本>-arm64.apk"

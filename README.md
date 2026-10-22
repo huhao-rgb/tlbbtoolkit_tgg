@@ -208,7 +208,9 @@ mobile（<900）                    desktop（≥900）
 拉依赖 → `build_runner` 校验生成物 → 从 Secrets 还原 keystore → 构建 Release APK →
 校验签名证书（是 debug 证书则失败）→ 从 `CHANGELOG.md` 抽取
 `## [<版本>` 开头的小节作为发行说明 → 创建（已存在则更新）GitHub Release → 删除临时 keystore。
-产物：`build/app/outputs/flutter-apk/app-release.apk`。
+产物：`build/app/outputs/flutter-apk/TiangongGe-<版本>-arm64.apk`
+（由 `android/app/build.gradle.kts` 的 `renameApkArtifacts` 生成，原生的
+`app-release.apk` 仍保留在该目录，供 `flutter run` / `install` 等工具链使用）。
 
 同一个 tag 还会触发 [`.github/workflows/installer-release.yml`](.github/workflows/installer-release.yml)
 构建 Windows 安装包（`windows-latest`）：构建主程序 → 打包 payload → 构建安装器 →

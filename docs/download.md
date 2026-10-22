@@ -17,7 +17,8 @@
 
 ## Android 安装
 
-在 Releases 页面下载 `app-release.apk`，允许“安装未知来源应用”后安装。仅支持 arm64 设备。
+在 Releases 页面下载 `TiangongGe-<版本>-arm64.apk`，允许“安装未知来源应用”后安装。
+仅支持 arm64 设备（armeabi-v7a / x86_64 未随包分发）。
 
 ## 功能
 

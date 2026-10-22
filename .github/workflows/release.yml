@@ -96,13 +96,40 @@ jobs:
             --target-platform android-arm64 \
             --dart-define=SYNC_BASE_URL="$SYNC_BASE_URL"
 
+      # 交付名由 android/app/build.gradle.kts 的 renameApkArtifacts 生成
+      # （TiangongGe-<版本>-arm64.apk）。万一命名任务没跑到，这里按同样规则补一份，
+      # 保证 Release 里的包名始终有辨识度，而不是 app-release.apk。
+      - name: 解析 APK 交付名
+        id: apk
+        run: |
+          VER=$(sed -n 's/^version: //p' pubspec.yaml | head -1)
+          NAME_VER=${VER%%+*}
+          EXPECTED="build/app/outputs/flutter-apk/TiangongGe-${NAME_VER}-arm64.apk"
+
+          if [ -f "$EXPECTED" ]; then
+            APK="$EXPECTED"
+          else
+            FALLBACK="build/app/outputs/flutter-apk/app-release.apk"
+            if [ ! -f "$FALLBACK" ]; then
+              echo "::error::未找到 APK 产物（$FALLBACK）"
+              exit 1
+            fi
+            echo "::warning::未找到 $EXPECTED，按约定重命名 $FALLBACK"
+            mkdir -p dist
+            APK="dist/TiangongGe-${NAME_VER}-arm64.apk"
+            cp "$FALLBACK" "$APK"
+          fi
+
+          echo "APK=$APK"
+          echo "apk=$APK" >> "$GITHUB_OUTPUT"
+
       - name: 校验 APK 签名（防止误发 debug 包）
         env:
           # 可选：仓库变量 ANDROID_CERT_SHA256（冒号分隔的大写指纹），配置后额外校验
           # 证书指纹必须匹配，防止 Secrets 里换成了别的 keystore。
           EXPECTED_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
         run: |
-          APK=build/app/outputs/flutter-apk/app-release.apk
+          APK="${{ steps.apk.outputs.apk }}"
           APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ 2>/dev/null | sort -V | tail -1)apksigner"
           if [ ! -x "$APKSIGNER" ]; then
             echo "::error::未找到 apksigner（$APKSIGNER）"
@@ -161,7 +188,7 @@ jobs:
           name: ${{ github.ref_name }}
           body_path: RELEASE_NOTES.md
           files: |
-            build/app/outputs/flutter-apk/app-release.apk
+            ${{ steps.apk.outputs.apk }}
           fail_on_unmatched_files: true
 
       - name: 清理签名材料
