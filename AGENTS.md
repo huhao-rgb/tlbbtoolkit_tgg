@@ -32,6 +32,14 @@
 
 **改完代码的标准验证序列**：`fvm dart run build_runner build` → `fvm flutter analyze` → `fvm flutter test`。
 
+### Windows 安装器（`installer/`）
+
+独立 Flutter 工程，自绘安装 / 卸载界面，有自己的 `pubspec.yaml`，不参与主工程的
+`build_runner` / 测试。细节见 [`installer/README.md`](installer/README.md)。
+
+- 本地预览：`cd installer && fvm flutter run -d macos`（无 payload 时自动进入演示模式）
+- Windows 出包：`cd installer && pwsh -File tool/build_windows.ps1`
+
 VS Code 里已预置同名 task：「Dart: 格式检查（不改文件）」/「Dart: 格式化写回」。
 
 ---
