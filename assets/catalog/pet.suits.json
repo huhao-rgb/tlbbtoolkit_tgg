@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026.10.23.a9920945",
+  "kind": "pet.suits",
+  "items": {
+    "lvKeys": [
+      "75",
+      "85",
+      "95"
+    ],
+    "matName": "圣兽鳞",
+    "series": [
+      {
+        "name": "黄雀戏水·怯",
+        "lv": "75",
+        "type": "内功",
+        "typeColor": "blue",
+        "icon": "spark",
+        "personality": "胆小",
+        "fullEffect": "烈火咒 / 玄雷咒 / 血毒咒 / 寒冰咒释放时额外增加对应属性攻击",
+        "stats": [
+          "内功攻击",
+          "灵气",
+          "命中"
+        ],
+        "collar": "提升灵气、体力"
+      },
+      {
+        "name": "苍狼啸月·勇",
+        "lv": "75",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "勇猛",
+        "fullEffect": "猛击技能释放时额外增加外功攻击",
+        "stats": [
+          "外功攻击",
+          "力量",
+          "命中"
+        ],
+        "collar": "提升体力"
+      },
+      {
+        "name": "苍狼啸月·狡",
+        "lv": "75",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "精明",
+        "fullEffect": "增加摔绊技能对目标的生效几率",
+        "stats": [
+          "外功攻击",
+          "力量",
+          "血上限"
+        ],
+        "collar": null
+      },
+      {
+        "name": "乌豚望日·忠",
+        "lv": "75",
+        "type": "体力",
+        "typeColor": "green",
+        "icon": "shield",
+        "personality": "忠诚",
+        "fullEffect": "增加灵动技能对珍兽的生效几率",
+        "stats": [
+          "内外功防御",
+          "血上限"
+        ],
+        "collar": "提升体力"
+      },
+      {
+        "name": "猛虎越山·勇",
+        "lv": "85",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "勇猛",
+        "fullEffect": "增加猛击技能的释放几率",
+        "stats": [],
+        "collar": "提升力量、体力"
+      },
+      {
+        "name": "猛虎越山·狡",
+        "lv": "85",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "精明",
+        "fullEffect": "增加反震技能的生效几率",
+        "stats": [],
+        "collar": "提升命中、会心攻击"
+      },
+      {
+        "name": "猛虎越山·慎",
+        "lv": "85",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "谨慎",
+        "fullEffect": "增加吸气技能的生效几率",
+        "stats": [],
+        "collar": "提升力量、体力"
+      },
+      {
+        "name": "飞鹰翔空·狡",
+        "lv": "85",
+        "type": "内功",
+        "typeColor": "blue",
+        "icon": "spark",
+        "personality": "精明",
+        "fullEffect": "增加反震技能的生效几率",
+        "stats": [],
+        "collar": "提升命中、会心攻击"
+      },
+      {
+        "name": "飞鹰翔空·怯",
+        "lv": "85",
+        "type": "内功",
+        "typeColor": "blue",
+        "icon": "spark",
+        "personality": "胆小",
+        "fullEffect": "增加痛击技能的伤害",
+        "stats": [],
+        "collar": "提升灵气、体力"
+      },
+      {
+        "name": "飞鹰翔空·慎",
+        "lv": "85",
+        "type": "内功",
+        "typeColor": "blue",
+        "icon": "spark",
+        "personality": "谨慎",
+        "fullEffect": "增加吸气技能的释放几率",
+        "stats": [],
+        "collar": "提升灵气、身法"
+      },
+      {
+        "name": "巨熊哮路·忠",
+        "lv": "85",
+        "type": "体力",
+        "typeColor": "green",
+        "icon": "shield",
+        "personality": "忠诚",
+        "fullEffect": "增加忠心技能的生效几率",
+        "stats": [],
+        "collar": "提升体力"
+      },
+      {
+        "name": "巨熊哮路·慎",
+        "lv": "85",
+        "type": "体力",
+        "typeColor": "green",
+        "icon": "shield",
+        "personality": "谨慎平衡",
+        "fullEffect": "增加吸气技能的生效几率",
+        "stats": [],
+        "collar": "提升体力、身法"
+      },
+      {
+        "name": "奔马逐风·慎",
+        "lv": "85",
+        "type": "身法",
+        "typeColor": "cyan",
+        "icon": "pct",
+        "personality": "谨慎平衡",
+        "fullEffect": "增加吸气技能的生效几率",
+        "stats": [],
+        "collar": "提升身法"
+      },
+      {
+        "name": "雄狮逆鳞·勇",
+        "lv": "95",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "勇猛",
+        "fullEffect": "增加连击技能的释放几率",
+        "stats": [],
+        "collar": "提升力量、体力"
+      },
+      {
+        "name": "雄狮逆鳞·狡",
+        "lv": "95",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "精明",
+        "fullEffect": "增加反击技能的生效几率",
+        "stats": [],
+        "collar": "提升命中、会心攻击"
+      },
+      {
+        "name": "雄狮逆鳞·慎",
+        "lv": "95",
+        "type": "外功",
+        "typeColor": "gold",
+        "icon": "sword",
+        "personality": "谨慎",
+        "fullEffect": "增加打怒技能的生效几率",
+        "stats": [],
+        "collar": "提升力量、身法"
+      },
+      {
+        "name": "鲲鹏异羽·狡",
+        "lv": "95",
+        "type": "内功",
+        "typeColor": "blue",
+        "icon": "spark",
+        "personality": "精明",
+        "fullEffect": "增加反击技能的生效几率",
+        "stats": [],
+        "collar": "提升命中、会心攻击"
+      },
+      {
+        "name": "鲲鹏异羽·怯",
+        "lv": "95",
+        "type": "内功",
+        "typeColor": "blue",
+        "icon": "spark",
+        "personality": "胆小",
+        "fullEffect": "增加烈火咒 / 寒冰咒 / 玄雷咒 / 血毒咒技能的释放几率",
+        "stats": [],
+        "collar": "提升灵气、体力"
+      },
+      {
+        "name": "鲲鹏异羽·慎",
+        "lv": "95",
+        "type": "内功",
+        "typeColor": "blue",
+        "icon": "spark",
+        "personality": "谨慎",
+        "fullEffect": "增加打怒技能的释放几率",
+        "stats": [],
+        "collar": "提升灵气、身法"
+      },
+      {
+        "name": "玄龟奇血·忠",
+        "lv": "95",
+        "type": "体力",
+        "typeColor": "green",
+        "icon": "shield",
+        "personality": "忠诚",
+        "fullEffect": "增加灵气技能的生效几率",
+        "stats": [],
+        "collar": "提升体力"
+      },
+      {
+        "name": "玄龟奇血·慎",
+        "lv": "95",
+        "type": "体力",
+        "typeColor": "green",
+        "icon": "shield",
+        "personality": "谨慎平衡",
+        "fullEffect": "增加打怒技能的生效几率",
+        "stats": [],
+        "collar": "提升体力、身法"
+      },
+      {
+        "name": "墨豹惊步·慎",
+        "lv": "95",
+        "type": "身法",
+        "typeColor": "cyan",
+        "icon": "pct",
+        "personality": "谨慎平衡",
+        "fullEffect": "增加打怒技能的生效几率",
+        "stats": [],
+        "collar": "提升身法"
+      }
+    ],
+    "slots": [
+      {
+        "name": "兽盔",
+        "slot": "头",
+        "icon": "part_helm",
+        "note": "散件基础属性"
+      },
+      {
+        "name": "兽爪",
+        "slot": "爪",
+        "icon": "part_claw",
+        "note": "散件基础属性"
+      },
+      {
+        "name": "兽甲",
+        "slot": "躯干",
+        "icon": "part_armor",
+        "note": "散件基础属性"
+      },
+      {
+        "name": "兽环",
+        "slot": "颈",
+        "icon": "part_ring",
+        "note": "出战后附加系列专属效果"
+      },
+      {
+        "name": "兽饰",
+        "slot": "护符",
+        "icon": "part_charm",
+        "note": "散件基础属性"
+      }
+    ],
+    "matCost": {
+      "75": {
+        "exchange": 1,
+        "starUp": [
+          3,
+          5,
+          7,
+          11
+        ],
+        "salvage": [
+          1,
+          3,
+          7,
+          12,
+          20
+        ]
+      },
+      "85": {
+        "exchange": 30,
+        "starUp": [
+          16,
+          18,
+          20,
+          24
+        ],
+        "salvage": [
+          20,
+          30,
+          35,
+          42,
+          57
+        ]
+      },
+      "95": {
+        "exchange": 100,
+        "starUp": [
+          36,
+          43,
+          50,
+          56
+        ],
+        "salvage": [
+          50,
+          68,
+          90,
+          115,
+          143
+        ]
+      }
+    }
+  }
+}

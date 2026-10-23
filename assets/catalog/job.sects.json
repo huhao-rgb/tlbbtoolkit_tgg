@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026.10.23.4216b578",
+  "kind": "job.sects",
+  "items": [
+    {
+      "key": "shaolin",
+      "name": "少林",
+      "type": "外功 · 坦克",
+      "colorValue": 4293960282
+    },
+    {
+      "key": "mingjiao",
+      "name": "明教",
+      "type": "外功 · 爆发",
+      "colorValue": 4294930537
+    },
+    {
+      "key": "gaibang",
+      "name": "丐帮",
+      "type": "外功 · 持续",
+      "colorValue": 4293048434
+    },
+    {
+      "key": "tianshan",
+      "name": "天山",
+      "type": "外功 · 刺客",
+      "colorValue": 4283421145
+    },
+    {
+      "key": "xiaoyao",
+      "name": "逍遥",
+      "type": "内功 · 控制",
+      "colorValue": 4284193791
+    },
+    {
+      "key": "emei",
+      "name": "峨眉",
+      "type": "内功 · 治疗",
+      "colorValue": 4282635930
+    },
+    {
+      "key": "wudang",
+      "name": "武当",
+      "type": "内功 · 均衡",
+      "colorValue": 4288844543
+    },
+    {
+      "key": "xingxiu",
+      "name": "星宿",
+      "type": "内功 · 毒系",
+      "colorValue": 4288335210
+    },
+    {
+      "key": "murong",
+      "name": "慕容",
+      "type": "内外 · 兼修",
+      "colorValue": 4291016959
+    },
+    {
+      "key": "mantuo",
+      "name": "曼陀山庄",
+      "type": "内功 · 琴音",
+      "colorValue": 4293234641
+    },
+    {
+      "key": "tianlong",
+      "name": "天龙",
+      "type": "内外 · 兼修",
+      "colorValue": 4293447786
+    },
+    {
+      "key": "erengu",
+      "name": "恶人谷",
+      "type": "内功 · 刺客",
+      "colorValue": 4288375764
+    }
+  ]
+}

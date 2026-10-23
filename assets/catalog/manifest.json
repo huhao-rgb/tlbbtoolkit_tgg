@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026.10.23.efdfbfc1",
+  "files": [
+    {
+      "kind": "job.artifacts",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.1c31c521",
+      "sha256": "52c9f4a6384ccf8d1db5d9d617f047f6c00921a016d4fd57fad64d469240d059",
+      "bytes": 90431
+    },
+    {
+      "kind": "job.point",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.d1c84cc5",
+      "sha256": "ab538cb957afb58c7318f380324564a94857ef9d00e7c28008eab55151003802",
+      "bytes": 10236
+    },
+    {
+      "kind": "job.sect_info",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.eb4c9c72",
+      "sha256": "c76d210a7bf55b247cc34d34d864a84b191017b4b67aaa11feaefad51e2e4229",
+      "bytes": 20823
+    },
+    {
+      "kind": "job.sects",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.4216b578",
+      "sha256": "b19bfcfb9ed6d8a9efdd4d3799b8a4f440738d61311553b6a893c2a3e64b7eeb",
+      "bytes": 1622
+    },
+    {
+      "kind": "job.skills",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.086d7eb6",
+      "sha256": "75834c5f83573775791bdb3956c12107924878b10b0b2636ccad32e422e001f9",
+      "bytes": 92769
+    },
+    {
+      "kind": "job.wudao",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.31bea32c",
+      "sha256": "8afac97422ea683fe57412f0fb9756c80f46f22e78e6037747e1f0601e4730bf",
+      "bytes": 71509
+    },
+    {
+      "kind": "pet.beast_souls",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.a66aaed8",
+      "sha256": "645874071311f6ca273e5dcba2178961b91a1b09d8b0e3b9baa19c597ef1003f",
+      "bytes": 14638
+    },
+    {
+      "kind": "pet.beast_spirits",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.60a6ff62",
+      "sha256": "67b101f3ffddb8d60172e6f0ca2d196652e46e86e0dd5dec1f06cd80e5e99e84",
+      "bytes": 231031
+    },
+    {
+      "kind": "pet.skills",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.efdfbfc1",
+      "sha256": "c9202d0172534aaab800085dde9e5181192a3bb8695e4b08162fc079c48b14cc",
+      "bytes": 5332
+    },
+    {
+      "kind": "pet.suits",
+      "schemaVersion": 1,
+      "dataVersion": "2026.10.23.a9920945",
+      "sha256": "92d80fe7801f4bcec51195cb09adafe26f4fced2d664c97413af0b7c8273e476",
+      "bytes": 8813
+    }
+  ]
+}

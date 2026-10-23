@@ -11,6 +11,15 @@
       "timeout": 5,
       "memorySize": 256,
       "installDependency": true
+    },
+    {
+      "name": "catalog",
+      "description": "数据目录接口（分片化 JSON：读公开、写带密钥）",
+      "handler": "index.main",
+      "runtime": "Nodejs20.19",
+      "timeout": 5,
+      "memorySize": 256,
+      "installDependency": true
     }
   ]
 }

@@ -89,6 +89,54 @@ class $AssetsBeastSoulGen {
   ];
 }
 
+class $AssetsCatalogGen {
+  const $AssetsCatalogGen();
+
+  /// File path: assets/catalog/job.artifacts.json
+  String get jobArtifacts => 'assets/catalog/job.artifacts.json';
+
+  /// File path: assets/catalog/job.point.json
+  String get jobPoint => 'assets/catalog/job.point.json';
+
+  /// File path: assets/catalog/job.sect_info.json
+  String get jobSectInfo => 'assets/catalog/job.sect_info.json';
+
+  /// File path: assets/catalog/job.sects.json
+  String get jobSects => 'assets/catalog/job.sects.json';
+
+  /// File path: assets/catalog/job.skills.json
+  String get jobSkills => 'assets/catalog/job.skills.json';
+
+  /// File path: assets/catalog/job.wudao.json
+  String get jobWudao => 'assets/catalog/job.wudao.json';
+
+  /// File path: assets/catalog/pet.beast_souls.json
+  String get petBeastSouls => 'assets/catalog/pet.beast_souls.json';
+
+  /// File path: assets/catalog/pet.beast_spirits.json
+  String get petBeastSpirits => 'assets/catalog/pet.beast_spirits.json';
+
+  /// File path: assets/catalog/pet.skills.json
+  String get petSkills => 'assets/catalog/pet.skills.json';
+
+  /// File path: assets/catalog/pet.suits.json
+  String get petSuits => 'assets/catalog/pet.suits.json';
+
+  /// List of all assets
+  List<String> get values => [
+    jobArtifacts,
+    jobPoint,
+    jobSectInfo,
+    jobSects,
+    jobSkills,
+    jobWudao,
+    petBeastSouls,
+    petBeastSpirits,
+    petSkills,
+    petSuits,
+  ];
+}
+
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
@@ -3015,6 +3063,7 @@ class $AssetsWudaoIconsGen {
 
 abstract final class Assets {
   static const $AssetsBeastSoulGen beastSoul = $AssetsBeastSoulGen();
+  static const $AssetsCatalogGen catalog = $AssetsCatalogGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsLogoGen logo = $AssetsLogoGen();
   static const $AssetsPetSuitGen petSuit = $AssetsPetSuitGen();

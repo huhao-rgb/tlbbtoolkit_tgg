@@ -51,6 +51,19 @@ class ApiClient {
     ),
   );
 
+  /// 创建数据目录专用的 [Dio]。
+  ///
+  /// 与 [createSyncDio] 同理不挂日志；区别是**接收超时更长**——
+  /// 分片可达数百 KB，弱网下 15s 容易被误判为失败。
+  static Dio createCatalogDio(String baseUrl) => Dio(
+    BaseOptions(
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: const {'Accept': 'application/json'},
+    ),
+  );
+
   /// 供仓储层统一处理 [DioException]。
   static ApiException toApiException(Object error) {
     if (error is DioException) {

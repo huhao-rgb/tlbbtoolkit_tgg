@@ -134,6 +134,9 @@ flutter:
     - assets/beast_soul/
     - assets/pet_suit/
     - assets/splash/
+    # 数据目录内置基线（由 tools/catalog/export_catalog.dart 生成）：
+    # manifest.json + <kind>.json，远端不可用时用它保证离线可用。
+    - assets/catalog/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

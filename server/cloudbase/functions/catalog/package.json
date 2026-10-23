@@ -1,0 +1,16 @@
+{
+  "name": "catalog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "数据目录接口（按分片存放可远程更新的 JSON；走平台数据通道，读公开、写带密钥）",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.3"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

@@ -54,13 +54,27 @@ server/
     │   ├── index.js                       # CloudBase 适配层 + 数据通道存储 + 错误归类
     │   ├── index.test.js                  # 存储映射与错误归类单测
     │   └── package.json                   # 依赖仅 @cloudbase/node-sdk
+    ├── functions/catalog/                  # 数据目录（分片化 JSON，读公开/写带密钥）
+    │   ├── handler.js
+    │   ├── handler.test.js
+    │   ├── index.js
+    │   ├── index.test.js
+    │   └── package.json
     ├── migrations/
     │   ├── 20261012080638_create_reg_snapshots.sql
-    │   └── 20261012100113_reg_snapshots_data_channel.sql   # 授权 + 开 RLS
+    │   ├── 20261012100113_reg_snapshots_data_channel.sql   # 授权 + 开 RLS
+    │   ├── 20261023110000_create_catalog_files.sql
+    │   ├── 20261023110100_catalog_files_data_channel.sql    # 公开读 + RLS 写闸门
+    │   ├── 20261023113000_create_catalog_upload_parts.sql   # 分片上传暂存
+    │   └── 20261023113100_catalog_upload_parts_rls.sql
     └── scripts/
         ├── deploy.sh                      # 单测 → 部署 → **字节校验** → 契约验收
+        ├── deploy-catalog.sh              # 同上（catalog）
         ├── set-channel-secret.sh          # 设置/轮换通道密钥（写入 RLS 策略）
-        └── verify-deployment.sh           # 21 项契约验收
+        ├── set-catalog-secret.sh          # 设置/轮换目录写密钥
+        ├── publish-catalog.js             # 发布分片（PUT + 密钥）
+        ├── verify-deployment.sh           # 21 项契约验收
+        └── verify-catalog.sh              # 目录契约验收（只读 / 读写两种模式）
 ```
 
 ## 数据通道：为什么不用连接串、不开公网
@@ -197,6 +211,135 @@ tcb fn detail reg-sync | grep -c TGG_SYNC_SECRET    # 期望 ≥1
 
 迁移文件放在 `server/cloudbase/migrations/`（CLI 生成时间戳前缀），随仓库提交。
 **不要**在生产库上手工改表——否则本地与远端迁移历史会漂移。
+
+---
+
+# 数据目录（catalog）
+
+把 App 里原本硬编码在 `domain/` 的静态数据（门派神器、技能、兽灵…）搬到云端，
+按 **feature 分片**存放，客户端按需拉取。改数据不必发版。
+
+设计取向：**读公开、写带密钥、服务端不理解业务语义**。
+云函数只负责「原样存取 + 哈希一致」，JSON 的解析与降级全在客户端。
+
+## 当前部署状态
+
+| 项 | 值 |
+| --- | --- |
+| 环境 | `tgg-account-d8gd8q1mc16b81044`（ap-shanghai） |
+| 云函数 | `catalog` · Nodejs20.19 · 256MB · 5s · 云端装依赖 |
+| HTTP 路由 | `*` `/catalog` → `catalog`（匿名访问） |
+| 数据表 | `public.catalog_files`（迁移 `2026102311*`） |
+| 已发布分片 | 10 个：`job.sects` / `job.artifacts` / `job.skills` / `job.sect_info` / `job.wudao` / `job.point` / `pet.beast_spirits` / `pet.beast_souls` / `pet.suits` / `pet.skills` |
+| 写密钥 | 云函数环境变量 `TGG_CATALOG_SECRET` + RLS 策略 `tgg_catalog_gate` |
+| 契约验收 | `verify-catalog.sh` **19/19 通过**（含发布/304/下线） |
+
+> ⚠️ HTTP 访问服务会把响应头 `cache-control` 覆盖成 `no-store`
+> （平台网关行为，函数里设了也不生效）。因此**不要指望 CDN 缓存**：
+> 客户端靠本地缓存 + `If-None-Match`（304）控制流量，函数仍会正常返回 ETag。
+
+## 接口契约
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/catalog/manifest.json` | 全部分片的版本与 sha256 清单 |
+| `GET` | `/catalog/{kind}.json` | 分片原文；支持 `If-None-Match` → `304` |
+| `PUT` | `/catalog/{kind}.json` | 发布/覆盖；需 `x-catalog-token` |
+| `PUT` | `/catalog/{kind}.json?part=i&total=n` | **分片上传**（请求体 > 90 KiB 时自动使用） |
+| `DELETE` | `/catalog/{kind}.json` | 下线；需 `x-catalog-token`，幂等 |
+| `OPTIONS` | 任意 | `204`，Web 端跨域预检 |
+
+> ⚠️ **平台硬限制**：HTTP 访问服务的请求体上限是 **100 KiB**
+> （实测 102400 字节通过、105 KiB 返回 `413 EXCEED_MAX_PAYLOAD_SIZE`）。
+> 发布脚本会把大分片按换行边界切成 ≤90 KiB 的小片，云函数拼回原文后再写库 ——
+> **对客户端仍是「一个 kind 一个文件」，契约不变**。中间片返回 `202`，
+> 集齐后返回 `204` 并带最终 ETag（= 完整原文的 sha256，可与本地比对）。
+
+`kind` 规则：全小写、1~3 段、点分隔，如 `job.artifacts` / `pet.beast_spirits`。
+分片文件顶层**必须**包含 `schemaVersion`（结构版本）与 `dataVersion`（内容版本）：
+
+```json
+{ "schemaVersion": 1, "dataVersion": "2026.10.23.1", "items": { "shaolin": {} } }
+```
+
+响应头：`access-control-allow-origin: *`、`access-control-expose-headers: etag`、
+manifest `max-age=300` / 分片 `max-age=86400`。ETag 就是 body 的 sha256。
+
+## 表结构
+
+`public.catalog_files`（`kind` 主键，一分片一行）：
+
+| 列 | 说明 |
+| --- | --- |
+| `body` | **`text`**，不是 `jsonb` —— 必须原样保留发布字节，否则 sha256 对不上 |
+| `sha256` / `bytes` | 由云函数按上传字节计算，客户端据此校验 |
+| `schema_version` | 客户端能不能解析 |
+| `data_version` | 要不要更新 / 定位问题用 |
+
+权限模型：`tgg_catalog_read`（`USING (true)`）放通匿名 SELECT；
+`tgg_catalog_gate`（由 `set-catalog-secret.sh` 注入）要求 `x-tgg-catalog` 头才放行写入。
+
+分片上传另有暂存表 `public.catalog_upload_parts`（`kind + part` 主键）：
+**没有公开读策略**，读写都必须带 `x-tgg-catalog`；组装成功后函数立即清空。
+
+## 一次性配置
+
+```sh
+cd server
+
+# 1) 建表 + 公开读策略 + 授权
+tcb db pg migration up
+
+# 2) 写密钥写入 RLS 写策略（密钥从文件/环境读取，不落仓库）
+TGG_CATALOG_SECRET="$(cat ~/.tgg-catalog-secret)" \
+  ./cloudbase/scripts/set-catalog-secret.sh
+
+# 3) 部署：单测 → 部署 → 字节校验 → 契约验收
+#    带 TGG_CATALOG_SECRET 时，**同一次部署**会把密钥写进云函数环境变量
+#    （脚本用临时目录生成 cloudbaserc.json，密钥不进仓库）
+TGG_CATALOG_SECRET="$(cat ~/.tgg-catalog-secret)" \
+  ./cloudbase/scripts/deploy-catalog.sh
+```
+
+> `tcb fn deploy` 会用 `cloudbaserc.json` 的 `envVariables` **覆盖**云端配置。
+> 所以每次重新部署都应带上密钥（`deploy-catalog.sh` 已处理），
+> 否则可能把已有的 `TGG_CATALOG_SECRET` 清掉（表现为「读正常、写 500 not_configured」）。
+>
+> 改数据后**不需要重新部署函数**，只需重新发布分片。
+
+## 发布分片
+
+```sh
+cd server
+
+# 只看体积/哈希，不发请求
+node cloudbase/scripts/publish-catalog.js --dry-run \
+  job.artifacts ../assets/catalog/job/artifacts.json
+
+# 真正发布（可一次多个分片，成对给出）
+TGG_CATALOG_SECRET='<密钥>' node cloudbase/scripts/publish-catalog.js \
+  job.artifacts ../assets/catalog/job/artifacts.json \
+  pet.beast_spirits ../assets/catalog/pet/beast_spirits.json
+```
+
+`sha256` 由服务端按**上传的原始字节**计算，所以分片文件不要做二次格式化再发；
+客户端收到后按 manifest 里的 sha256 校验，逐字节一致才算成功。
+
+## 验收
+
+```sh
+# 只读（manifest / CORS / 404 / 鉴权）
+./cloudbase/scripts/verify-catalog.sh https://<envId>.service.tcloudbase.com
+
+# 读写全链路（发布会临时创建 verify.smoke 分片，结束后自动删除）
+./cloudbase/scripts/verify-catalog.sh https://<envId>.service.tcloudbase.com '<密钥>'
+```
+
+## 客户端约定
+
+- 数据源地址通过 `--dart-define=CATALOG_BASE_URL=...` 注入，**留空 = 完全离线**（只用内置 assets）。
+- 加载顺序：内置基线 → 远端覆盖（校验 sha256 后才采纳）；任何失败静默降级。
+- 首帧只读内置数据，网络更新在后台进行，**下次启动生效**。
 
 ## 本地测试
 

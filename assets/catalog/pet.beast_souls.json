@@ -1,0 +1,592 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026.10.23.a66aaed8",
+  "kind": "pet.beast_souls",
+  "items": [
+    {
+      "name": "青龙",
+      "type": "shen",
+      "cs": {
+        "name": "逆鳞",
+        "description": "主动：减少主人当前受到的封穴、麻痹、散功、封印、失明技能效果3秒时间，冷却300秒。",
+        "iconPath": "assets/beast_soul/soul_0_cs.webp"
+      },
+      "rh": {
+        "name": "青龙魂附·天罡",
+        "iconPath": "assets/beast_soul/soul_0_rh.webp",
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的冰攻击350点 2）提高主人的忽略目标冰抗125点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "白虎",
+      "type": "shen",
+      "cs": {
+        "name": "慑天",
+        "description": "被动：继承主人20%的内外功攻击、35%的命中和10%的血上限。",
+        "iconPath": "assets/beast_soul/soul_1_cs.webp"
+      },
+      "rh": {
+        "name": "白虎魂附·永夜",
+        "iconPath": "assets/beast_soul/soul_1_rh.webp",
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的玄攻击350点 2）提高主人的忽略目标玄抗125点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "玄武",
+      "type": "shen",
+      "cs": {
+        "name": "镇伏",
+        "description": "主动：给周围10米范围内的10个敌对目标上状态，使其对珍兽造成的伤害降低70%，持续10秒，冷却120秒。",
+        "iconPath": "assets/beast_soul/soul_2_cs.webp"
+      },
+      "rh": {
+        "name": "玄武魂附·九幽",
+        "iconPath": "assets/beast_soul/soul_2_rh.webp",
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的毒攻击350点 2）提高主人的忽略目标毒抗125点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "朱雀",
+      "type": "shen",
+      "cs": {
+        "name": "涅槃",
+        "description": "被动：死亡后立即复活，且复活后，重置冷却时间在2分钟内的珍兽技能冷却，同时；力量、灵气、体力、定力、身法各增加100点，持续30秒，冷却时间200秒。",
+        "iconPath": "assets/beast_soul/soul_3_cs.webp"
+      },
+      "rh": {
+        "name": "朱雀魂附·重明",
+        "iconPath": "assets/beast_soul/soul_3_rh.webp",
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的火攻击350点 2）提高主人的忽略目标火抗125点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "九尾",
+      "type": "shen",
+      "cs": {
+        "name": "千幻",
+        "description": "主动：对周围10米范围内的敌对珍兽造成一次普攻伤害，并按照对方珍兽兽魂等级给予散功，神兽6秒、荒兽8秒、灵兽10秒、无兽魂12秒，冷却时间120秒。",
+        "iconPath": "assets/beast_soul/soul_4_cs.webp"
+      },
+      "rh": {
+        "name": "九尾魂附·千秋",
+        "iconPath": "assets/beast_soul/soul_4_rh.webp",
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的血上限21000点 2）提高主人对珍兽造成的伤害45%"
+          }
+        ]
+      }
+    },
+    {
+      "name": "锦鳞",
+      "type": "huang",
+      "cs": {
+        "name": "溯洄",
+        "description": "被动：死亡时，给主人一个状态，可使主人在任何状态下，不用读条立即召唤珍兽，且使珍兽无敌2秒，状态持续15秒，冷却时间200秒。",
+        "iconPath": "assets/beast_soul/soul_5_cs.webp"
+      },
+      "rh": {
+        "name": "锦鳞魂附·寒潮",
+        "iconPath": "assets/beast_soul/soul_5_rh.webp",
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的冰攻击245点 2）提高主人的命中2740点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "幻蝶",
+      "type": "huang",
+      "cs": {
+        "name": "萦舞",
+        "description": "主动：牺牲自己，使主人进入无敌、围困状态，持续15秒，冷却300秒。（注：使用技能后会生成对应BUFF，此BUFF可手动取消）",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "幻蝶魂附·晓梦",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的玄攻击245点 2）提高主人的命中2740点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "鹿蜀",
+      "type": "huang",
+      "cs": {
+        "name": "灵犀",
+        "description": "主动：增加主人10%命中率，减少主人10%闪避率，持续15秒，冷却120秒。",
+        "iconPath": "assets/beast_soul/soul_7_cs.webp"
+      },
+      "rh": {
+        "name": "鹿蜀魂附·聆风",
+        "iconPath": "assets/beast_soul/soul_7_rh.webp",
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的会心40点 2）提高主人的会心防御40点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "霜鹤",
+      "type": "huang",
+      "cs": {
+        "name": "寻影",
+        "description": "主动：标记目标，使目标无法隐身，无法回城。切换场景消失，持续40秒，冷却120秒。",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "霜鹤魂附·鸩羽",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的毒攻击245点 2）提高主人的命中2740点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "金乌",
+      "type": "huang",
+      "cs": {
+        "name": "夕照",
+        "description": "被动：珍兽受到致命一击时，免疫此次伤害，并获得有40000生命值的护盾，护盾承受100%的伤害，同时不受控制，持续10秒，冷却时间200秒。",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "金乌魂附·燎日",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的火攻击245点 2）提高主人的命中2740点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "赤熊",
+      "type": "ling",
+      "cs": {
+        "name": "撼岳",
+        "description": "主动：对自身6米范围内最多10个目标造成一次200%的伤害，冷却时间120秒。",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "赤熊魂附·摧山",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的外功攻击4000点 2）提高主人的内功攻击4000点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "白驹",
+      "type": "ling",
+      "cs": {
+        "name": "逐风",
+        "description": "主动：提高主人移动速度40%，持续10秒，冷却时间200秒。",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "白驹魂附·守心",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的外功防御4000点 2）提高主人的内功防御4000点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "灵蝉",
+      "type": "ling",
+      "cs": {
+        "name": "悲秋",
+        "description": "主动：只能对敌对珍兽使用，使自身和目标无法移动，无法攻击，无法使用技能，持续15秒，冷却120秒。",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "灵蝉魂附·碎影",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的命中2329点 2）提高主人的闪避893点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "苍狼",
+      "type": "ling",
+      "cs": {
+        "name": "煞月",
+        "description": "被动：自身血量低于50%时，造成的伤害提高50%。",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "苍狼魂附·噬月",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的血上限9371点 2）提高主人的会心24点"
+          }
+        ]
+      }
+    },
+    {
+      "name": "飞羚",
+      "type": "ling",
+      "cs": {
+        "name": "星驰",
+        "description": "被动：主人受到的减速效果，时间减免55%。",
+        "iconPath": null
+      },
+      "rh": {
+        "name": "飞羚魂附·灵眷",
+        "iconPath": null,
+        "tiers": [
+          {
+            "lv": 1,
+            "description": null
+          },
+          {
+            "lv": 2,
+            "description": null
+          },
+          {
+            "lv": 3,
+            "description": null
+          },
+          {
+            "lv": 4,
+            "description": null
+          },
+          {
+            "lv": 5,
+            "description": null
+          },
+          {
+            "lv": 6,
+            "description": "1）提高主人的体力142点 2）提高主人的会心防御24点"
+          }
+        ]
+      }
+    }
+  ]
+}

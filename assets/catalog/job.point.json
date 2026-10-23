@@ -1,0 +1,542 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026.10.23.d1c84cc5",
+  "kind": "job.point",
+  "items": {
+    "lvMin": 10,
+    "lvMax": 119,
+    "attrs": [
+      {
+        "key": "li",
+        "label": "力量"
+      },
+      {
+        "key": "ling",
+        "label": "灵气"
+      },
+      {
+        "key": "ti",
+        "label": "体力"
+      },
+      {
+        "key": "ding",
+        "label": "定力"
+      },
+      {
+        "key": "shen",
+        "label": "身法"
+      }
+    ],
+    "weights": {
+      "shaolin": {
+        "li": 0.45,
+        "ti": 0.35,
+        "ding": 0.1,
+        "shen": 0.1
+      },
+      "mingjiao": {
+        "li": 0.5,
+        "shen": 0.3,
+        "ti": 0.2
+      },
+      "gaibang": {
+        "li": 0.4,
+        "shen": 0.3,
+        "ti": 0.3
+      },
+      "tianshan": {
+        "li": 0.45,
+        "shen": 0.4,
+        "ti": 0.15
+      },
+      "xiaoyao": {
+        "ling": 0.5,
+        "shen": 0.35,
+        "ti": 0.15
+      },
+      "emei": {
+        "ling": 0.45,
+        "ti": 0.3,
+        "ding": 0.25
+      },
+      "wudang": {
+        "ling": 0.5,
+        "ding": 0.3,
+        "shen": 0.2
+      },
+      "xingxiu": {
+        "ling": 0.45,
+        "ding": 0.3,
+        "ti": 0.25
+      },
+      "murong": {
+        "li": 0.3,
+        "ling": 0.3,
+        "ti": 0.2,
+        "ding": 0.2
+      },
+      "mantuo": {
+        "ling": 0.45,
+        "shen": 0.25,
+        "ti": 0.2,
+        "ding": 0.1
+      },
+      "tianlong": {
+        "ling": 0.35,
+        "shen": 0.3,
+        "li": 0.15,
+        "ti": 0.2
+      },
+      "erengu": {
+        "ling": 0.45,
+        "shen": 0.3,
+        "ti": 0.15,
+        "ding": 0.1
+      }
+    },
+    "growthFields": [
+      {
+        "key": "hp",
+        "label": "体力 → 血上限"
+      },
+      {
+        "key": "wai",
+        "label": "力量 → 外功攻击"
+      },
+      {
+        "key": "nei",
+        "label": "灵气 → 内功攻击"
+      },
+      {
+        "key": "mp",
+        "label": "定力 → 气上限"
+      },
+      {
+        "key": "hit",
+        "label": "身法 → 命中"
+      },
+      {
+        "key": "dodge",
+        "label": "身法 → 闪避"
+      },
+      {
+        "key": "crit",
+        "label": "身法 → 会心攻击"
+      },
+      {
+        "key": "critd",
+        "label": "身法 → 会心防御"
+      }
+    ],
+    "growth": {
+      "shaolin": {
+        "hp": {
+          "value": 71.5,
+          "approx": false
+        },
+        "wai": {
+          "value": 7.6,
+          "approx": true
+        },
+        "nei": {
+          "value": 3.8,
+          "approx": true
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": true
+        },
+        "hit": {
+          "value": 7.0,
+          "approx": true
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": true
+        },
+        "crit": {
+          "value": 0.044,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.044,
+          "approx": true
+        }
+      },
+      "mingjiao": {
+        "hp": {
+          "value": 55.2,
+          "approx": false
+        },
+        "wai": {
+          "value": 8.3,
+          "approx": false
+        },
+        "nei": {
+          "value": 3.8,
+          "approx": true
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": true
+        },
+        "hit": {
+          "value": 7.5,
+          "approx": true
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": true
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.05,
+          "approx": true
+        }
+      },
+      "gaibang": {
+        "hp": {
+          "value": 60.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 7.7,
+          "approx": true
+        },
+        "nei": {
+          "value": 3.8,
+          "approx": false
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": true
+        },
+        "hit": {
+          "value": 7.5,
+          "approx": true
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": true
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.05,
+          "approx": true
+        }
+      },
+      "tianshan": {
+        "hp": {
+          "value": 55.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 7.6184,
+          "approx": false
+        },
+        "nei": {
+          "value": 8.9,
+          "approx": false
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": false
+        },
+        "hit": {
+          "value": 8.0,
+          "approx": false
+        },
+        "dodge": {
+          "value": 3.3036,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.0714,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.0714,
+          "approx": false
+        }
+      },
+      "tianlong": {
+        "hp": {
+          "value": 58.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 6.5,
+          "approx": false
+        },
+        "nei": {
+          "value": 6.36,
+          "approx": false
+        },
+        "mp": {
+          "value": 27.0,
+          "approx": false
+        },
+        "hit": {
+          "value": 9.0,
+          "approx": false
+        },
+        "dodge": {
+          "value": 3.0,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.0303,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.0303,
+          "approx": false
+        }
+      },
+      "emei": {
+        "hp": {
+          "value": 50.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.4,
+          "approx": true
+        },
+        "nei": {
+          "value": 7.6,
+          "approx": true
+        },
+        "mp": {
+          "value": 30.0,
+          "approx": true
+        },
+        "hit": {
+          "value": 7.5,
+          "approx": true
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": true
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.05,
+          "approx": true
+        }
+      },
+      "wudang": {
+        "hp": {
+          "value": 44.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.4,
+          "approx": true
+        },
+        "nei": {
+          "value": 8.8,
+          "approx": false
+        },
+        "mp": {
+          "value": 32.0,
+          "approx": false
+        },
+        "hit": {
+          "value": 7.5,
+          "approx": true
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": true
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.05,
+          "approx": true
+        }
+      },
+      "xiaoyao": {
+        "hp": {
+          "value": 50.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.4,
+          "approx": false
+        },
+        "nei": {
+          "value": 7.6715,
+          "approx": false
+        },
+        "mp": {
+          "value": 36.0,
+          "approx": false
+        },
+        "hit": {
+          "value": 7.5,
+          "approx": false
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.05,
+          "approx": false
+        }
+      },
+      "xingxiu": {
+        "hp": {
+          "value": 52.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.4,
+          "approx": false
+        },
+        "nei": {
+          "value": 7.599,
+          "approx": false
+        },
+        "mp": {
+          "value": 36.0,
+          "approx": false
+        },
+        "hit": {
+          "value": 6.0,
+          "approx": false
+        },
+        "dodge": {
+          "value": 3.0,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.0556,
+          "approx": false
+        }
+      },
+      "murong": {
+        "hp": {
+          "value": 60.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.4,
+          "approx": true
+        },
+        "nei": {
+          "value": 8.8,
+          "approx": false
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": false
+        },
+        "hit": {
+          "value": 7.0,
+          "approx": false
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.05,
+          "approx": true
+        }
+      },
+      "mantuo": {
+        "hp": {
+          "value": 58.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.4,
+          "approx": true
+        },
+        "nei": {
+          "value": 7.1,
+          "approx": false
+        },
+        "mp": {
+          "value": 35.0,
+          "approx": false
+        },
+        "hit": {
+          "value": 9.0,
+          "approx": false
+        },
+        "dodge": {
+          "value": 3.0,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.05,
+          "approx": true
+        }
+      },
+      "erengu": {
+        "hp": {
+          "value": 50.0,
+          "approx": false
+        },
+        "wai": {
+          "value": 7.6,
+          "approx": true
+        },
+        "nei": {
+          "value": 3.8,
+          "approx": true
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": true
+        },
+        "hit": {
+          "value": 8.5,
+          "approx": true
+        },
+        "dodge": {
+          "value": 4.5,
+          "approx": true
+        },
+        "crit": {
+          "value": 0.06,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.06,
+          "approx": true
+        }
+      }
+    }
+  }
+}

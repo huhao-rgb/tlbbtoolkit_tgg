@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'package:tlbbtoolkit/core/content/catalog_providers.dart';
 import 'package:tlbbtoolkit/core/platform/app_window.dart';
 import 'package:tlbbtoolkit/shared/widgets/tap_outside_unfocus.dart';
 import 'package:tlbbtoolkit/shared/widgets/window_title_bar.dart';
@@ -21,6 +22,10 @@ class TlbbApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+
+    // 数据目录：启动后在后台检查一次远端更新（不阻塞首帧，结果下次启动生效）。
+    // 未配置 CATALOG_BASE_URL 时为空操作，不产生任何网络请求。
+    ref.listen(catalogBootstrapProvider, (_, _) {});
 
     return MaterialApp.router(
       title: '天工阁',

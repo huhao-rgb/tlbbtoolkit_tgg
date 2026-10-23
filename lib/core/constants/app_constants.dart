@@ -40,4 +40,19 @@ abstract final class AppConstants {
     'SYNC_PATH',
     defaultValue: '/reg',
   );
+
+  /// 数据目录（catalog）接口根地址，通过 `--dart-define=CATALOG_BASE_URL=...`
+  /// 注入；与云同步共用同一个 CloudBase 环境域名。
+  ///
+  /// **留空 = 未启用远端更新**：App 只用内置 `assets/catalog/` 数据，
+  /// 不产生任何网络请求。
+  static const String catalogBaseUrl = String.fromEnvironment(
+    'CATALOG_BASE_URL',
+  );
+
+  /// 数据目录路由前缀，需与控制台 HTTP 访问服务里配置的路径一致。
+  static const String catalogPath = String.fromEnvironment(
+    'CATALOG_PATH',
+    defaultValue: '/catalog',
+  );
 }
