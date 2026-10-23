@@ -38,8 +38,8 @@ echo "▶ 2/4 部署 ${FUNC} → ${ENV_ID}（路由 ${ROUTE_PATH}）"
 
 # 为什么要绕一层临时目录：
 #   1) 密钥不能写进仓库里的 cloudbaserc.json；
-#   2) `tcb fn deploy` 会用 cloudbaserc.json 里的 envVariables **覆盖**云端配置，
-#      重新部署时若不带密钥，很可能把已有的环境变量清掉。
+#   2) 不想依赖 `tcb fn deploy` 对 envVariables 的合并行为细节
+#      （实测未列出的变量会保留，但这属于平台实现细节）。
 # 这里把函数代码复制到临时目录、生成一份带 envVariables 的 cloudbaserc.json 再部署。
 STAGE="$(mktemp -d)"
 DL=""

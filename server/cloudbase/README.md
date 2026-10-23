@@ -315,9 +315,9 @@ TGG_CATALOG_SECRET="$(cat ~/.tgg-catalog-secret)" \
   ./cloudbase/scripts/deploy-catalog.sh
 ```
 
-> `tcb fn deploy` 会用 `cloudbaserc.json` 的 `envVariables` **覆盖**云端配置。
-> 所以每次重新部署都应带上密钥（`deploy-catalog.sh` 已处理），
-> 否则可能把已有的 `TGG_CATALOG_SECRET` 清掉（表现为「读正常、写 500 not_configured」）。
+> `tcb fn deploy` 会把 `cloudbaserc.json` 里列出的 `envVariables` **合并**进云端配置
+> （实测不会删除未列出的变量）。`deploy-catalog.sh` 仍然每次都带上密钥：
+> 一是不依赖这个行为细节，二是换机器/换环境时不会漏配。
 >
 > 改数据后**不需要重新部署函数**，只需重新发布分片。
 
