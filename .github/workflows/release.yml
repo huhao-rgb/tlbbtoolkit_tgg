@@ -77,7 +77,8 @@ jobs:
           # 未配置时展开为空串 → 客户端判定为「未配置云同步」并降级（不报错）。
           SYNC_BASE_URL: ${{ vars.SYNC_BASE_URL }}
           # 数据目录地址（同 SYNC_BASE_URL 的注入方式）；未配置时只用内置数据。
-          CATALOG_BASE_URL: ${{ vars.CATALOG_BASE_URL }}
+          # 与云同步同环境：未单独配置时复用 SYNC_BASE_URL（只需配一个）
+          CATALOG_BASE_URL: ${{ vars.CATALOG_BASE_URL || vars.SYNC_BASE_URL }}
           # 正式签名走 Secrets，永不以文件形式进入仓库。
           # Gradle 侧见 android/app/build.gradle.kts 的 signingValue()。
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
@@ -93,7 +94,7 @@ jobs:
           if [ -n "$CATALOG_BASE_URL" ]; then
             echo "数据目录地址：$CATALOG_BASE_URL"
           else
-            echo "::warning::未配置仓库变量 CATALOG_BASE_URL —— 本次构建只用内置数据（不热更新）"
+            echo "::warning::未配置 SYNC_BASE_URL / CATALOG_BASE_URL —— 本次构建只用内置数据（不热更新）"
           fi
           # --target-platform android-arm64：只打 arm64-v8a。
           # Flutter 默认把 arm64-v8a / armeabi-v7a / x86_64 三套引擎与 AOT 产物全部

@@ -41,13 +41,19 @@ abstract final class AppConstants {
     defaultValue: '/reg',
   );
 
-  /// 数据目录（catalog）接口根地址，通过 `--dart-define=CATALOG_BASE_URL=...`
-  /// 注入；与云同步共用同一个 CloudBase 环境域名。
+  /// 数据目录（catalog）接口根地址。
+  ///
+  /// **默认复用 [syncBaseUrl]**：两者本来就是同一个 CloudBase 环境域名，
+  /// 只是路径不同（`/reg` 与 `/catalog`），所以只需要配一个。
+  /// 需要指向别处（例如把 JSON 放 CDN）时再单独传
+  /// `--dart-define=CATALOG_BASE_URL=...` 覆盖。
   ///
   /// **留空 = 未启用远端更新**：App 只用内置 `assets/catalog/` 数据，
-  /// 不产生任何网络请求。
+  /// 不产生任何网络请求。显式传 `--dart-define=CATALOG_BASE_URL=`
+  /// （等号后为空）可在保留云同步的同时关掉远端数据。
   static const String catalogBaseUrl = String.fromEnvironment(
     'CATALOG_BASE_URL',
+    defaultValue: syncBaseUrl,
   );
 
   /// 数据目录路由前缀，需与控制台 HTTP 访问服务里配置的路径一致。

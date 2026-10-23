@@ -52,7 +52,8 @@ jobs:
           # 否则打出的 macOS 包云同步入口会被隐藏。脚本会在构建后做字节级校验。
           SYNC_BASE_URL: ${{ vars.SYNC_BASE_URL }}
           # 数据目录地址（编译期常量）；未配置时只用内置数据，功能正常但不热更。
-          CATALOG_BASE_URL: ${{ vars.CATALOG_BASE_URL }}
+          # 与云同步同环境：未单独配置时复用 SYNC_BASE_URL（只需配一个）
+          CATALOG_BASE_URL: ${{ vars.CATALOG_BASE_URL || vars.SYNC_BASE_URL }}
           # 有证书时填这两个仓库变量即可自动签名/公证，无需改脚本。
           MACOS_SIGN_IDENTITY: ${{ vars.MACOS_SIGN_IDENTITY }}
           MACOS_NOTARY_PROFILE: ${{ vars.MACOS_NOTARY_PROFILE }}

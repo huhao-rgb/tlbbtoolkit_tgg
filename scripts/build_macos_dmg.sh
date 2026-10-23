@@ -8,7 +8,7 @@
 # 可选环境变量：
 #   FLUTTER_BIN           flutter 命令，默认 "fvm flutter"（CI 里设为 flutter）
 #   SYNC_BASE_URL         云同步地址（编译期常量，必须走 --dart-define）
-#   CATALOG_BASE_URL      数据目录地址（同上；留空=只用内置数据）
+#   CATALOG_BASE_URL      数据目录地址（默认复用 SYNC_BASE_URL；留空=只用内置数据）
 #   MACOS_SIGN_IDENTITY   设置后会用 Developer ID 签名（含 DMG），否则用 ad-hoc
 #   MACOS_NOTARY_PROFILE  设置后配合签名一起做公证（notarytool 的 keychain profile）
 #
@@ -21,7 +21,7 @@ cd "${ROOT}"
 
 FLUTTER_BIN="${FLUTTER_BIN:-fvm flutter}"
 SYNC_BASE_URL="${SYNC_BASE_URL:-}"
-CATALOG_BASE_URL="${CATALOG_BASE_URL:-}"
+CATALOG_BASE_URL="${CATALOG_BASE_URL:-${SYNC_BASE_URL}}"
 SKIP_BUILD=0
 
 for arg in "$@"; do

@@ -36,7 +36,9 @@ fvm flutter run
 fvm flutter run --dart-define=API_BASE_URL=https://api.example.com \
                 --dart-define=USE_LOCAL_DATA_SOURCE=false
 
-# 启用「卡回归」云同步（地址为 CloudBase 环境，部署见 server/cloudbase/README.md）
+# 启用「卡回归」云同步 + 数据热更新
+# （同一个 CloudBase 环境地址：数据目录默认复用它，无需再配 CATALOG_BASE_URL；
+#   部署见 server/cloudbase/README.md）
 fvm flutter run --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
 
 # 静态检查
@@ -49,6 +51,10 @@ fvm flutter test
 > 💡 **VS Code 按 `F5` 已内置上述 define**（见 [`.vscode/launch.json`](.vscode/launch.json)）：
 > *「天工阁 · macOS（云同步）」/「天工阁 · Chrome（云同步）」* 会自动带上 `SYNC_BASE_URL`，
 > *「天工阁 · macOS（仅本地）」* 则不带，便于对照验证降级路径。
+>
+> 💡 数据目录（`/catalog`）与云同步（`/reg`）同属一个 CloudBase 环境，
+> `CATALOG_BASE_URL` **默认取 `SYNC_BASE_URL`**，所以只配一个变量即可；
+> 想把 JSON 放到别处（如 CDN）时再单独传 `--dart-define=CATALOG_BASE_URL=...` 覆盖。
 >
 > ⚠️ `SYNC_BASE_URL` 是**编译期**注入（`String.fromEnvironment`），
 > **不能**用 `export SYNC_BASE_URL=...` —— Flutter 不读操作系统环境变量。

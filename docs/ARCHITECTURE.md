@@ -138,7 +138,9 @@ class HomeItems extends _$HomeItems {
 - 内置基线路径 `assets/catalog/manifest.json` 与 `assets/catalog/<kind>.json`；
 - 分级版本：`schemaVersion` 高于客户端支持值时整包忽略（等 App 升级）。
 
-**开关**：`--dart-define=CATALOG_BASE_URL=...`（留空 = 完全离线，不产生网络请求）。
+**开关**：`--dart-define=CATALOG_BASE_URL=...`，**默认复用 `SYNC_BASE_URL`**
+（两者是同一个 CloudBase 环境域名，只是路径不同），因此通常只需配 `SYNC_BASE_URL`；
+都不配 = 完全离线，不产生网络请求；显式传空的 `CATALOG_BASE_URL=` 可单独关掉远端数据。
 接入新 feature 时，在它自己的 data 层调用：
 
 ```dart

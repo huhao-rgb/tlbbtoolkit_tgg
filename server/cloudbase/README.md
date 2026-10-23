@@ -338,6 +338,8 @@ TGG_CATALOG_SECRET='<密钥>' node cloudbase/scripts/publish-catalog.js \
 ## 客户端约定
 
 - 数据源地址通过 `--dart-define=CATALOG_BASE_URL=...` 注入，**留空 = 完全离线**（只用内置 assets）。
+  未单独配置时**复用 `SYNC_BASE_URL`**（同一个环境域名），CI 里即
+  `vars.CATALOG_BASE_URL || vars.SYNC_BASE_URL`。
 - 加载顺序：内置基线 → 远端覆盖（校验 sha256 后才采纳）；任何失败静默降级。
 - 首帧只读内置数据，网络更新在后台进行，**下次启动生效**。
 
