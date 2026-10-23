@@ -9,8 +9,11 @@
  *     job.artifacts assets/catalog/job/artifacts.json \
  *     pet.beast_spirits assets/catalog/pet/beast_spirits.json
  *
+ *   # 发布「刚导出」的全部分片（读 assets/catalog/manifest.json，最常用）
+ *   node server/cloudbase/scripts/publish-catalog.js --all
+ *
  *   # 只看体积/哈希，不真的发请求
- *   node server/cloudbase/scripts/publish-catalog.js --dry-run job.artifacts assets/catalog/job/artifacts.json
+ *   node server/cloudbase/scripts/publish-catalog.js --dry-run --all
  *
  * 环境变量：
  *   TGG_CATALOG_SECRET  写密钥（必须与云函数环境变量、RLS 策略一致）
@@ -38,7 +41,8 @@ const CHUNK_BYTES = 90 * 1024;
 function usage(msg) {
   if (msg) console.error(`✗ ${msg}\n`);
   console.error(
-    '用法: publish-catalog.js [--dry-run] [--base-url URL] <kind> <file> [<kind> <file> ...]',
+    '用法: publish-catalog.js [--dry-run] [--base-url URL] --all\n' +
+      '      publish-catalog.js [--dry-run] [--base-url URL] <kind> <file> [<kind> <file> ...]',
   );
   process.exit(2);
 }
@@ -179,23 +183,60 @@ function explainFailure(status, text) {
   return text || `HTTP ${status}`;
 }
 
+/** 仓库根目录（脚本位于 server/cloudbase/scripts/）。 */
+const REPO_ROOT = path.join(__dirname, '..', '..', '..');
+const BUNDLED_DIR = path.join(REPO_ROOT, 'assets', 'catalog');
+
+/**
+ * 按内置 manifest 装载全部分片。
+ *
+ * 顺手校验「文件内容」与「manifest 记录的 sha256」一致 —— 不一致说明
+ * 有人改过 JSON 却没重新导出，直接报错比发一份对不上的数据安全。
+ */
+function loadAllShards() {
+  const manifestPath = path.join(BUNDLED_DIR, 'manifest.json');
+  if (!fs.existsSync(manifestPath)) {
+    usage(`找不到 ${manifestPath}，请先运行：fvm flutter test tools/catalog/export_catalog.dart`);
+  }
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const files = Array.isArray(manifest.files) ? manifest.files : [];
+  if (files.length === 0) usage('manifest.files 为空，请重新导出');
+
+  return files.map((entry) => {
+    const shard = loadShard(entry.kind, path.join(BUNDLED_DIR, `${entry.kind}.json`));
+    if (shard.sha256 !== entry.sha256) {
+      usage(`${entry.kind}.json 与 manifest 不一致，请重新导出`);
+    }
+    return shard;
+  });
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
+  const all = args.includes('--all');
   const baseFlagIndex = args.indexOf('--base-url');
   const baseFlag = baseFlagIndex >= 0 ? args[baseFlagIndex + 1] : null;
 
   const pairs = args.filter(
     (a, i) =>
       a !== '--dry-run' &&
+      a !== '--all' &&
       a !== '--base-url' &&
       !(baseFlagIndex >= 0 && i === baseFlagIndex + 1),
   );
-  if (pairs.length === 0 || pairs.length % 2 !== 0) usage('需要成对的 <kind> <file>');
 
-  const shards = [];
-  for (let i = 0; i < pairs.length; i += 2) {
-    shards.push(loadShard(pairs[i], pairs[i + 1]));
+  let shards;
+  if (all) {
+    if (pairs.length > 0) usage('--all 不能与 <kind> <file> 同时使用');
+    shards = loadAllShards();
+    console.log(`按 assets/catalog/manifest.json 发布 ${shards.length} 个分片\n`);
+  } else {
+    if (pairs.length === 0 || pairs.length % 2 !== 0) usage('需要成对的 <kind> <file>');
+    shards = [];
+    for (let i = 0; i < pairs.length; i += 2) {
+      shards.push(loadShard(pairs[i], pairs[i + 1]));
+    }
   }
 
   const baseUrl = resolveBaseUrl(baseFlag);
