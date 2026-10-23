@@ -22,7 +22,11 @@
  *   3. HTTP 访问路由 `/reg` 指向本函数（见 server/cloudbase/README.md）。
  */
 
-const { createHandler, JSON_HEADERS } = require('./handler');
+const {
+  createHandler,
+  JSON_HEADERS,
+  DEFAULT_MAX_CREATES_PER_DAY,
+} = require('./handler');
 
 /** 数据通道里这张表的路径（schema 由 Accept-Profile 指定）。 */
 const TABLE_PATH = '/reg_snapshots';
@@ -183,6 +187,54 @@ async function request(method, query, body) {
 }
 
 /**
+ * 只取总数（不传回数据）：PostgREST 在 `Prefer: count=exact` 时用
+ * `Content-Range: 0-0/1234` 回传精确计数，配 `limit=1` 只回 1 行。
+ * 拿不到计数时返回 null —— 调用方据此**放行**，不让统计故障影响正常写入。
+ */
+async function requestCount(query) {
+  const headers = await channelHeaders();
+  headers.Prefer = 'count=exact';
+
+  let res;
+  try {
+    res = await deps.fetchImpl(`${channelCache.baseUrl}${TABLE_PATH}${query}`, {
+      method: 'GET',
+      headers,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (e) {
+    throw new ChannelUnreachableError(
+      `数据通道不可达: ${e.message}`,
+      (e && e.cause && e.cause.code) || e.code || 'CHANNEL_UNREACHABLE',
+    );
+  }
+
+  if (res.status >= 400) {
+    const text = await res.text();
+    let code = null;
+    let message = text.slice(0, 200);
+    try {
+      const parsed = JSON.parse(text);
+      code = parsed.code || null;
+      message = parsed.message || message;
+    } catch (_) {
+      /* 非 JSON 错误体 */
+    }
+    throw new ChannelError(res.status, code, message);
+  }
+
+  const range =
+    res.headers && typeof res.headers.get === 'function'
+      ? res.headers.get('content-range')
+      : null;
+  if (!range) return null;
+  const total = String(range).split('/')[1];
+  if (!total || total === '*') return null;
+  const n = Number(total);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
  * PostgreSQL 实现。
  *
  * 并发正确性靠**单条 SQL 的原子性**，不需要先查后写（因此天然免疫竞态）：
@@ -231,6 +283,14 @@ const store = {
   async remove(syncId) {
     // 幂等：不存在的 sync_id 删除影响 0 行，同样是成功
     await request('DELETE', `?${syncIdFilter(syncId)}`);
+  },
+
+  /** 滚动窗口内新建的条数；拿不到计数时返回 null（调用方放行）。 */
+  async countRecentCreates(windowMs) {
+    const since = new Date(Date.now() - windowMs).toISOString();
+    return requestCount(
+      `?select=sync_id&created_at=gte.${encodeURIComponent(since)}&limit=1`,
+    );
   },
 };
 
@@ -322,7 +382,18 @@ function classifyDbError(e) {
   return null;
 }
 
-const handle = createHandler({ store });
+/**
+ * 每日新建上限：默认 5000，可用云函数环境变量 `TGG_DAILY_CREATE_LIMIT` 调整。
+ * 传 0 或非法值则回落到默认值（不会因为配置错误把服务锁死）。
+ */
+const dailyCreateLimit =
+  Number.parseInt(process.env.TGG_DAILY_CREATE_LIMIT || '', 10) ||
+  DEFAULT_MAX_CREATES_PER_DAY;
+
+const handle = createHandler({
+  store,
+  maxCreatesPerWindow: dailyCreateLimit,
+});
 
 exports.main = async (event) => {
   // 注意：不要把 event 整段打进日志——虽然没有密钥，但密文长度/访问模式也是元数据。
@@ -371,6 +442,8 @@ exports.main = async (event) => {
 exports.normalizeHttpEvent = normalizeHttpEvent;
 exports.classifyDbError = classifyDbError;
 exports._store = store;
+exports._requestCount = requestCount;
+exports.dailyCreateLimit = dailyCreateLimit;
 exports.DbNotConfiguredError = DbNotConfiguredError;
 exports.ChannelError = ChannelError;
 exports.ChannelUnreachableError = ChannelUnreachableError;

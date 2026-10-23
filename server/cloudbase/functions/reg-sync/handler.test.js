@@ -16,11 +16,24 @@ const { createHandler, MAX_BLOB_BYTES, SYNC_ID_RE } = require('./handler');
 
 const ID = 'a'.repeat(32);
 const ID2 = 'b'.repeat(32);
+const OTHER_ID = 'c'.repeat(32);
+const OTHER_ID_2 = 'd'.repeat(32);
 
 function memoryStore() {
   const docs = new Map();
+  let recentCreates = 0;
   return {
     docs,
+    /** 让用例指定「窗口内已创建多少条」；-1 模拟统计失败（拿不到计数）。 */
+    set recentCreates(value) {
+      recentCreates = value;
+    },
+    get recentCreates() {
+      return recentCreates;
+    },
+    async countRecentCreates() {
+      return recentCreates < 0 ? null : recentCreates;
+    },
     async get(id) {
       const d = docs.get(id);
       return d ? { rev: d.rev, blob: d.blob } : null;
@@ -28,6 +41,7 @@ function memoryStore() {
     async create(id, blob) {
       if (docs.has(id)) return null;
       docs.set(id, { rev: 1, blob });
+      recentCreates += 1;
       return 1;
     },
     async compareAndSet(id, expectedRev, blob) {
@@ -167,4 +181,40 @@ test('端到端一次完整同步：创建 → 读取 → 更新 → 删除', as
   assert.deepEqual((await handle(get(ID))).json, { rev: 2, blob: 'cipher-2' });
   assert.equal((await handle({ method: 'DELETE', syncId: ID, body: null })).status, 200);
   assert.equal((await handle(get(ID))).status, 404);
+});
+
+test('防滥用：窗口内新建条数达到上限 → 429', async () => {
+  const store = memoryStore();
+  const handle = createHandler({ store, maxCreatesPerWindow: 3 });
+  store.recentCreates = 3;
+
+  const res = await handle(put(OTHER_ID, 0, 'x'));
+  assert.equal(res.status, 429);
+  assert.equal(res.json.error, 'quota_exceeded');
+  // 被拒时不应落库
+  assert.equal(store.docs.size, 0);
+});
+
+test('防滥用：未达上限仍可创建；统计失败（null）时放行', async () => {
+  const store = memoryStore();
+  const handle = createHandler({ store, maxCreatesPerWindow: 3 });
+
+  store.recentCreates = 2;
+  assert.equal((await handle(put(OTHER_ID, 0, 'x'))).status, 200);
+
+  store.recentCreates = -1; // 统计异常
+  assert.equal((await handle(put(OTHER_ID_2, 0, 'y'))).status, 200);
+});
+
+test('防滥用：更新（rev>0）不消耗创建配额', async () => {
+  const store = memoryStore();
+  const handle = createHandler({ store, maxCreatesPerWindow: 1 });
+
+  const created = await handle(put(OTHER_ID, 0, 'v1'));
+  assert.equal(created.status, 200);
+
+  // 上限已满，但更新不受影响
+  store.recentCreates = 1;
+  const updated = await handle(put(OTHER_ID, 1, 'v2'));
+  assert.equal(updated.status, 200);
 });

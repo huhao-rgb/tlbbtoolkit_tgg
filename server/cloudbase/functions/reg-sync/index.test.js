@@ -163,3 +163,32 @@ test('网络异常：包装成 ChannelUnreachableError，保留底层错误码',
     (e) => e instanceof ChannelUnreachableError && e.code === 'ECONNREFUSED',
   );
 });
+
+test('countRecentCreates：从 Content-Range 读总数，并请求 count=exact', async () => {
+  const calls = [];
+  _deps.getBaseUrl = () => 'https://example.invalid/v1/rdb/rest';
+  _deps.getAccessToken = async () => ({ token: 'tok', expiresInSeconds: 3600 });
+  _deps.fetchImpl = async (url, init) => {
+    calls.push({ url, headers: init.headers });
+    return {
+      status: 200,
+      text: async () => '[]',
+      headers: { get: (k) => (k === 'content-range' ? '0-0/42' : null) },
+    };
+  };
+  process.env.TGG_SYNC_SECRET = SECRET;
+
+  const count = await _store.countRecentCreates(24 * 60 * 60 * 1000);
+  assert.equal(count, 42);
+  assert.equal(calls[0].headers.Prefer, 'count=exact');
+  assert.ok(calls[0].url.includes('created_at=gte.'));
+});
+
+test('countRecentCreates：响应没有 Content-Range 时返回 null（调用方放行）', async () => {
+  _deps.getBaseUrl = () => 'https://example.invalid/v1/rdb/rest';
+  _deps.getAccessToken = async () => ({ token: 'tok', expiresInSeconds: 3600 });
+  _deps.fetchImpl = async () => ({ status: 200, text: async () => '[]' });
+  process.env.TGG_SYNC_SECRET = SECRET;
+
+  assert.equal(await _store.countRecentCreates(1000), null);
+});

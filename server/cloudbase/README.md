@@ -36,6 +36,7 @@ DELETE {path}?code=<syncId>              → 200 {ok:true}
 | --- | --- |
 | `400` `invalid_sync_id` / `invalid_rev` / `invalid_blob` | 请求参数不合法（不依赖配置） |
 | `409` `conflict` | `rev` 不匹配，客户端重拉 → 合并 → 重试 |
+| `429` `quota_exceeded` | 24 小时内全站新建记录达上限（默认 5000，防刷成本；更新不受影响） |
 | `413` `blob_too_large` | 密文超过 256KB |
 | `500` `db_not_configured` + `missing[]` | 缺 `TGG_SYNC_SECRET`（通道密钥没配） |
 | `503` `db_unreachable` + `code` | 数据通道网络层不通（超时/DNS/连接被拒） |
@@ -114,6 +115,19 @@ TGG_SYNC_SECRET='<新密钥>' ./cloudbase/scripts/set-channel-secret.sh
 # 2) 把同一个值填进函数环境变量（控制台操作；CLI 只能从 cloudbaserc.json 推，
 #    而密钥不允许进仓库，所以这一步必须在控制台做）
 ```
+
+## 防滥用：每日新建上限
+
+`/reg` 的**创建**（`PUT rev=0`）是唯一不需要凭证的写操作。为了避免公开地址被脚本
+刷记录、打满配额，函数会统计「滚动 24 小时内新建的条数」，超过阈值返回
+`429 quota_exceeded`。
+
+- 阈值：默认 **5000 条/24h**，可用云函数环境变量 `TGG_DAILY_CREATE_LIMIT` 调整；
+- 只限制**新建**：`rev > 0` 的更新不受影响（正常用户几乎不会触发）；
+- 统计依赖 `reg_snapshots.created_at`（迁移 `20261023120000`），不是 `updated_at`；
+- 统计失败（拿不到计数）时**放行** —— 宁可少拦一次，也不能把正常用户挡在外面。
+
+> 要彻底关掉这道闸门，把 `TGG_DAILY_CREATE_LIMIT` 设成一个很大的数即可。
 
 > ⚠️ 密钥是**唯一**的访问闸门：知道它（加上环境网关地址）就能读写这张表。
 > 不要贴进聊天记录、issue、截图。若怀疑泄露，按上面两步轮换一次即可。
