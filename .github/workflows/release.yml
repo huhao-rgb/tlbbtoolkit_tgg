@@ -76,6 +76,8 @@ jobs:
           # 名字 SYNC_BASE_URL，值形如 https://<envId>.service.tcloudbase.com）。
           # 未配置时展开为空串 → 客户端判定为「未配置云同步」并降级（不报错）。
           SYNC_BASE_URL: ${{ vars.SYNC_BASE_URL }}
+          # 数据目录地址（同 SYNC_BASE_URL 的注入方式）；未配置时只用内置数据。
+          CATALOG_BASE_URL: ${{ vars.CATALOG_BASE_URL }}
           # 正式签名走 Secrets，永不以文件形式进入仓库。
           # Gradle 侧见 android/app/build.gradle.kts 的 signingValue()。
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
@@ -88,13 +90,19 @@ jobs:
           else
             echo "::warning::未配置仓库变量 SYNC_BASE_URL —— 本次构建的包将不含云同步功能"
           fi
+          if [ -n "$CATALOG_BASE_URL" ]; then
+            echo "数据目录地址：$CATALOG_BASE_URL"
+          else
+            echo "::warning::未配置仓库变量 CATALOG_BASE_URL —— 本次构建只用内置数据（不热更新）"
+          fi
           # --target-platform android-arm64：只打 arm64-v8a。
           # Flutter 默认把 arm64-v8a / armeabi-v7a / x86_64 三套引擎与 AOT 产物全部
           # 打进一个 APK（三套 .so 合计约 60 MB）。32 位真机与模拟器用的 x86_64
           # 没有实际用户，只保留 arm64 后 .so 约 20 MB。
           flutter build apk --release \
             --target-platform android-arm64 \
-            --dart-define=SYNC_BASE_URL="$SYNC_BASE_URL"
+            --dart-define=SYNC_BASE_URL="$SYNC_BASE_URL" \
+            --dart-define=CATALOG_BASE_URL="$CATALOG_BASE_URL"
 
       # 交付名由 android/app/build.gradle.kts 的 renameApkArtifacts 生成
       # （TiangongGe-<版本>-arm64.apk）。万一命名任务没跑到，这里按同样规则补一份，

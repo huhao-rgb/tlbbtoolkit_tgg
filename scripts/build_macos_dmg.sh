@@ -8,6 +8,7 @@
 # 可选环境变量：
 #   FLUTTER_BIN           flutter 命令，默认 "fvm flutter"（CI 里设为 flutter）
 #   SYNC_BASE_URL         云同步地址（编译期常量，必须走 --dart-define）
+#   CATALOG_BASE_URL      数据目录地址（同上；留空=只用内置数据）
 #   MACOS_SIGN_IDENTITY   设置后会用 Developer ID 签名（含 DMG），否则用 ad-hoc
 #   MACOS_NOTARY_PROFILE  设置后配合签名一起做公证（notarytool 的 keychain profile）
 #
@@ -20,6 +21,7 @@ cd "${ROOT}"
 
 FLUTTER_BIN="${FLUTTER_BIN:-fvm flutter}"
 SYNC_BASE_URL="${SYNC_BASE_URL:-}"
+CATALOG_BASE_URL="${CATALOG_BASE_URL:-}"
 SKIP_BUILD=0
 
 for arg in "$@"; do
@@ -66,10 +68,15 @@ if [ "${SKIP_BUILD}" -eq 0 ]; then
   else
     echo "    未提供 SYNC_BASE_URL —— 本次构建的包不含云同步功能"
   fi
+  if [ -n "${CATALOG_BASE_URL}" ]; then
+    echo "    数据目录地址：${CATALOG_BASE_URL}"
+  else
+    echo "    未提供 CATALOG_BASE_URL —— 本次构建只用内置数据（不热更新）"
+  fi
   # SYNC_BASE_URL 是编译期常量（String.fromEnvironment），漏传不会报错，
   # 只会让云同步入口静默消失，所以必须用 --dart-define 注入。
   # shellcheck disable=SC2086 # FLUTTER_BIN 允许是 "fvm flutter" 两个词
-  ${FLUTTER_BIN} build macos --release "--dart-define=SYNC_BASE_URL=${SYNC_BASE_URL}"
+  ${FLUTTER_BIN} build macos --release "--dart-define=SYNC_BASE_URL=${SYNC_BASE_URL}" "--dart-define=CATALOG_BASE_URL=${CATALOG_BASE_URL}"
 fi
 
 if [ ! -d "${APP_PATH}" ]; then
@@ -99,6 +106,19 @@ if [ -n "${SYNC_BASE_URL}" ]; then
     exit 1
   fi
   echo "    校验通过：SYNC_BASE_URL 已编入 App.framework"
+fi
+
+if [ -n "${CATALOG_BASE_URL}" ]; then
+  APP_BINARY="${APP_PATH}/Contents/Frameworks/App.framework/Versions/A/App"
+  if [ ! -f "${APP_BINARY}" ]; then
+    echo "找不到 AOT 产物：${APP_BINARY}" >&2
+    exit 1
+  fi
+  if ! LC_ALL=C grep -qaF -- "${CATALOG_BASE_URL}" "${APP_BINARY}"; then
+    echo "CATALOG_BASE_URL 未编入 App.framework，打出的包将无法热更新数据。" >&2
+    exit 1
+  fi
+  echo "    校验通过：CATALOG_BASE_URL 已编入 App.framework"
 fi
 
 echo "==> 生成安装窗口背景"

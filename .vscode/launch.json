@@ -5,6 +5,7 @@
   //    放 `args` 会被当成传给 main() 的参数、define 不生效。
   //
   // 云同步地址与后端部署说明见 server/cloudbase/README.md。
+  // CATALOG_BASE_URL = 数据目录接口（远端热更新）；留空则完全离线只用内置数据。
   "version": "0.2.0",
   "configurations": [
     {
@@ -14,7 +15,8 @@
       "program": "lib/main.dart",
       "deviceId": "macos",
       "toolArgs": [
-        "--dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com"
+        "--dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com",
+        "--dart-define=CATALOG_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com"
       ]
     },
     {
@@ -24,7 +26,8 @@
       "program": "lib/main.dart",
       "deviceId": "chrome",
       "toolArgs": [
-        "--dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com"
+        "--dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com",
+        "--dart-define=CATALOG_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com"
       ]
     },
     {

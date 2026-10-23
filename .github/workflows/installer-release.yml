@@ -59,6 +59,7 @@ jobs:
         # 读取仓库变量 vars.SYNC_BASE_URL。
         env:
           SYNC_BASE_URL: ${{ vars.SYNC_BASE_URL }}
+          CATALOG_BASE_URL: ${{ vars.CATALOG_BASE_URL }}
         shell: pwsh
         run: |
           if ($env:SYNC_BASE_URL) {
@@ -66,7 +67,12 @@ jobs:
           } else {
             Write-Warning "未配置仓库变量 SYNC_BASE_URL —— 本次构建的包将不含云同步功能"
           }
-          flutter build windows --release --dart-define=SYNC_BASE_URL="$env:SYNC_BASE_URL"
+          if ($env:CATALOG_BASE_URL) {
+            Write-Host "数据目录地址：$env:CATALOG_BASE_URL"
+          } else {
+            Write-Warning "未配置仓库变量 CATALOG_BASE_URL —— 本次构建只用内置数据（不热更新）"
+          }
+          flutter build windows --release --dart-define=SYNC_BASE_URL="$env:SYNC_BASE_URL" --dart-define=CATALOG_BASE_URL="$env:CATALOG_BASE_URL"
           if ($LASTEXITCODE -ne 0) { throw "主程序构建失败" }
 
           # 编译期常量一旦漏传不会有任何报错，只会静默隐藏云同步入口，
