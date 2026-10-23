@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +13,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
+import 'package:tlbbtoolkit/features/pet/data/pet_catalog.dart';
 import 'package:tlbbtoolkit/features/pet/domain/pet_prob.dart';
 
 /// 宝宝技能释放概率（对应原型 `v-pet-prob`）。
@@ -23,34 +25,46 @@ import 'package:tlbbtoolkit/features/pet/domain/pet_prob.dart';
 /// - 概率 = 实测基准值 × 性格修正系数（上限 100%），逻辑见 `pet_prob.dart`。
 ///
 /// 页面不含 Scaffold/AppBar（信息条与返回按钮由 shell 框架提供）。
-class PetProbPage extends StatefulWidget {
+class PetProbPage extends ConsumerStatefulWidget {
   const PetProbPage({super.key});
 
   @override
-  State<PetProbPage> createState() => _PetProbPageState();
+  ConsumerState<PetProbPage> createState() => _PetProbPageState();
 }
 
-class _PetProbPageState extends State<PetProbPage> {
-  /// 当前性格（默认「通用」）。
-  PetChar _char = kPetChars.first;
+class _PetProbPageState extends ConsumerState<PetProbPage> {
+  /// 当前性格 key（null = 用列表首项「通用」）。
+  ///
+  /// 存 key 而不是对象：分片更新后旧对象会失效，按 key 重新定位才稳妥。
+  String? _charKey;
 
   /// 当前分类筛选（null = 全部）。
   PetSkillCat? _cat;
 
-  List<PetSkill> get _visibleSkills => _cat == null
-      ? kPetSkills
-      : kPetSkills.where((s) => s.cat == _cat).toList(growable: false);
+  /// catalog 分片优先；读不到/解析失败时回退内置常量。
+  PetSkillCatalog get _catalog =>
+      ref.watch(petSkillCatalogProvider).value ??
+      (skills: kPetSkills, chars: kPetChars);
+
+  PetChar _charOf(List<PetChar> chars) =>
+      chars.firstWhere((c) => c.key == _charKey, orElse: () => chars.first);
+
+  List<PetSkill> _visibleSkills(List<PetSkill> skills) => _cat == null
+      ? skills
+      : skills.where((s) => s.cat == _cat).toList(growable: false);
 
   /// 打开技能详情弹窗（对应原型 skillModal / openSkillDetail）。
-  void _openDetail(PetSkill skill) {
+  void _openDetail(PetSkill skill, PetChar char) {
     showTgModal(
       context: context,
-      child: _SkillDetailDialog(skill: skill, char: _char),
+      child: _SkillDetailDialog(skill: skill, char: char),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final catalog = _catalog;
+    final char = _charOf(catalog.chars);
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
@@ -89,11 +103,11 @@ class _PetProbPageState extends State<PetProbPage> {
                       spacing: TgSpacing.s9,
                       runSpacing: TgSpacing.sm,
                       children: [
-                        for (final c in kPetChars)
+                        for (final c in catalog.chars)
                           _TgChip(
                             label: c.name,
-                            active: c.key == _char.key,
-                            onTap: () => setState(() => _char = c),
+                            active: c.key == char.key,
+                            onTap: () => setState(() => _charKey = c.key),
                           ),
                       ],
                     ),
@@ -120,9 +134,9 @@ class _PetProbPageState extends State<PetProbPage> {
                     // 列表卡
                     _ProbListCard(
                       compact: compact,
-                      char: _char,
-                      skills: _visibleSkills,
-                      onDetail: _openDetail,
+                      char: char,
+                      skills: _visibleSkills(catalog.skills),
+                      onDetail: (skill) => _openDetail(skill, char),
                     ),
                     const SizedBox(height: TgSpacing.s14),
                     const _FormulaNote(),

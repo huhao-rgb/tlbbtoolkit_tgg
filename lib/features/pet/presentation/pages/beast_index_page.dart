@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/features/pet/data/pet_catalog.dart';
 import 'package:tlbbtoolkit/features/pet/domain/beast_spirit.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
@@ -22,14 +24,14 @@ import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
 ///   数据的兽灵按 7 阶 chips 切换「阶位说明 + 两个效果位」，其余展示攻略共识。
 ///
 /// 与 v1.11.1 版（流派筛选 + 星级卡片网格 + 成长档位弹窗）为**整体替换**。
-class BeastIndexPage extends StatefulWidget {
+class BeastIndexPage extends ConsumerStatefulWidget {
   const BeastIndexPage({super.key});
 
   @override
-  State<BeastIndexPage> createState() => _BeastIndexPageState();
+  ConsumerState<BeastIndexPage> createState() => _BeastIndexPageState();
 }
 
-class _BeastIndexPageState extends State<BeastIndexPage> {
+class _BeastIndexPageState extends ConsumerState<BeastIndexPage> {
   /// 技能类型筛选；null = 全部。
   BeastSpiritKind? _kind;
 
@@ -41,15 +43,26 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   /// 默认展开首项（破御）：原型初始态虽无 `.open`，但整页内容全靠手风琴
   /// 承载，首屏全收起过于空，故默认展开首项。用 id 而非下标记录，切换筛选后
   /// 不会因为下标错位而展开到别的兽灵。
-  String? _open = kBeastSpirits.first.id;
+  String? _open;
+
+  /// 用户是否手动改过展开项；false 时默认展开当前列表首项。
+  bool _openTouched = false;
+
+  /// catalog 分片优先；读不到/解析失败时回退内置常量。
+  List<BeastSpirit> get _spirits =>
+      ref.watch(beastSpiritCatalogProvider).value?.spirits ?? kBeastSpirits;
 
   /// 各兽灵当前选中的阶位（收起后保留，对应原型 DOM 状态不重置）。
   final Map<String, int> _tierSel = <String, int>{};
 
   /// 类型 + 关键词过滤后的兽灵。
-  List<BeastSpirit> _filtered(BeastSpiritKind? kind, String query) {
+  List<BeastSpirit> _filtered(
+    BeastSpiritKind? kind,
+    String query,
+    List<BeastSpirit> spirits,
+  ) {
     final q = query.trim();
-    return kBeastSpirits
+    return spirits
         .where((s) => kind == null || s.kind == kind)
         .where((s) => q.isEmpty || _matches(s, q))
         .toList(growable: false);
@@ -69,13 +82,19 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   }
 
   /// 当前筛选下可见的兽灵。
-  List<BeastSpirit> get _visible => _filtered(_kind, _query);
+  List<BeastSpirit> _visible(List<BeastSpirit> spirits) =>
+      _filtered(_kind, _query, spirits);
+
+  /// 实际展开的 id：没手动改过就默认展开首个可见项。
+  String? _openIdOf(List<BeastSpirit> visible) =>
+      _openTouched ? _open : (visible.isEmpty ? null : visible.first.id);
 
   /// 切换类型筛选，并默认展开新列表首项（避免展开项被筛掉后一片空白）。
   void _selectKind(BeastSpiritKind? kind) {
     setState(() {
       _kind = kind;
-      final list = _filtered(_kind, _query);
+      final list = _filtered(_kind, _query, _spirits);
+      _openTouched = true;
       _open = list.isEmpty ? null : list.first.id;
     });
   }
@@ -84,14 +103,16 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
   void _search(String query) {
     setState(() {
       _query = query;
-      final list = _filtered(_kind, _query);
+      final list = _filtered(_kind, _query, _spirits);
+      _openTouched = true;
       _open = list.isEmpty ? null : list.first.id;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final visible = _visible;
+    final visible = _visible(_spirits);
+    final openId = _openIdOf(visible);
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
@@ -196,10 +217,11 @@ class _BeastIndexPageState extends State<BeastIndexPage> {
                           for (final (i, s) in visible.indexed) ...[
                             _BeastAccItem(
                               spirit: s,
-                              open: _open == s.id,
-                              onToggle: () => setState(
-                                () => _open = _open == s.id ? null : s.id,
-                              ),
+                              open: openId == s.id,
+                              onToggle: () => setState(() {
+                                _openTouched = true;
+                                _open = openId == s.id ? null : s.id;
+                              }),
                               tierIndex: _tierSel[s.id] ?? 0,
                               onTier: (t) => setState(() => _tierSel[s.id] = t),
                             ),

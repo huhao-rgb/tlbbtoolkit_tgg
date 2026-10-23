@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
@@ -51,12 +52,14 @@ void main() {
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: TgTheme.dark,
-          darkTheme: TgTheme.dark,
-          themeMode: ThemeMode.dark,
-          home: Scaffold(body: BeastIndexPage(key: ValueKey('shot-$seq'))),
+        ProviderScope(
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: TgTheme.dark,
+            darkTheme: TgTheme.dark,
+            themeMode: ThemeMode.dark,
+            home: Scaffold(body: BeastIndexPage(key: ValueKey('shot-$seq'))),
+          ),
         ),
       );
       await tester.pump();

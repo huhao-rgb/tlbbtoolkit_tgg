@@ -6,18 +6,35 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tlbbtoolkit/app/app.dart';
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
+import 'package:tlbbtoolkit/features/job/data/job_artifacts_repository.dart';
+import 'package:tlbbtoolkit/features/job/domain/job_artifact.dart';
 import 'package:tlbbtoolkit/features/job/presentation/pages/job_artifact_page.dart';
 import 'package:tlbbtoolkit/features/job/presentation/pages/job_sect_intro_page.dart';
 
-Future<void> _pumpArtifact(WidgetTester tester) async {
+/// 页面从 catalog 取数据；widget 测试里直接覆盖 provider，
+/// 避免 `rootBundle` 的真实文件 I/O 被 `pumpAndSettle` 的假时钟卡住。
+/// 内置资产的正确性由 `job_artifacts_repository_test.dart` 单独校验。
+Future<void> _pumpArtifact(
+  WidgetTester tester, {
+  Map<String, JobArtifact>? data,
+}) async {
   tester.view.physicalSize =
       const Size(1200, 1600) * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
+
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
-    MaterialApp(
-      theme: TgTheme.dark,
-      darkTheme: TgTheme.dark,
-      home: const Scaffold(body: JobArtifactPage()),
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        jobArtifactsProvider.overrideWith((ref) async => data ?? kJobArtifacts),
+      ],
+      child: MaterialApp(
+        theme: TgTheme.dark,
+        darkTheme: TgTheme.dark,
+        home: const Scaffold(body: JobArtifactPage()),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -28,10 +45,12 @@ Future<void> _pumpSect(WidgetTester tester) async {
       const Size(1200, 1600) * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
-    MaterialApp(
-      theme: TgTheme.dark,
-      darkTheme: TgTheme.dark,
-      home: const Scaffold(body: JobSectIntroPage()),
+    ProviderScope(
+      child: MaterialApp(
+        theme: TgTheme.dark,
+        darkTheme: TgTheme.dark,
+        home: const Scaffold(body: JobSectIntroPage()),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -126,6 +145,32 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('大楚秋声'), findsOneWidget);
       expect(find.textContaining('山茶花宝石光效'), findsOneWidget);
+    });
+
+    testWidgets('数据来自 catalog：provider 给什么就渲染什么', (tester) async {
+      const data = <String, JobArtifact>{
+        'shaolin': JobArtifact(
+          weapon: '测试武器',
+          tiers: [
+            JobArtifactTier(
+              lv: 42,
+              name: '测试神器甲',
+              intro: '测试简介',
+              stats: ['攻击 +1'],
+              extra: '测试特性',
+              how: ['步骤一'],
+            ),
+          ],
+        ),
+      };
+
+      await _pumpArtifact(tester, data: data);
+
+      expect(find.text('测试神器甲'), findsOneWidget);
+      expect(find.text('42 级神器'), findsOneWidget);
+      expect(find.textContaining('适配武器：测试武器'), findsOneWidget);
+      // 覆盖后不应再出现内置常量里的少林神器
+      expect(find.text('熔金落日刀'), findsNothing);
     });
   });
 

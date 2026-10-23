@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/features/job/data/job_catalog.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
@@ -18,7 +20,7 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 /// 门派筛选 + 心法筛选（全部 / 七本心法）+ 技能列表。
 /// 「全部」时按七本心法分组（`xf-head`），选单本心法则只列出该组技能；
 /// 每门技能显示 名称 / 类型 tag / 冷却 / 描述（`.skill-rows`）。
-class JobSkillPage extends StatefulWidget {
+class JobSkillPage extends ConsumerStatefulWidget {
   const JobSkillPage({super.key, this.initialSect});
 
   /// 初始门派 key（如 `shaolin`；来自门派介绍页「深入这个门派」跳转）。
@@ -26,10 +28,10 @@ class JobSkillPage extends StatefulWidget {
   final String? initialSect;
 
   @override
-  State<JobSkillPage> createState() => _JobSkillPageState();
+  ConsumerState<JobSkillPage> createState() => _JobSkillPageState();
 }
 
-class _JobSkillPageState extends State<JobSkillPage> {
+class _JobSkillPageState extends ConsumerState<JobSkillPage> {
   /// 当前门派（默认逍遥，对应原型 `skSect='xiaoyao'`；
   /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
   late JobSect _sect;
@@ -37,9 +39,16 @@ class _JobSkillPageState extends State<JobSkillPage> {
   /// 当前心法序号；-1 = 全部（对应原型 `skMind`，`'all'`）。
   int _mind = -1;
 
-  List<JobMind> get _minds => kJobMinds[_sect.key] ?? const [];
+  /// catalog 分片优先，读不到/解析失败时回退内置常量（首帧不闪 loading）。
+  List<JobMind> get _minds =>
+      ref.watch(jobSkillCatalogProvider).value?.minds[_sect.key] ??
+      kJobMinds[_sect.key] ??
+      const [];
 
-  List<JobSkill> get _skills => kJobSkills[_sect.key] ?? const [];
+  List<JobSkill> get _skills =>
+      ref.watch(jobSkillCatalogProvider).value?.skills[_sect.key] ??
+      kJobSkills[_sect.key] ??
+      const [];
 
   @override
   void initState() {

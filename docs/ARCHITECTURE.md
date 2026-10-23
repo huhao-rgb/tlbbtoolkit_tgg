@@ -111,6 +111,71 @@ class HomeItems extends _$HomeItems {
   便于测试时替换。
 - feature 内部的仓储 provider 负责把 `core` 的能力组装给 `presentation`。
 
+## 数据目录（`lib/core/content/`）
+
+静态数据（门派神器、技能、兽灵…）支持「内置基线 + 远端热更新」，
+数据与代码分离：改数据不必发版。服务端契约见
+[`server/cloudbase/README.md`](../server/cloudbase/README.md)「数据目录」一节。
+
+| 文件 | 职责 |
+| --- | --- |
+| `catalog_manifest.dart` | 清单模型（`kind` / `schemaVersion` / `sha256`），对外部数据容错 |
+| `catalog_remote_source.dart` | `GET manifest.json` / `GET {kind}.json`，支持 `If-None-Match` → 304 |
+| `catalog_storage*.dart` | 缓存介质：原生=文件，Web=SharedPreferences（条件导入） |
+| `catalog_cache.dart` | `pending` / `active` 两套 key，激活前校验 sha256 |
+| `catalog_repository.dart` | 优先级与降级，`refresh()` 永不抛异常 |
+| `catalog_providers.dart` | `catalogRepositoryProvider` / `catalogBootstrapProvider` |
+
+**读取优先级**：本地缓存 → 内置 `assets/catalog/` → 空（`null`，调用方兜底）。
+
+**更新语义**：启动后后台检查一次（TTL 12h），下载校验通过后写进 `pending`，
+**下次启动**由 `init()` 激活 —— 不在会话中途换数据，避免页面正在读的列表突变。
+
+**分片约定**：
+
+- `kind`：全小写、点分隔，如 `job.artifacts` / `pet.beast_spirits`；
+- 分片顶层必须含 `schemaVersion`（结构版本）与 `dataVersion`（内容版本）；
+- 内置基线路径 `assets/catalog/manifest.json` 与 `assets/catalog/<kind>.json`；
+- 分级版本：`schemaVersion` 高于客户端支持值时整包忽略（等 App 升级）。
+
+**开关**：`--dart-define=CATALOG_BASE_URL=...`（留空 = 完全离线，不产生网络请求）。
+接入新 feature 时，在它自己的 data 层调用：
+
+```dart
+final repo = await ref.watch(catalogRepositoryProvider.future);
+final raw = await repo.loadShard('job.artifacts'); // null = 用代码兜底
+```
+
+**已接入的分片**（10 个）：
+
+| feature | 分片 | 入口 |
+| --- | --- | --- |
+| job | `job.sects` / `job.artifacts` / `job.skills` / `job.sect_info` / `job.wudao` | `data/job_catalog.dart` · `data/job_artifacts_repository.dart` |
+| pet | `pet.beast_spirits` / `pet.beast_souls` / `pet.suits` / `pet.skills` | `data/pet_catalog.dart` |
+
+> `job.point`（成长系数 / 权重）也已发布到云端，但**计算器仍读常量**：
+> 这些数值参与纯函数计算（`recommendPoints` / `computePreview` / `suitMatsCalc`），
+> 迁移需要把参数一路透传，留待后续。
+
+模式为三层：
+
+1. `data/xxx_parser.dart` —— 分片 JSON → 领域实体（坏条目跳过，不整体失败）；
+2. `data/xxx_repository.dart` —— `@riverpod` 读分片，读不到/解析失败回退领域常量；
+3. `presentation` —— 两种取数写法，按页面骨架选：
+
+   - **整页依赖数据**（如职业神器页）：`AppAsyncView` + `ref.watch(...)`；
+   - **数据只是页面一部分**（其余 7 个页面）：`ref.watch(xxx).value ?? 常量`，
+     首帧直接用常量渲染，分片读好后自动重建，**不出现 loading 空档**。
+
+   两种写法都保留常量兜底：分片缺失 / 解析失败时页面照常可用。
+
+> Widget 测试里 `rootBundle` 走真实文件 I/O，会被 `pumpAndSettle` 的假时钟卡住：
+> 页面的 widget 测试直接覆盖数据 provider，内置资产与常量的一致性由
+> `test/features/job/job_artifacts_repository_test.dart` 单独校验。
+
+> 服务端存的是**原文**（`text` 而非 `jsonb`），客户端按 manifest 的 sha256 校验，
+> 所以分片不要在下发前二次格式化。
+
 ## 路由约定（go_router + go_router_builder）
 
 - 每个 feature 在根部定义 `<name>_routes.dart`，用 `@TypedGoRoute` 声明路由类：

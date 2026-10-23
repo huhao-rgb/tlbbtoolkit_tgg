@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/features/job/data/job_artifacts_repository.dart';
+import 'package:tlbbtoolkit/features/job/domain/job_artifact.dart';
+import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
+import 'package:tlbbtoolkit/features/job/presentation/widgets/job_common.dart';
+import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/app_async_view.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
-import 'package:tlbbtoolkit/features/job/domain/job_artifact.dart';
-import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
-import 'package:tlbbtoolkit/features/job/presentation/widgets/job_common.dart';
-import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.dart';
 
 /// 职业神器（对应原型 `v-class-artifact`）。
 ///
 /// 门派筛选 + 门派名/定位 tag；卡片内含「蓝色剑砖 + 神器名 + 等级 tag +
 /// 档位分段(42~102 九档)」头部、神器简介、基础属性、神兵特性
 /// 与获取途径；点档位切换该门派该档神器详情。
-class JobArtifactPage extends StatefulWidget {
+class JobArtifactPage extends ConsumerStatefulWidget {
   const JobArtifactPage({super.key, this.initialSect});
 
   /// 初始门派 key（如 `shaolin`；来自门派介绍页「深入这个门派」跳转）。
@@ -27,10 +30,10 @@ class JobArtifactPage extends StatefulWidget {
   final String? initialSect;
 
   @override
-  State<JobArtifactPage> createState() => _JobArtifactPageState();
+  ConsumerState<JobArtifactPage> createState() => _JobArtifactPageState();
 }
 
-class _JobArtifactPageState extends State<JobArtifactPage> {
+class _JobArtifactPageState extends ConsumerState<JobArtifactPage> {
   /// 当前门派（默认少林，对应原型 `afSt.sect='shaolin'`；
   /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
   late JobSect _sect;
@@ -47,12 +50,27 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
         : kJobSects.firstWhere((s) => s.key == 'shaolin');
   }
 
-  JobArtifact get _artifact => kJobArtifacts[_sect.key]!;
-
-  JobArtifactTier get _t => _artifact.tiers[_tier];
-
   @override
   Widget build(BuildContext context) {
+    return AppAsyncView<Map<String, JobArtifact>>(
+      value: ref.watch(jobArtifactsProvider),
+      onRetry: () => ref.invalidate(jobArtifactsProvider),
+      dataBuilder: _buildContent,
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    Map<String, JobArtifact> artifacts,
+  ) {
+    // 分片可能少某个门派：优先用该门派的常量兜底，而不是错拿别家门派的神器
+    final artifact = artifacts[_sect.key] ?? kJobArtifacts[_sect.key];
+    if (artifact == null || artifact.tiers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    // 远端数据可能比当前缓存短，档位下标做一次收敛
+    final tier = artifact.tiers[_tier.clamp(0, artifact.tiers.length - 1)];
+
     final tg = context.tg;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -139,7 +157,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                             builder: (context, c) {
                               final seg = _LvSeg(
                                 labels: [
-                                  for (final t in _artifact.tiers) '${t.lv}',
+                                  for (final t in artifact.tiers) '${t.lv}',
                                 ],
                                 selected: _tier,
                                 onSelect: (i) => setState(() => _tier = i),
@@ -173,7 +191,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                                       children: [
                                         // suit-name：神器名（serif）
                                         Text(
-                                          _t.name,
+                                          tier.name,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -186,7 +204,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         // tag-gold：42 级神器
-                                        _LvTag(lv: _t.lv),
+                                        _LvTag(lv: tier.lv),
                                       ],
                                     ),
                                   ),
@@ -218,7 +236,7 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                           // afIntro：神器简介（金 soul-fx）
                           JobSoulFx(
                             title: '神器简介',
-                            text: '${_t.intro}（适配武器：${_artifact.weapon}）',
+                            text: '${tier.intro}（适配武器：${artifact.weapon}）',
                             top: 16,
                           ),
                           // 基础属性
@@ -228,14 +246,14 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                           JobMatRow(
                             compact: compact,
                             items: [
-                              for (var i = 0; i < _t.stats.length; i++)
-                                _statItem(_t.stats[i], i + 1),
+                              for (var i = 0; i < tier.stats.length; i++)
+                                _statItem(tier.stats[i], i + 1),
                             ],
                           ),
                           // afExtra：神兵特性（蓝 soul-fx）
                           JobSoulFx(
                             title: '神兵特性',
-                            text: _t.extra,
+                            text: tier.extra,
                             top: 18,
                             accent: JobSoulAccent.blue,
                           ),
@@ -243,9 +261,9 @@ class _JobArtifactPageState extends State<JobArtifactPage> {
                           const SizedBox(height: 18),
                           const JobSectionTitle('获取途径'),
                           const SizedBox(height: 6),
-                          for (var i = 0; i < _t.how.length; i++) ...[
+                          for (var i = 0; i < tier.how.length; i++) ...[
                             if (i > 0) const SizedBox(height: 8),
-                            _HowStep(index: i + 1, text: _t.how[i]),
+                            _HowStep(index: i + 1, text: tier.how[i]),
                           ],
                         ],
                       ),

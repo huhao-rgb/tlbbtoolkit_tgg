@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
@@ -11,6 +12,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_segmented.dart';
+import 'package:tlbbtoolkit/features/pet/data/pet_catalog.dart';
 import 'package:tlbbtoolkit/features/pet/domain/pet_suit.dart';
 
 /// 宝宝套装图鉴（怀旧服珍兽套装 / 宝宝套）。
@@ -23,16 +25,16 @@ import 'package:tlbbtoolkit/features/pet/domain/pet_suit.dart';
 /// 数据与公式见 `pet_suit.dart`（22 个真实系列 + 圣兽鳞消耗表）。
 ///
 /// 页面不含 Scaffold/AppBar（信息条与返回按钮由 shell 框架提供）。
-class PetSuitPage extends StatefulWidget {
+class PetSuitPage extends ConsumerStatefulWidget {
   const PetSuitPage({super.key});
 
   @override
-  State<PetSuitPage> createState() => _PetSuitPageState();
+  ConsumerState<PetSuitPage> createState() => _PetSuitPageState();
 }
 
 enum _SuitView { dex, calc }
 
-class _PetSuitPageState extends State<PetSuitPage> {
+class _PetSuitPageState extends ConsumerState<PetSuitPage> {
   _SuitView _view = _SuitView.dex;
 
   /// 图鉴档位（每档是一批独立系列，默认 85）。
@@ -112,7 +114,12 @@ class _PetSuitPageState extends State<PetSuitPage> {
                       ),
                       const SizedBox(height: TgSpacing.md),
                       _SuitGrid(
-                        series: petSuitsAt(_dexLv),
+                        series:
+                            (ref.watch(petSuitCatalogProvider).value ??
+                                    petSuitFallback)
+                                .series
+                                .where((x) => x.lv == _dexLv)
+                                .toList(growable: false),
                         onCardTap: _openParts,
                       ),
                       const SizedBox(height: TgSpacing.s12),
@@ -194,22 +201,23 @@ class _SuitChip extends StatelessWidget {
 }
 
 /// 档位切换行（75 / 85 / 95；每档系列独立，右侧显示系列数）。
-class _SuitLvRow extends StatelessWidget {
+class _SuitLvRow extends ConsumerWidget {
   const _SuitLvRow({required this.lv, required this.onChanged});
 
   final String lv;
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tg = context.tg;
+    final catalog = ref.watch(petSuitCatalogProvider).value ?? petSuitFallback;
     return Wrap(
       spacing: TgSpacing.s9,
       runSpacing: TgSpacing.sm,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         _CalcLabel(text: '套装档位'),
-        for (final k in kSuitLvKeys)
+        for (final k in catalog.lvKeys)
           _SuitChip(
             label: '$k 级套装',
             active: k == lv,
@@ -217,7 +225,7 @@ class _SuitLvRow extends StatelessWidget {
           ),
         const SizedBox(width: TgSpacing.s10),
         Text(
-          '共 ${petSuitsAt(lv).length} 个系列',
+          '共 ${catalog.series.where((x) => x.lv == lv).length} 个系列',
           style: TgType.caption.copyWith(color: tg.t3),
         ),
       ],
@@ -549,15 +557,16 @@ class _InfoRow extends StatelessWidget {
 }
 
 /// 五件套部件预览弹窗（对应 `.modal` / `suitModal`）。
-class _SuitPartsDialog extends StatelessWidget {
+class _SuitPartsDialog extends ConsumerWidget {
   const _SuitPartsDialog({required this.series});
 
   final PetSuitSeries series;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tg = context.tg;
-    final cost = kSuitMatCost[series.lv]!;
+    final catalog = ref.watch(petSuitCatalogProvider).value ?? petSuitFallback;
+    final cost = catalog.matCost[series.lv]!;
     final perPieceFull = cost.perPieceTo(5);
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -625,7 +634,7 @@ class _SuitPartsDialog extends StatelessWidget {
                 const SizedBox(height: TgSpacing.s10),
                 Column(
                   children: [
-                    for (final slot in kPetSuitSlots)
+                    for (final slot in catalog.slots)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _PartRow(
@@ -646,7 +655,7 @@ class _SuitPartsDialog extends StatelessWidget {
                 ],
                 const SizedBox(height: TgSpacing.s14),
                 // 圣兽鳞消耗
-                _SectionTitle(title: '$kSuitMatName消耗 · ${series.lv} 级档'),
+                _SectionTitle(title: '${catalog.matName}消耗 · ${series.lv} 级档'),
                 const SizedBox(height: TgSpacing.s10),
                 _CostLine(text: '兑换 1★（每件）', value: '${cost.exchange} 个'),
                 _CostLine(

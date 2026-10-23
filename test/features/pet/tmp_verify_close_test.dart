@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tlbbtoolkit/app/theme/app_theme.dart';
@@ -10,10 +11,12 @@ Future<void> pumpPage(WidgetTester tester) async {
       const Size(1180, 900) * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
-    MaterialApp(
-      theme: TgTheme.dark,
-      darkTheme: TgTheme.dark,
-      home: const Scaffold(body: PetSuitPage()),
+    ProviderScope(
+      child: MaterialApp(
+        theme: TgTheme.dark,
+        darkTheme: TgTheme.dark,
+        home: const Scaffold(body: PetSuitPage()),
+      ),
     ),
   );
   await tester.pumpAndSettle();

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/features/job/data/job_catalog.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_bar_row.dart';
@@ -21,14 +23,14 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 /// 门派筛选 + 门派名/定位 tag；卡片内含门派简介、门派特色、
 /// 属性倾向（潜能加点权重条形图）、适合人群；
 /// 下方「深入这个门派」四个入口卡跳转相关工具。
-class JobSectIntroPage extends StatefulWidget {
+class JobSectIntroPage extends ConsumerStatefulWidget {
   const JobSectIntroPage({super.key});
 
   @override
-  State<JobSectIntroPage> createState() => _JobSectIntroPageState();
+  ConsumerState<JobSectIntroPage> createState() => _JobSectIntroPageState();
 }
 
-class _JobSectIntroPageState extends State<JobSectIntroPage> {
+class _JobSectIntroPageState extends ConsumerState<JobSectIntroPage> {
   /// 当前门派（默认少林，对应原型 `siSt.sect='shaolin'`）。
   JobSect _sect = kJobSects.firstWhere((s) => s.key == 'shaolin');
 
@@ -109,7 +111,15 @@ class _JobSectIntroPageState extends State<JobSectIntroPage> {
                         borderRadius: TgRadius.card,
                         border: Border.all(color: tg.border, width: 1),
                       ),
-                      child: _SectDetail(sect: _sect, compact: compact),
+                      child: _SectDetail(
+                        sect: _sect,
+                        compact: compact,
+                        info:
+                            ref
+                                .watch(jobSectInfoCatalogProvider)
+                                .value?[_sect.key] ??
+                            kJobSectInfo[_sect.key]!,
+                      ),
                     ),
                     // 深入这个门派
                     const SizedBox(height: 16),
@@ -133,14 +143,18 @@ class _JobSectIntroPageState extends State<JobSectIntroPage> {
 
 /// 门派详情块：简介 / 特色 / 属性倾向 / 适合人群。
 class _SectDetail extends StatelessWidget {
-  const _SectDetail({required this.sect, required this.compact});
+  const _SectDetail({
+    required this.sect,
+    required this.compact,
+    required this.info,
+  });
 
   final JobSect sect;
   final bool compact;
+  final JobSectInfo info;
 
   @override
   Widget build(BuildContext context) {
-    final info = kJobSectInfo[sect.key]!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

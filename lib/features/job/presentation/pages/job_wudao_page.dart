@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/features/job/data/job_catalog.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
@@ -18,7 +20,7 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 /// 每流派卡含流派被动（wd-pd）与各「重」节点（wd-lname + wd-row，
 /// 同层择一、每重 5 级）；节点带 30×30 图标。
 /// 慕容 / 曼陀山庄暂无官网武道数据，显示占位提示。
-class JobWudaoPage extends StatefulWidget {
+class JobWudaoPage extends ConsumerStatefulWidget {
   const JobWudaoPage({super.key, this.initialSect});
 
   /// 初始门派 key（如 `shaolin`；来自门派介绍页「深入这个门派」跳转）。
@@ -26,10 +28,10 @@ class JobWudaoPage extends StatefulWidget {
   final String? initialSect;
 
   @override
-  State<JobWudaoPage> createState() => _JobWudaoPageState();
+  ConsumerState<JobWudaoPage> createState() => _JobWudaoPageState();
 }
 
-class _JobWudaoPageState extends State<JobWudaoPage> {
+class _JobWudaoPageState extends ConsumerState<JobWudaoPage> {
   /// 当前门派（默认逍遥，对应原型 `wuSect='xiaoyao'`；
   /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
   late JobSect _sect;
@@ -46,7 +48,9 @@ class _JobWudaoPageState extends State<JobWudaoPage> {
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final schools = wudaoOf(_sect.key);
+    final wudao = ref.watch(jobWudaoCatalogProvider).value;
+    final schools = wudao?.schools[_sect.key] ?? wudaoOf(_sect.key);
+    final tierNames = wudao?.tierNames ?? kWudaoTierCn;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
@@ -136,6 +140,7 @@ class _JobWudaoPageState extends State<JobWudaoPage> {
                                     school: schools[si],
                                     index: si,
                                     total: schools.length,
+                                    tierNames: tierNames,
                                   ),
                                 ),
                             ],
@@ -205,10 +210,14 @@ class _SchoolCard extends StatelessWidget {
     required this.school,
     required this.index,
     required this.total,
+    required this.tierNames,
   });
 
   final JobSect sect;
   final WudaoSchool school;
+
+  /// 「一重 / 二重 …」文案（来自分片，缺省用内置常量）。
+  final List<String> tierNames;
 
   /// 流派序号（1 起）。
   final int index;
@@ -282,9 +291,7 @@ class _SchoolCard extends StatelessWidget {
           // 各重节点（wd-lname + wd-row）
           for (var li = 0; li < school.layers.length; li++) ...[
             _LayerTitle(
-              cn: li < kWudaoTierCn.length
-                  ? '武道${kWudaoTierCn[li]}'
-                  : '武道${li + 1}重',
+              cn: li < tierNames.length ? '武道${tierNames[li]}' : '武道${li + 1}重',
             ),
             for (final node in school.layers[li].nodes) _NodeRow(node: node),
           ],

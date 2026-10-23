@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
@@ -11,6 +12,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
+import 'package:tlbbtoolkit/features/pet/data/pet_catalog.dart';
 import 'package:tlbbtoolkit/features/pet/domain/beast_soul.dart';
 
 /// 兽魂查询（对应原型 `v-beast-soul`）。
@@ -18,25 +20,29 @@ import 'package:tlbbtoolkit/features/pet/domain/beast_soul.dart';
 /// 类型 chips 筛选（神兽魂 / 荒兽魂 / 灵兽魂）+ 十五大兽魂卡片网格
 /// （出战 / 融魂技能速查），点卡片打开「兽灵等级效果」弹窗（soulModal）：
 /// 出战技能详情 + 融魂技能魂境 1–6 阶数值。
-class BeastSoulPage extends StatefulWidget {
+class BeastSoulPage extends ConsumerStatefulWidget {
   const BeastSoulPage({super.key});
 
   @override
-  State<BeastSoulPage> createState() => _BeastSoulPageState();
+  ConsumerState<BeastSoulPage> createState() => _BeastSoulPageState();
 }
 
-class _BeastSoulPageState extends State<BeastSoulPage> {
+class _BeastSoulPageState extends ConsumerState<BeastSoulPage> {
   /// 类型筛选（null = 全部）。
   BeastSoulType? _type;
 
-  List<BeastSoul> get _visible => _type == null
-      ? kBeastSouls
-      : kBeastSouls.where((s) => s.type == _type).toList(growable: false);
+  /// catalog 分片优先；读不到/解析失败时回退内置常量。
+  List<BeastSoul> get _souls =>
+      ref.watch(beastSoulCatalogProvider).value ?? kBeastSouls;
 
-  void _open(int index) {
+  List<BeastSoul> _visible(List<BeastSoul> souls) => _type == null
+      ? souls
+      : souls.where((s) => s.type == _type).toList(growable: false);
+
+  void _open(BeastSoul soul) {
     showTgModal(
       context: context,
-      child: _SoulDetailDialog(soul: kBeastSouls[index]),
+      child: _SoulDetailDialog(soul: soul),
     );
   }
 
@@ -107,12 +113,12 @@ class _BeastSoulPageState extends State<BeastSoulPage> {
                           spacing: gap,
                           runSpacing: gap,
                           children: [
-                            for (final s in _visible)
+                            for (final s in _visible(_souls))
                               SizedBox(
                                 width: tileW,
                                 child: _SoulCard(
                                   soul: s,
-                                  onTap: () => _open(kBeastSouls.indexOf(s)),
+                                  onTap: () => _open(s),
                                 ),
                               ),
                           ],
