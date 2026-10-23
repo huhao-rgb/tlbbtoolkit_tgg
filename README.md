@@ -38,8 +38,8 @@ fvm flutter run --dart-define=API_BASE_URL=https://api.example.com \
 
 # 启用「卡回归」云同步 + 数据热更新
 # （同一个 CloudBase 环境地址：数据目录默认复用它，无需再配 CATALOG_BASE_URL；
-#   部署见 server/cloudbase/README.md）
-fvm flutter run --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
+#   envId 见 server/cloudbaserc.json，部署见 server/cloudbase/README.md）
+fvm flutter run --dart-define=SYNC_BASE_URL=https://<envId>.service.tcloudbase.com
 
 # 静态检查
 fvm flutter analyze
@@ -64,7 +64,7 @@ fvm flutter test
 > ```sh
 > fvm flutter build apk --release \
 >   --target-platform android-arm64 \
->   --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
+>   --dart-define=SYNC_BASE_URL=https://<envId>.service.tcloudbase.com
 > ```
 >
 > ⚠️ **必须带 `--target-platform android-arm64`**：不带时 Flutter 会把
@@ -76,7 +76,7 @@ fvm flutter test
 >
 > ```sh
 > fvm flutter test test/features/misc/reg_sync_e2e_test.dart \
->   --dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
+>   --dart-define=SYNC_BASE_URL=https://<envId>.service.tcloudbase.com
 > ```
 >
 > 每个用例用随机 syncId 建独立记录，结束即删除，不触碰既有数据。

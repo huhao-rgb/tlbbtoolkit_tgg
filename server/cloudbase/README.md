@@ -11,8 +11,8 @@ AES-256-GCM 加密，密钥只存在用户设备的安全存储里，从不上�
 
 | 项 | 值 |
 | --- | --- |
-| 环境 ID | `tgg-account-d8gd8q1mc16b81044`（ap-shanghai，体验版） |
-| 接口地址 | `https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com/reg` |
+| 环境 ID | `tgg-account-…`（ap-shanghai，体验版；完整值见 `cloudbaserc.json`） |
+| 接口地址 | `https://<envId>.service.tcloudbase.com/reg` |
 | 云函数 | `reg-sync` · Nodejs20.19 · 256MB · 5s · **云端安装依赖** |
 | 数据表 | `public.reg_snapshots`（owner = `cloudbase_postgres_postgres_dkwh6dfq`） |
 | 数据库 | PostgreSQL 17.11 · 共享集群（**无内网地址**，也**不需要**开外网） |
@@ -135,7 +135,7 @@ DROP POLICY IF EXISTS tgg_sync_gate ON public.reg_snapshots;   -- 策略由脚�
 tcb db pg migration up                              # 授权 + 开 RLS
 TGG_SYNC_SECRET='...' ./cloudbase/scripts/set-channel-secret.sh   # 建策略
 tcb fn deploy reg-sync --path /reg --force          # 部署函数
-./cloudbase/scripts/verify-deployment.sh https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com
+./cloudbase/scripts/verify-deployment.sh https://<envId>.service.tcloudbase.com
 ```
 
 > 表 owner（`cloudbase_postgres_postgres_dkwh6dfq`）**绕过 RLS**，
@@ -226,7 +226,7 @@ tcb fn detail reg-sync | grep -c TGG_SYNC_SECRET    # 期望 ≥1
 
 | 项 | 值 |
 | --- | --- |
-| 环境 | `tgg-account-d8gd8q1mc16b81044`（ap-shanghai） |
+| 环境 | `<envId>`（ap-shanghai，见 `cloudbaserc.json`） |
 | 云函数 | `catalog` · Nodejs20.19 · 256MB · 5s · 云端装依赖 |
 | HTTP 路由 | `*` `/catalog` → `catalog`（匿名访问） |
 | 数据表 | `public.catalog_files`（迁移 `2026102311*`） |
