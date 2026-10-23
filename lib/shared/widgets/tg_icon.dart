@@ -22,6 +22,7 @@ class TgIcon extends StatelessWidget {
   static final Map<String, String> _paths = {
     'book': Assets.icons.book,
     'calc': Assets.icons.calc,
+    'calendar': Assets.icons.calendar,
     'chev-l': Assets.icons.chevL,
     'chev': Assets.icons.chev,
     'clock': Assets.icons.clock,

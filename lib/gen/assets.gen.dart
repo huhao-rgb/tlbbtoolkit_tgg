@@ -110,6 +110,9 @@ class $AssetsCatalogGen {
   /// File path: assets/catalog/job.wudao.json
   String get jobWudao => 'assets/catalog/job.wudao.json';
 
+  /// File path: assets/catalog/manifest.json
+  String get manifest => 'assets/catalog/manifest.json';
+
   /// File path: assets/catalog/pet.beast_souls.json
   String get petBeastSouls => 'assets/catalog/pet.beast_souls.json';
 
@@ -130,6 +133,7 @@ class $AssetsCatalogGen {
     jobSects,
     jobSkills,
     jobWudao,
+    manifest,
     petBeastSouls,
     petBeastSpirits,
     petSkills,
@@ -145,6 +149,9 @@ class $AssetsIconsGen {
 
   /// File path: assets/icons/calc.svg
   String get calc => 'assets/icons/calc.svg';
+
+  /// File path: assets/icons/calendar.svg
+  String get calendar => 'assets/icons/calendar.svg';
 
   /// File path: assets/icons/chev-l.svg
   String get chevL => 'assets/icons/chev-l.svg';
@@ -258,6 +265,7 @@ class $AssetsIconsGen {
   List<String> get values => [
     book,
     calc,
+    calendar,
     chevL,
     chev,
     clock,

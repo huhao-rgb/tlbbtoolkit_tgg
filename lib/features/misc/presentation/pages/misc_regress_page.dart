@@ -15,6 +15,7 @@ import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_datetime_picker.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_modal.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_note_bar.dart';
@@ -1254,31 +1255,6 @@ class _IdlePanelState extends State<_IdlePanel> {
   /// 默认起点：当前时刻（原型 dft = 当前）。
   DateTime _start = DateTime.now();
 
-  Future<void> _pick() async {
-    final now = DateTime.now();
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _start,
-      firstDate: DateTime(now.year - 1),
-      lastDate: now,
-    );
-    if (date == null || !mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_start),
-    );
-    if (time == null) return;
-    setState(() {
-      _start = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
@@ -1315,9 +1291,14 @@ class _IdlePanelState extends State<_IdlePanel> {
                 style: TgType.label.copyWith(color: tg.t3),
               ),
               const SizedBox(height: 7),
-              SizedBox(
-                width: 350,
-                child: _DateTimeField(value: _start, onTap: _pick),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 350),
+                child: TgDateTimeField(
+                  value: _start,
+                  direction: TgDateTimeDirection.past,
+                  timeCaption: '上线时刻',
+                  onChanged: (v) => setState(() => _start = v),
+                ),
               ),
             ],
           ),
@@ -1755,60 +1736,6 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 日期时间字段（只读 · 点击弹出选择）。
-class _DateTimeField extends StatelessWidget {
-  const _DateTimeField({required this.value, required this.onTap});
-
-  final DateTime value;
-  final VoidCallback onTap;
-
-  String get _label {
-    return '${value.year}-${_pad2(value.month)}-${_pad2(value.day)} '
-        '${_pad2(value.hour)}:${_pad2(value.minute)}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tg = context.tg;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        hoverColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        child: Ink(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: tg.inset,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: tg.border, width: 1),
-          ),
-          child: Row(
-            children: [
-              TgIcon('clock', size: 15, color: tg.t3),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _label,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: tg.t1,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-              TgIcon('chev', size: 14, color: tg.t3),
-            ],
           ),
         ),
       ),
