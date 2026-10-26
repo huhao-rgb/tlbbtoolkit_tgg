@@ -44,7 +44,7 @@ void main() {
 
     test('面板预览公式：逍遥成长系数', () {
       expect(jobGrowthOf('xiaoyao')['hp']!.value, 50);
-      expect(jobGrowthOf('xiaoyao')['nei']!.value, 7.6715);
+      expect(jobGrowthOf('xiaoyao')['nei']!.value, 7.61);
 
       final p = computePreview('xiaoyao', 119, {
         'li': 0,
@@ -55,7 +55,7 @@ void main() {
       });
       expect(p.hp, 119 * 28 + 100 * 50);
       expect(p.mp, 119 * 20 + 0 * 36);
-      expect(p.atkP, closeTo(100 * 7.6715, 1e-9));
+      expect(p.atkP, closeTo(100 * 7.61, 1e-9));
       expect(p.atkW, 0);
       expect(p.hit, 119 * 7 + 100 * 7.5);
       expect(p.dodge, 119 * 5 + 100 * 4);
@@ -66,18 +66,18 @@ void main() {
       final pts = {'li': 100, 'ling': 0, 'ti': 100, 'ding': 0, 'shen': 0};
       final shaolin = computePreview('shaolin', 100, pts);
       final mingjiao = computePreview('mingjiao', 100, pts);
-      expect(shaolin.hp, closeTo(100 * 28 + 100 * 71.5, 1e-9));
-      expect(mingjiao.hp, closeTo(100 * 28 + 100 * 55.2, 1e-9));
-      expect(shaolin.atkW, closeTo(100 * 7.6, 1e-9));
-      expect(mingjiao.atkW, closeTo(100 * 8.3, 1e-9));
+      expect(shaolin.hp, closeTo(100 * 28 + 100 * 70, 1e-9));
+      expect(mingjiao.hp, closeTo(100 * 28 + 100 * 56, 1e-9));
+      expect(shaolin.atkW, closeTo(100 * 7.61, 1e-9));
+      expect(mingjiao.atkW, closeTo(100 * 8.25, 1e-9));
     });
 
     test('未知门派成长系数回退逍遥', () {
       expect(jobGrowthOf('nope')['hp']!.value, 50);
     });
 
-    test('成长系数条目 8 项且覆盖十二门派', () {
-      expect(kJobGrowthFields.length, 8);
+    test('成长系数条目 10 项且覆盖十三门派', () {
+      expect(kJobGrowthFields.length, 10);
       // 键集合需与门派列表严格一致（避免拼错 key 导致静默回退逍遥）
       expect(kJobGrowth.keys.toSet(), {for (final s in kJobSects) s.key});
       for (final s in kJobSects) {
@@ -100,11 +100,11 @@ void main() {
       expect(formatGrouped(3332), '3,332');
       expect(formatGrouped(0), '0');
       expect(formatGrouped(707.3224), '707.322');
-      expect(formatGrouped(52 * 71.5), '3,718');
+      expect(formatGrouped(52 * 70), '3,640');
       // toFixed(1) 去尾
       expect(formatFixed1(0), '0');
-      expect(formatFixed1(100 * 7.6715), '767.1');
-      expect(formatFixed1(100 * 7.6), '760');
+      expect(formatFixed1(100 * 7.61), '761');
+      expect(formatFixed1(100 * 4.44), '444');
       // Math.round(v*100)/100
       expect(formatCrit(0), '0');
       expect(formatCrit(100 * 0.1), '10');
@@ -152,7 +152,7 @@ void main() {
     expect(find.text('力量 → 外功攻击'), findsOneWidget);
     expect(find.text('身法 → 会心防御'), findsOneWidget);
     expect(find.text('50'), findsOneWidget); // 逍遥 体力 → 血上限
-    expect(find.text('7.6715'), findsOneWidget); // 逍遥 灵气 → 内功攻击
+    expect(find.text('7.61'), findsOneWidget); // 逍遥 灵气 → 内功攻击
     // 说明文字里也含 ≈，故用行首锚定，只校验系数条目的近似标注
     expect(find.textContaining(RegExp('^≈')), findsNothing);
   });
@@ -243,7 +243,7 @@ void main() {
     expect(find.text('2094.3'), findsNothing);
   });
 
-  testWidgets('全点身法：命中按当前门派系数换算（少林 7 区别于逍遥 7.5）', (tester) async {
+  testWidgets('全点身法：命中按当前门派系数换算（少林 6.5 区别于逍遥 7.5）', (tester) async {
     await pumpPage(tester);
 
     await tester.ensureVisible(find.text('少林'));
@@ -257,13 +257,13 @@ void main() {
     final sliders = find.byType(Slider);
     expect(tester.widget<Slider>(sliders.at(4)).value, 545);
     expect(tester.widget<Slider>(sliders.at(2)).value, 0);
-    // 少林身法 → 命中 7：833 + 545 × 7 = 4,648
-    expect(find.text('4,648'), findsOneWidget);
-    // 少林身法 → 闪避 4：595 + 545 × 4 = 2,775
-    expect(find.text('2,775'), findsOneWidget);
+    // 少林身法 → 命中 6.5：833 + 545 × 6.5 = 4,375.5
+    expect(find.text('4,375.5'), findsOneWidget);
+    // 少林身法 → 闪避 2：595 + 545 × 2 = 1,685
+    expect(find.text('1,685'), findsOneWidget);
   });
 
-  testWidgets('切门派后成长系数与预览同步（少林 ≈ 近似标注）', (tester) async {
+  testWidgets('切门派后成长系数与预览同步（少林按换算表取值）', (tester) async {
     await pumpPage(tester);
 
     await tester.ensureVisible(find.text('少林'));
@@ -271,9 +271,9 @@ void main() {
     await tester.tap(find.text('少林'));
     await tester.pumpAndSettle();
 
-    // 少林成长系数：体力 → 血上限 71.5（精确）、力量 → 外功攻击 ≈7.6（近似）
-    expect(find.text('71.5'), findsOneWidget);
-    expect(find.text('≈7.6'), findsOneWidget);
+    // 少林成长系数：体力 → 血上限 70、力量 → 外功攻击 7.61
+    expect(find.text('70'), findsOneWidget);
+    expect(find.text('7.61'), findsOneWidget);
 
     // 面板预览无加点仍为等级基线
     expect(find.text('3,332'), findsOneWidget);
@@ -308,12 +308,12 @@ void main() {
     await tester.tap(find.text('一键推荐'));
     await tester.pump();
 
-    // 少林权重 li 最高，力量加点多；外功攻击 = 246 × 7.6 = 1,869.6
+    // 少林权重 li 最高，力量加点多；外功攻击 = 246 × 7.61 = 1,872.06
     expect(find.text('外功攻击'), findsOneWidget);
-    expect(find.text('1,869.6'), findsNothing); // 外功攻击用 toFixed(1) 去千分位
-    expect(find.text('1869.6'), findsOneWidget);
-    // 气血 = 3332 + 191 × 71.5 = 16,988.5
-    expect(find.text('16,988.5'), findsOneWidget);
+    expect(find.text('1,872.1'), findsNothing); // 外功攻击用 toFixed(1) 去千分位
+    expect(find.text('1872.1'), findsOneWidget);
+    // 气血 = 3332 + 191 × 70 = 16,702
+    expect(find.text('16,702'), findsOneWidget);
   });
 
   testWidgets('紧凑宽度（560 / 390）：预览与成长系数自动换列不溢出', (tester) async {

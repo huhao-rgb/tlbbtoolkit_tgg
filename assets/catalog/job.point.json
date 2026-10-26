@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.10.26.6f55f4fe",
+  "dataVersion": "2026.10.26.e7aceec4",
   "kind": "job.point",
   "items": {
     "lvMin": 10,
@@ -106,16 +106,16 @@
         "label": "体力 → 血上限"
       },
       {
-        "key": "wai",
-        "label": "力量 → 外功攻击"
+        "key": "wdef",
+        "label": "体力 → 外功防御"
       },
       {
         "key": "nei",
         "label": "灵气 → 内功攻击"
       },
       {
-        "key": "mp",
-        "label": "定力 → 气上限"
+        "key": "wai",
+        "label": "力量 → 外功攻击"
       },
       {
         "key": "hit",
@@ -132,75 +132,99 @@
       {
         "key": "critd",
         "label": "身法 → 会心防御"
+      },
+      {
+        "key": "mp",
+        "label": "定力 → 气上限"
+      },
+      {
+        "key": "ndef",
+        "label": "定力 → 内功防御"
       }
     ],
     "growth": {
       "shaolin": {
         "hp": {
-          "value": 71.5,
+          "value": 70.0,
           "approx": false
         },
-        "wai": {
-          "value": 7.6,
-          "approx": true
+        "wdef": {
+          "value": 8.25,
+          "approx": false
         },
         "nei": {
           "value": 3.8,
-          "approx": true
+          "approx": false
+        },
+        "wai": {
+          "value": 7.61,
+          "approx": false
+        },
+        "hit": {
+          "value": 6.5,
+          "approx": false
+        },
+        "dodge": {
+          "value": 2.0,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.04,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.04,
+          "approx": false
         },
         "mp": {
           "value": 25.0,
-          "approx": true
+          "approx": false
         },
-        "hit": {
-          "value": 7.0,
-          "approx": true
-        },
-        "dodge": {
-          "value": 4.0,
-          "approx": true
-        },
-        "crit": {
-          "value": 0.044,
-          "approx": true
-        },
-        "critd": {
-          "value": 0.044,
-          "approx": true
+        "ndef": {
+          "value": 5.71,
+          "approx": false
         }
       },
       "mingjiao": {
         "hp": {
-          "value": 55.2,
+          "value": 56.0,
           "approx": false
         },
-        "wai": {
-          "value": 8.3,
+        "wdef": {
+          "value": 5.71,
           "approx": false
         },
         "nei": {
-          "value": 3.8,
-          "approx": true
+          "value": 4.44,
+          "approx": false
         },
-        "mp": {
-          "value": 25.0,
-          "approx": true
+        "wai": {
+          "value": 8.25,
+          "approx": false
         },
         "hit": {
           "value": 7.5,
-          "approx": true
+          "approx": false
         },
         "dodge": {
-          "value": 4.0,
-          "approx": true
+          "value": 3.0,
+          "approx": false
         },
         "crit": {
-          "value": 0.05,
-          "approx": true
+          "value": 0.06,
+          "approx": false
         },
         "critd": {
-          "value": 0.05,
-          "approx": true
+          "value": 0.06,
+          "approx": false
+        },
+        "mp": {
+          "value": 20.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 4.44,
+          "approx": false
         }
       },
       "gaibang": {
@@ -208,50 +232,16 @@
           "value": 60.0,
           "approx": false
         },
-        "wai": {
-          "value": 7.7,
-          "approx": true
+        "wdef": {
+          "value": 7.61,
+          "approx": false
         },
         "nei": {
           "value": 3.8,
           "approx": false
         },
-        "mp": {
-          "value": 25.0,
-          "approx": true
-        },
-        "hit": {
-          "value": 7.5,
-          "approx": true
-        },
-        "dodge": {
-          "value": 4.0,
-          "approx": true
-        },
-        "crit": {
-          "value": 0.05,
-          "approx": true
-        },
-        "critd": {
-          "value": 0.05,
-          "approx": true
-        }
-      },
-      "tianshan": {
-        "hp": {
-          "value": 55.0,
-          "approx": false
-        },
         "wai": {
-          "value": 7.6184,
-          "approx": false
-        },
-        "nei": {
-          "value": 8.9,
-          "approx": false
-        },
-        "mp": {
-          "value": 25.0,
+          "value": 7.61,
           "approx": false
         },
         "hit": {
@@ -259,15 +249,65 @@
           "approx": false
         },
         "dodge": {
-          "value": 3.3036,
+          "value": 4.0,
           "approx": false
         },
         "crit": {
-          "value": 0.0714,
+          "value": 0.06,
           "approx": false
         },
         "critd": {
-          "value": 0.0714,
+          "value": 0.06,
+          "approx": false
+        },
+        "mp": {
+          "value": 20.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 5.07,
+          "approx": false
+        }
+      },
+      "tianshan": {
+        "hp": {
+          "value": 55.0,
+          "approx": false
+        },
+        "wdef": {
+          "value": 6.98,
+          "approx": false
+        },
+        "nei": {
+          "value": 8.88,
+          "approx": false
+        },
+        "wai": {
+          "value": 7.61,
+          "approx": false
+        },
+        "hit": {
+          "value": 8.0,
+          "approx": false
+        },
+        "dodge": {
+          "value": 3.34,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.07,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.07,
+          "approx": false
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 4.44,
           "approx": false
         }
       },
@@ -276,16 +316,16 @@
           "value": 58.0,
           "approx": false
         },
-        "wai": {
-          "value": 6.5,
+        "wdef": {
+          "value": 6.34,
           "approx": false
         },
         "nei": {
-          "value": 6.36,
+          "value": 6.34,
           "approx": false
         },
-        "mp": {
-          "value": 27.0,
+        "wai": {
+          "value": 6.34,
           "approx": false
         },
         "hit": {
@@ -297,11 +337,19 @@
           "approx": false
         },
         "crit": {
-          "value": 0.0303,
+          "value": 0.03,
           "approx": false
         },
         "critd": {
-          "value": 0.0303,
+          "value": 0.03,
+          "approx": false
+        },
+        "mp": {
+          "value": 27.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 6.34,
           "approx": false
         }
       },
@@ -310,33 +358,41 @@
           "value": 50.0,
           "approx": false
         },
-        "wai": {
-          "value": 4.4,
-          "approx": true
+        "wdef": {
+          "value": 5.07,
+          "approx": false
         },
         "nei": {
-          "value": 7.6,
-          "approx": true
+          "value": 7.61,
+          "approx": false
         },
-        "mp": {
-          "value": 30.0,
-          "approx": true
+        "wai": {
+          "value": 3.8,
+          "approx": false
         },
         "hit": {
           "value": 7.5,
-          "approx": true
+          "approx": false
         },
         "dodge": {
-          "value": 4.0,
-          "approx": true
+          "value": 2.0,
+          "approx": false
         },
         "crit": {
-          "value": 0.05,
-          "approx": true
+          "value": 0.04,
+          "approx": false
         },
         "critd": {
-          "value": 0.05,
-          "approx": true
+          "value": 0.04,
+          "approx": false
+        },
+        "mp": {
+          "value": 40.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 8.25,
+          "approx": false
         }
       },
       "wudang": {
@@ -344,33 +400,41 @@
           "value": 44.0,
           "approx": false
         },
-        "wai": {
-          "value": 4.4,
-          "approx": true
+        "wdef": {
+          "value": 4.44,
+          "approx": false
         },
         "nei": {
-          "value": 8.8,
+          "value": 8.88,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.44,
+          "approx": false
+        },
+        "hit": {
+          "value": 7.0,
+          "approx": false
+        },
+        "dodge": {
+          "value": 2.5,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.05,
           "approx": false
         },
         "mp": {
           "value": 32.0,
           "approx": false
         },
-        "hit": {
-          "value": 7.5,
-          "approx": true
-        },
-        "dodge": {
-          "value": 4.0,
-          "approx": true
-        },
-        "crit": {
-          "value": 0.05,
-          "approx": true
-        },
-        "critd": {
-          "value": 0.05,
-          "approx": true
+        "ndef": {
+          "value": 7.61,
+          "approx": false
         }
       },
       "xiaoyao": {
@@ -378,16 +442,16 @@
           "value": 50.0,
           "approx": false
         },
-        "wai": {
-          "value": 4.4,
+        "wdef": {
+          "value": 5.07,
           "approx": false
         },
         "nei": {
-          "value": 7.6715,
+          "value": 7.61,
           "approx": false
         },
-        "mp": {
-          "value": 36.0,
+        "wai": {
+          "value": 4.44,
           "approx": false
         },
         "hit": {
@@ -404,6 +468,14 @@
         },
         "critd": {
           "value": 0.05,
+          "approx": false
+        },
+        "mp": {
+          "value": 36.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 8.25,
           "approx": false
         }
       },
@@ -412,16 +484,16 @@
           "value": 52.0,
           "approx": false
         },
-        "wai": {
-          "value": 4.4,
+        "wdef": {
+          "value": 4.44,
           "approx": false
         },
         "nei": {
-          "value": 7.599,
+          "value": 7.61,
           "approx": false
         },
-        "mp": {
-          "value": 36.0,
+        "wai": {
+          "value": 4.44,
           "approx": false
         },
         "hit": {
@@ -433,11 +505,19 @@
           "approx": false
         },
         "crit": {
-          "value": 0.05,
+          "value": 0.06,
           "approx": false
         },
         "critd": {
-          "value": 0.0556,
+          "value": 0.06,
+          "approx": false
+        },
+        "mp": {
+          "value": 36.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 8.88,
           "approx": false
         }
       },
@@ -446,20 +526,20 @@
           "value": 60.0,
           "approx": false
         },
-        "wai": {
-          "value": 4.4,
-          "approx": true
-        },
-        "nei": {
-          "value": 8.8,
+        "wdef": {
+          "value": 6.98,
           "approx": false
         },
-        "mp": {
-          "value": 25.0,
+        "nei": {
+          "value": 8.88,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.44,
           "approx": false
         },
         "hit": {
-          "value": 7.0,
+          "value": 7.5,
           "approx": false
         },
         "dodge": {
@@ -468,11 +548,19 @@
         },
         "crit": {
           "value": 0.05,
-          "approx": true
+          "approx": false
         },
         "critd": {
           "value": 0.05,
-          "approx": true
+          "approx": false
+        },
+        "mp": {
+          "value": 25.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 5.07,
+          "approx": false
         }
       },
       "mantuo": {
@@ -480,16 +568,58 @@
           "value": 58.0,
           "approx": false
         },
-        "wai": {
-          "value": 4.4,
-          "approx": true
+        "wdef": {
+          "value": 4.44,
+          "approx": false
         },
         "nei": {
-          "value": 7.1,
+          "value": 7.61,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.44,
+          "approx": false
+        },
+        "hit": {
+          "value": 8.5,
+          "approx": false
+        },
+        "dodge": {
+          "value": 3.0,
+          "approx": false
+        },
+        "crit": {
+          "value": 0.08,
+          "approx": false
+        },
+        "critd": {
+          "value": 0.04,
           "approx": false
         },
         "mp": {
           "value": 35.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 9.0,
+          "approx": false
+        }
+      },
+      "erengu": {
+        "hp": {
+          "value": 54.0,
+          "approx": false
+        },
+        "wdef": {
+          "value": 5.07,
+          "approx": false
+        },
+        "nei": {
+          "value": 8.25,
+          "approx": false
+        },
+        "wai": {
+          "value": 4.44,
           "approx": false
         },
         "hit": {
@@ -502,79 +632,61 @@
         },
         "crit": {
           "value": 0.05,
-          "approx": true
+          "approx": false
         },
         "critd": {
           "value": 0.05,
-          "approx": true
-        }
-      },
-      "erengu": {
-        "hp": {
-          "value": 50.0,
           "approx": false
         },
-        "wai": {
-          "value": 7.6,
-          "approx": true
-        },
-        "nei": {
-          "value": 3.8,
-          "approx": true
-        },
         "mp": {
-          "value": 25.0,
-          "approx": true
+          "value": 30.0,
+          "approx": false
         },
-        "hit": {
-          "value": 8.5,
-          "approx": true
-        },
-        "dodge": {
-          "value": 4.5,
-          "approx": true
-        },
-        "crit": {
-          "value": 0.06,
-          "approx": true
-        },
-        "critd": {
-          "value": 0.06,
-          "approx": true
+        "ndef": {
+          "value": 8.25,
+          "approx": false
         }
       },
       "kunlun": {
         "hp": {
-          "value": 50.0,
-          "approx": true
+          "value": 53.0,
+          "approx": false
         },
-        "wai": {
-          "value": 4.4,
-          "approx": true
+        "wdef": {
+          "value": 4.44,
+          "approx": false
         },
         "nei": {
-          "value": 7.6715,
-          "approx": true
+          "value": 8.25,
+          "approx": false
         },
-        "mp": {
-          "value": 36.0,
-          "approx": true
+        "wai": {
+          "value": 4.44,
+          "approx": false
         },
         "hit": {
-          "value": 7.5,
-          "approx": true
+          "value": 8.0,
+          "approx": false
         },
         "dodge": {
           "value": 4.0,
-          "approx": true
+          "approx": false
         },
         "crit": {
           "value": 0.05,
-          "approx": true
+          "approx": false
         },
         "critd": {
           "value": 0.05,
-          "approx": true
+          "approx": false
+        },
+        "mp": {
+          "value": 35.0,
+          "approx": false
+        },
+        "ndef": {
+          "value": 8.88,
+          "approx": false
         }
       }
     }

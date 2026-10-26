@@ -606,7 +606,7 @@ class _PreviewSection extends StatelessWidget {
   }
 }
 
-/// 门派成长系数 · 每点潜能换算（`.pt-coef` auto-fill 网格 8 项）。
+/// 门派成长系数 · 每点潜能换算（`.pt-coef` auto-fill 网格 10 项）。
 class _GrowthSection extends StatelessWidget {
   const _GrowthSection({required this.sectKey});
 

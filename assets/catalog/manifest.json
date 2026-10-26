@@ -12,9 +12,9 @@
     {
       "kind": "job.point",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.6f55f4fe",
-      "sha256": "24dd4959dad802b935a3760fd5a6577262d03484813268aa8d53aa3012f51bcc",
-      "bytes": 10998
+      "dataVersion": "2026.10.26.e7aceec4",
+      "sha256": "94ec2d80aca0a23c8852f0a519d24071725c99c1c4cc76e3c970f187cdccc6d2",
+      "bytes": 13292
     },
     {
       "kind": "job.sect_info",
