@@ -25,14 +25,14 @@ Future<void> pumpPage(
 }
 
 void main() {
-  testWidgets('默认渲染：页头 + 12 门派 + 逍遥两流派卡（官网数据）', (tester) async {
+  testWidgets('默认渲染：页头 + 13 门派 + 逍遥两流派卡（官网数据）', (tester) async {
     await pumpPage(tester);
 
     // 页头
     expect(find.text('职业武道'), findsWidgets); // 顶栏标题 + h1
     expect(find.textContaining('选择门派，查看攻伐与御守'), findsOneWidget);
 
-    // 12 门派 pill（逍遥还作为当前门派名出现一次）
+    // 13 门派 pill（逍遥还作为当前门派名出现一次）
     for (final name in [
       '少林',
       '明教',
@@ -45,6 +45,7 @@ void main() {
       '曼陀山庄',
       '天龙',
       '恶人谷',
+      '昆仑',
     ]) {
       expect(find.text(name), findsOneWidget);
     }
@@ -115,5 +116,19 @@ void main() {
     expect(find.text('曼陀山庄'), findsNWidgets(2));
     expect(find.text('官网资料站暂未收录该门派武道数据'), findsOneWidget);
     expect(find.textContaining('曼陀山庄与慕容（重制）官网页面暂未提供'), findsOneWidget);
+  });
+
+  testWidgets('切换门派：昆仑显示占位并说明斩妄/怒啸待公布', (tester) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(find.text('昆仑'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('昆仑'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('昆仑'), findsNWidgets(2));
+    expect(find.text('内功 · 双形态'), findsOneWidget);
+    expect(find.text('官网资料站暂未收录该门派武道数据'), findsOneWidget);
+    expect(find.textContaining('斩妄'), findsOneWidget);
   });
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.10.23.d1c84cc5",
+  "dataVersion": "2026.10.26.6f55f4fe",
   "kind": "job.point",
   "items": {
     "lvMin": 10,
@@ -88,6 +88,12 @@
         "ti": 0.2
       },
       "erengu": {
+        "ling": 0.45,
+        "shen": 0.3,
+        "ti": 0.15,
+        "ding": 0.1
+      },
+      "kunlun": {
         "ling": 0.45,
         "shen": 0.3,
         "ti": 0.15,
@@ -534,6 +540,40 @@
         },
         "critd": {
           "value": 0.06,
+          "approx": true
+        }
+      },
+      "kunlun": {
+        "hp": {
+          "value": 50.0,
+          "approx": true
+        },
+        "wai": {
+          "value": 4.4,
+          "approx": true
+        },
+        "nei": {
+          "value": 7.6715,
+          "approx": true
+        },
+        "mp": {
+          "value": 36.0,
+          "approx": true
+        },
+        "hit": {
+          "value": 7.5,
+          "approx": true
+        },
+        "dodge": {
+          "value": 4.0,
+          "approx": true
+        },
+        "crit": {
+          "value": 0.05,
+          "approx": true
+        },
+        "critd": {
+          "value": 0.05,
           "approx": true
         }
       }

@@ -1,6 +1,6 @@
 /// 职业 —— 门派领域模型与数据（与 UI 原型 `SECTS` 一致）。
 ///
-/// 十二门派：少林/明教/丐帮/天山/逍遥/峨眉/武当/星宿/慕容/曼陀山庄/天龙/恶人谷；
+/// 十三门派：少林/明教/丐帮/天山/逍遥/峨眉/武当/星宿/慕容/曼陀山庄/天龙/恶人谷/昆仑；
 /// 每个门派有名称、定位（如 内功 · 控制）与主题色
 /// （用于门派字徽 / 定位 tag / 门派筛选 pill）。
 library;
@@ -33,7 +33,7 @@ class JobSect {
   String get mark => name.substring(0, 1);
 }
 
-/// 十二门派（对应原型 `SECTS`，顺序即筛选行顺序）。
+/// 十三门派（对应原型 `SECTS`，顺序即筛选行顺序；新门派追加在末尾）。
 const List<JobSect> kJobSects = [
   JobSect(key: 'shaolin', name: '少林', type: '外功 · 坦克', colorValue: 4293960282),
   JobSect(key: 'mingjiao', name: '明教', type: '外功 · 爆发', colorValue: 4294930537),
@@ -47,4 +47,7 @@ const List<JobSect> kJobSects = [
   JobSect(key: 'mantuo', name: '曼陀山庄', type: '内功 · 琴音', colorValue: 4293234641),
   JobSect(key: 'tianlong', name: '天龙', type: '内外 · 兼修', colorValue: 4293447786),
   JobSect(key: 'erengu', name: '恶人谷', type: '内功 · 刺客', colorValue: 4288375764),
+  // 昆仑：2026-10-23「双面昆仑」资料片上线（端游首个双形态门派，主玄副冰）。
+  // 主题色取霜蓝 0xFFA8C0E8，与天山的冰青、逍遥的亮蓝错开。
+  JobSect(key: 'kunlun', name: '昆仑', type: '内功 · 双形态', colorValue: 4289249512),
 ];

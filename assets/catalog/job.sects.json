@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.10.23.4216b578",
+  "dataVersion": "2026.10.26.bef43f00",
   "kind": "job.sects",
   "items": [
     {
@@ -74,6 +74,12 @@
       "name": "恶人谷",
       "type": "内功 · 刺客",
       "colorValue": 4288375764
+    },
+    {
+      "key": "kunlun",
+      "name": "昆仑",
+      "type": "内功 · 双形态",
+      "colorValue": 4289249512
     }
   ]
 }

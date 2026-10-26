@@ -19,7 +19,7 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 /// 该门派官网武道流派卡（`.wudao-grid`）：
 /// 每流派卡含流派被动（wd-pd）与各「重」节点（wd-lname + wd-row，
 /// 同层择一、每重 5 级）；节点带 30×30 图标。
-/// 慕容 / 曼陀山庄暂无官网武道数据，显示占位提示。
+/// 慕容 / 曼陀山庄 / 昆仑暂无官网武道数据，显示占位提示。
 class JobWudaoPage extends ConsumerStatefulWidget {
   const JobWudaoPage({super.key, this.initialSect});
 
@@ -192,7 +192,8 @@ class _WudaoEmpty extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               '武道系统随 2021 年「江湖焕新」资料片上线，覆盖当时九大门派；'
-              '恶人谷收录于其上线专题；曼陀山庄与慕容（重制）官网页面暂未提供。',
+              '恶人谷收录于其上线专题；曼陀山庄与慕容（重制）官网页面暂未提供；'
+              '昆仑（2026-10-23 上线）已知有「斩妄」「怒啸」两条线，节点数值待官方公布。',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12.5, color: tg.t3, height: 1.7),
             ),

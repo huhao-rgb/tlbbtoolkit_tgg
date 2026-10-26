@@ -62,7 +62,7 @@ void main() {
       await _pumpArtifact(tester);
 
       expect(find.text('职业神器'), findsWidgets);
-      expect(find.textContaining('十二大门派专属神兵'), findsOneWidget);
+      expect(find.textContaining('十三大门派专属神兵'), findsOneWidget);
 
       // 门派 pill + 门派名（默认少林）
       expect(find.text('少林'), findsNWidgets(2));
@@ -145,6 +145,27 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('大楚秋声'), findsOneWidget);
       expect(find.textContaining('山茶花宝石光效'), findsOneWidget);
+    });
+
+    testWidgets('切换门派到昆仑：九档未公开 → 显示占位且保留门派切换', (tester) async {
+      await _pumpArtifact(tester);
+
+      await tester.ensureVisible(find.text('昆仑'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('昆仑'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('昆仑'), findsNWidgets(2)); // pill + 当前门派名
+      expect(find.text('内功 · 双形态'), findsOneWidget);
+      expect(find.textContaining('官网暂未公布该门派神器数据'), findsOneWidget);
+      expect(find.textContaining('42-102 级九档'), findsOneWidget);
+
+      // 占位状态下仍能切回有数据的门派（不再整页空白）
+      await tester.ensureVisible(find.text('少林'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('少林'));
+      await tester.pumpAndSettle();
+      expect(find.text('熔金落日刀'), findsOneWidget);
     });
 
     testWidgets('数据来自 catalog：provider 给什么就渲染什么', (tester) async {
@@ -243,6 +264,22 @@ void main() {
       // 无生活技能的门派不显示该区块（不崩溃）
       expect(find.text('门派生活技能'), findsNothing);
     });
+
+    testWidgets('切换门派到昆仑：主玄副冰 / 双形态介绍可渲染', (tester) async {
+      await _pumpSect(tester);
+
+      await tester.ensureVisible(find.text('昆仑'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('昆仑'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('昆仑'), findsNWidgets(2));
+      expect(find.text('内功 · 双形态'), findsOneWidget);
+      expect(find.textContaining('玄攻 · 主属性攻'), findsOneWidget);
+      expect(find.textContaining('杀意'), findsWidgets);
+      // 官网未公布生活技能 → 不显示该区块
+      expect(find.text('门派生活技能'), findsNothing);
+    });
   });
 
   group('门派介绍 → 深入这个门派（跨页定位门派）', () {
@@ -275,7 +312,12 @@ void main() {
       expect(find.text('门派介绍'), findsWidgets);
 
       // 切换到天龙
-      await tester.ensureVisible(find.text('天龙'));
+      // 注意：13 个门派 pill 会换行，直接 ensureVisible 会把目标滚到悬浮顶栏下方，
+      // 导致 tap 落空；这里显式居中后再点。
+      await Scrollable.ensureVisible(
+        tester.element(find.text('天龙')),
+        alignment: 0.5,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('天龙'));
       await tester.pumpAndSettle();

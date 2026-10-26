@@ -49,6 +49,9 @@ const Map<String, Map<String, double>> kJobWeights = {
   'mantuo': {'ling': 0.45, 'shen': 0.25, 'ti': 0.2, 'ding': 0.1},
   'tianlong': {'ling': 0.35, 'shen': 0.3, 'li': 0.15, 'ti': 0.2},
   'erengu': {'ling': 0.45, 'shen': 0.3, 'ti': 0.15, 'ding': 0.1},
+  // 昆仑：主玄副冰的内功门派，官方未给加点建议，此处按「灵气 → 身法 → 体力」的
+  // 内功通例给出参考倾向（社区实测稿亦提示血量/命中优先）。
+  'kunlun': {'ling': 0.45, 'shen': 0.3, 'ti': 0.15, 'ding': 0.1},
 };
 
 /// 成长系数条目（对应原型 `PT_FLD`，顺序即「门派成长系数」列表顺序）。
@@ -214,6 +217,18 @@ const Map<String, Map<String, JobGrowthValue>> kJobGrowth = {
     'dodge': JobGrowthValue(4.5, approx: true),
     'crit': JobGrowthValue(0.06, approx: true),
     'critd': JobGrowthValue(0.06, approx: true),
+  },
+  // 昆仑：官网资料站尚未更新成长表，暂按逍遥（内功）模板近似，全部标注 ≈；
+  // 拿到实测数据后替换本块并去掉 approx 即可。
+  'kunlun': {
+    'hp': JobGrowthValue(50, approx: true),
+    'wai': JobGrowthValue(4.4, approx: true),
+    'nei': JobGrowthValue(7.6715, approx: true),
+    'mp': JobGrowthValue(36, approx: true),
+    'hit': JobGrowthValue(7.5, approx: true),
+    'dodge': JobGrowthValue(4, approx: true),
+    'crit': JobGrowthValue(0.05, approx: true),
+    'critd': JobGrowthValue(0.05, approx: true),
   },
 };
 

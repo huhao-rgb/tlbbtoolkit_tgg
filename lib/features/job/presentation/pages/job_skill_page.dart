@@ -158,6 +158,7 @@ class _JobSkillPageState extends ConsumerState<JobSkillPage> {
                     _MindNote(
                       mind: _mind == -1 ? null : _minds[_mind],
                       total: _skills.length,
+                      mindCount: _minds.length,
                     ),
                     const SizedBox(height: 14),
                     // 技能列表卡片
@@ -375,13 +376,20 @@ class _ListHead extends StatelessWidget {
 /// 顶部心法说明（`xf-note`）：全部时显示计数；
 /// 选中单本心法时显示「心法名 · 描述」，超长可点击展开/收起。
 class _MindNote extends StatefulWidget {
-  const _MindNote({required this.mind, required this.total});
+  const _MindNote({
+    required this.mind,
+    required this.total,
+    required this.mindCount,
+  });
 
   /// 当前选中的心法；null = 全部。
   final JobMind? mind;
 
   /// 该门派技能总数。
   final int total;
+
+  /// 该门派已收录的心法数量（新门派可能为 0）。
+  final int mindCount;
 
   @override
   State<_MindNote> createState() => _MindNoteState();
@@ -394,9 +402,17 @@ class _MindNoteState extends State<_MindNote> {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final mind = widget.mind;
-    if (mind == null) {
+    if (widget.mindCount == 0) {
       return Text(
-        '七本心法 · 共 ${widget.total} 门绝技 —— 点击心法名可单独查看',
+        '官方尚未公布该门派心法 · 技能库待补充',
+        style: TextStyle(fontSize: 12, color: tg.t3, height: 1.5),
+      );
+    }
+    if (mind == null) {
+      // 老门派固定七本心法，新门派按实际收录数量展示
+      final label = widget.mindCount == 7 ? '七本心法' : '${widget.mindCount} 本心法';
+      return Text(
+        '$label · 共 ${widget.total} 门绝技 —— 点击心法名可单独查看',
         style: TextStyle(fontSize: 12, color: tg.t3, height: 1.5),
       );
     }
