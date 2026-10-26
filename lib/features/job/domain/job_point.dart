@@ -319,6 +319,7 @@ class JobPreview {
     required this.hit,
     required this.dodge,
     required this.crit,
+    required this.critDef,
   });
 
   final double hp; // 气血上限
@@ -329,13 +330,18 @@ class JobPreview {
   final double defP; // 内功防御（定力 × 内防系数）
   final double hit; // 命中
   final double dodge; // 闪避
-  final double crit; // 会心攻击（会心 + 会心防御系数 × 身法）
+  final double crit; // 会心攻击（身法 × 会攻系数）
+  final double critDef; // 会心防御（身法 × 会防系数）
 }
 
-/// 面板预览（对齐原型 `renderPts`：等级基线 + 加点 × 门派成长系数）。
+/// 面板预览（等级基线 + 加点 × 门派成长系数，对齐原型 `renderPts`）。
 ///
 /// 攻击与双防只按加点折算（无等级基线，与原型一致），气血 / 气 / 命中 / 闪避
 /// 另含等级基线。
+///
+/// 与原型 `renderPts` 的唯一差异：**会心攻击只取会攻系数，会心防御单列**
+/// （原型的 `crit` 把会攻 + 会防一起乘身法，会让会防高的门派虚高，
+/// 如曼陀 0.08/0.04 反而低于天山 0.07/0.07）。
 JobPreview computePreview(String sectKey, int lv, Map<String, int> pts) {
   final g = jobGrowthOf(sectKey);
   double c(String k) => g[k]?.value ?? 0;
@@ -349,7 +355,8 @@ JobPreview computePreview(String sectKey, int lv, Map<String, int> pts) {
     defP: p('ding') * c('ndef'),
     hit: lv * 7 + p('shen') * c('hit'),
     dodge: lv * 5 + p('shen') * c('dodge'),
-    crit: p('shen') * (c('crit') + c('critd')),
+    crit: p('shen') * c('crit'),
+    critDef: p('shen') * c('critd'),
   );
 }
 

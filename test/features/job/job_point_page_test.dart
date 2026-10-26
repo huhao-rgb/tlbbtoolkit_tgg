@@ -59,7 +59,8 @@ void main() {
       expect(p.atkW, 0);
       expect(p.hit, 119 * 7 + 100 * 7.5);
       expect(p.dodge, 119 * 5 + 100 * 4);
-      expect(p.crit, closeTo(100 * (0.05 + 0.05), 1e-9));
+      expect(p.crit, closeTo(100 * 0.05, 1e-9)); // 会心攻击只看会攻系数
+      expect(p.critDef, closeTo(100 * 0.05, 1e-9)); // 会心防御看会防系数
       expect(p.defW, closeTo(100 * 5.07, 1e-9)); // 体力 → 外功防御
       expect(p.defP, 0); // 未加定力
     });
@@ -72,6 +73,20 @@ void main() {
       expect(mingjiao.hp, closeTo(100 * 28 + 100 * 56, 1e-9));
       expect(shaolin.atkW, closeTo(100 * 7.61, 1e-9));
       expect(mingjiao.atkW, closeTo(100 * 8.25, 1e-9));
+    });
+
+    test('同点数会心攻击只看会攻系数：曼陀（0.08）高于天山（0.07）', () {
+      // 回归：曾把会攻 + 会防相加，导致天山（0.07+0.07）反超曼陀（0.08+0.04）
+      final pts = {'li': 0, 'ling': 0, 'ti': 0, 'ding': 0, 'shen': 545};
+      final mantuo = computePreview('mantuo', 119, pts);
+      final tianshan = computePreview('tianshan', 119, pts);
+      expect(mantuo.crit, closeTo(545 * 0.08, 1e-9));
+      expect(tianshan.crit, closeTo(545 * 0.07, 1e-9));
+      expect(mantuo.crit, greaterThan(tianshan.crit));
+      // 会防单独成项：天山（0.07）高于曼陀（0.04）
+      expect(mantuo.critDef, closeTo(545 * 0.04, 1e-9));
+      expect(tianshan.critDef, closeTo(545 * 0.07, 1e-9));
+      expect(tianshan.critDef, greaterThan(mantuo.critDef));
     });
 
     test('未知门派成长系数回退逍遥', () {
@@ -145,8 +160,9 @@ void main() {
     expect(find.text('833'), findsOneWidget); // 命中
     expect(find.text('595'), findsOneWidget); // 闪避
 
-    // 会心攻击 / 双防（9 项预览）
+    // 会攻 / 会防 / 双防（10 项预览）
     expect(find.text('会心攻击'), findsOneWidget);
+    expect(find.text('会心防御'), findsOneWidget);
     expect(find.text('外功防御'), findsOneWidget);
     expect(find.text('内功防御'), findsOneWidget);
     expect(find.text('0'), findsWidgets); // 未加点：内外攻 / 双防 / 会心均为 0
