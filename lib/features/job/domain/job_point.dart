@@ -35,6 +35,9 @@ const List<JobAttrDef> kJobAttrs = [
 const int kPointLvMin = 10;
 const int kPointLvMax = 119;
 
+/// 打开计算器时的默认等级（89 级：怀旧服主流满级段，潜能 395 点）。
+const int kPointLvDefault = 89;
+
 /// 门派加点权重（对应原型 `WEIGHTS`：各维度占比 0~1）。
 const Map<String, Map<String, double>> kJobWeights = {
   'shaolin': {'li': 0.45, 'ti': 0.35, 'ding': 0.1, 'shen': 0.1},

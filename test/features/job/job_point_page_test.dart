@@ -132,14 +132,14 @@ void main() {
     });
   });
 
-  testWidgets('默认渲染：等级119 / 总545 / 五行 / 面板预览', (tester) async {
+  testWidgets('默认渲染：等级89 / 总395 / 五行 / 面板预览', (tester) async {
     await pumpPage(tester);
 
     expect(find.text('职业加点计算器'), findsWidgets);
     expect(find.textContaining('潜能点分配 · 一键推荐方案'), findsOneWidget);
 
-    // 剩余/总潜能 545
-    expect(find.text('545'), findsNWidgets(2));
+    // 剩余/总潜能 395
+    expect(find.text('395'), findsNWidgets(2));
     expect(find.text('一键推荐'), findsOneWidget);
     expect(find.text('全点体力'), findsOneWidget);
     expect(find.text('全点身法'), findsOneWidget);
@@ -154,11 +154,11 @@ void main() {
     expect(find.text('面板预览 · '), findsOneWidget);
     expect(find.text('逍遥'), findsNWidgets(2)); // pill + 预览标题
 
-    // 预览初值（119 级，无加点）
-    expect(find.text('3,332'), findsOneWidget); // 气血
-    expect(find.text('2,380'), findsOneWidget); // 气
-    expect(find.text('833'), findsOneWidget); // 命中
-    expect(find.text('595'), findsOneWidget); // 闪避
+    // 预览初值（89 级，无加点）
+    expect(find.text('2,492'), findsOneWidget); // 气血
+    expect(find.text('1,780'), findsOneWidget); // 气
+    expect(find.text('623'), findsOneWidget); // 命中
+    expect(find.text('445'), findsOneWidget); // 闪避
 
     // 会攻 / 会防 / 双防（10 项预览）
     expect(find.text('会心攻击'), findsOneWidget);
@@ -186,10 +186,10 @@ void main() {
     await tester.tap(plus.at(2));
     await tester.pump();
 
-    // 剩余 544 / 总 545
-    expect(find.text('544'), findsOneWidget);
-    // 面板：气血 = 3332 + 逍遥体力系数 50 = 3382；外防 = 5.07
-    expect(find.text('3,382'), findsOneWidget);
+    // 剩余 394 / 总 395
+    expect(find.text('394'), findsOneWidget);
+    // 面板：气血 = 2492 + 逍遥体力系数 50 = 2542；外防 = 5.07
+    expect(find.text('2,542'), findsOneWidget);
     // 外防 5.07：预览一项 + 成长系数表「体力 → 外功防御」一项
     expect(find.text('5.07'), findsNWidgets(2));
   });
@@ -200,14 +200,14 @@ void main() {
     final sliders = find.byType(Slider);
     expect(sliders, findsNWidgets(5)); // 力量/灵气/体力/定力/身法
 
-    // 体力（第 3 行）拖到最右 → 吃满 545
+    // 体力（第 3 行）拖到最右 → 吃满 395
     await tester.drag(sliders.at(2), const Offset(2000, 0));
     await tester.pump();
-    expect(tester.widget<Slider>(sliders.at(2)).value, 545);
-    // 剩余 0（「545」只剩行内数值 + 顶部「总」）
-    expect(find.text('545'), findsNWidgets(2));
-    // 面板：气血 = 3332 + 545 × 50
-    expect(find.text('30,582'), findsOneWidget);
+    expect(tester.widget<Slider>(sliders.at(2)).value, 395);
+    // 剩余 0（「395」只剩行内数值 + 顶部「总」）
+    expect(find.text('395'), findsNWidgets(2));
+    // 面板：气血 = 2492 + 395 × 50
+    expect(find.text('22,242'), findsOneWidget);
 
     // 其他维度上限被剩余潜能压到 0 → 滑块禁用、拖动无效
     final li = tester.widget<Slider>(sliders.at(0));
@@ -222,7 +222,7 @@ void main() {
     await tester.drag(sliders.at(2), const Offset(-2000, 0));
     await tester.pump();
     expect(tester.widget<Slider>(sliders.at(2)).value, 0);
-    expect(find.text('545'), findsNWidgets(2)); // 回到「剩余 545 / 总 545」
+    expect(find.text('395'), findsNWidgets(2)); // 回到「剩余 395 / 总 395」
   });
 
   testWidgets('总潜能为 0（10 级）：滑块全部禁用', (tester) async {
@@ -238,7 +238,7 @@ void main() {
       expect(s.value, 0, reason: 'row $i');
       expect(s.onChanged, isNull, reason: 'row $i');
     }
-    expect(find.text('545'), findsNothing);
+    expect(find.text('395'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -248,22 +248,22 @@ void main() {
     // 先分配到别的维度，确认全点会覆盖而非叠加
     await tester.tap(find.text('一键推荐'));
     await tester.pump();
-    expect(find.text('273'), findsOneWidget); // 灵气
+    expect(find.text('198'), findsOneWidget); // 灵气
 
     await tester.tap(find.text('全点体力'));
     await tester.pump();
 
     final sliders = find.byType(Slider);
-    expect(tester.widget<Slider>(sliders.at(2)).value, 545); // 体力吃满
+    expect(tester.widget<Slider>(sliders.at(2)).value, 395); // 体力吃满
     for (final i in const [0, 1, 3, 4]) {
       expect(tester.widget<Slider>(sliders.at(i)).value, 0, reason: 'row $i');
     }
-    expect(find.text('545'), findsNWidgets(2)); // 行内 545 + 顶部「总」
+    expect(find.text('395'), findsNWidgets(2)); // 行内 395 + 顶部「总」
 
-    // 面板：气血 = 3332 + 545 × 50；气/内攻等归零
-    expect(find.text('30,582'), findsOneWidget);
-    expect(find.text('2,380'), findsOneWidget); // 气上限只受等级基线影响
-    expect(find.text('2,763.15'), findsOneWidget); // 外防 = 545 × 5.07
+    // 面板：气血 = 2492 + 395 × 50；气/内攻等归零
+    expect(find.text('22,242'), findsOneWidget);
+    expect(find.text('1,780'), findsOneWidget); // 气上限只受等级基线影响
+    expect(find.text('2,002.65'), findsOneWidget); // 外防 = 395 × 5.07
     expect(find.text('2094.3'), findsNothing);
   });
 
@@ -279,12 +279,12 @@ void main() {
     await tester.pump();
 
     final sliders = find.byType(Slider);
-    expect(tester.widget<Slider>(sliders.at(4)).value, 545);
+    expect(tester.widget<Slider>(sliders.at(4)).value, 395);
     expect(tester.widget<Slider>(sliders.at(2)).value, 0);
-    // 少林身法 → 命中 6.5：833 + 545 × 6.5 = 4,375.5
-    expect(find.text('4,375.5'), findsOneWidget);
-    // 少林身法 → 闪避 2：595 + 545 × 2 = 1,685
-    expect(find.text('1,685'), findsOneWidget);
+    // 少林身法 → 命中 6.5：623 + 395 × 6.5 = 3,190.5
+    expect(find.text('3,190.5'), findsOneWidget);
+    // 少林身法 → 闪避 2：445 + 395 × 2 = 1,235
+    expect(find.text('1,235'), findsOneWidget);
   });
 
   testWidgets('切门派后成长系数与预览同步（少林按换算表取值）', (tester) async {
@@ -300,23 +300,23 @@ void main() {
     expect(find.text('7.61'), findsOneWidget);
 
     // 面板预览无加点仍为等级基线
-    expect(find.text('3,332'), findsOneWidget);
+    expect(find.text('2,492'), findsOneWidget);
   });
 
-  testWidgets('一键推荐 → 合计 545 分配，清空归零', (tester) async {
+  testWidgets('一键推荐 → 合计 395 分配，清空归零', (tester) async {
     await pumpPage(tester);
 
     await tester.tap(find.text('一键推荐'));
     await tester.pump();
 
-    // 推荐后剩余为 0（总值仍 545）
-    expect(find.text('545'), findsOneWidget); // 仅「总」
+    // 推荐后剩余为 0（总值仍 395）
+    expect(find.text('395'), findsOneWidget); // 仅「总」
     expect(find.text('0'), findsWidgets);
 
-    // 清空 → 剩余恢复 545
+    // 清空 → 剩余恢复 395
     await tester.tap(find.text('清空'));
     await tester.pump();
-    expect(find.text('545'), findsNWidgets(2));
+    expect(find.text('395'), findsNWidgets(2));
   });
 
   testWidgets('切门派后一键推荐用新权重（少林 → 力量最高）', (tester) async {
@@ -332,12 +332,12 @@ void main() {
     await tester.tap(find.text('一键推荐'));
     await tester.pump();
 
-    // 少林权重 li 最高，力量加点多；外功攻击 = 246 × 7.61 = 1,872.06
+    // 少林权重 li 最高，力量加点多；外功攻击 = 178 × 7.61 = 1,354.58
     expect(find.text('外功攻击'), findsOneWidget);
-    expect(find.text('1,872.1'), findsNothing); // 外功攻击用 toFixed(1) 去千分位
-    expect(find.text('1872.1'), findsOneWidget);
-    // 气血 = 3332 + 191 × 70 = 16,702
-    expect(find.text('16,702'), findsOneWidget);
+    expect(find.text('1,354.6'), findsNothing); // 外功攻击用 toFixed(1) 去千分位
+    expect(find.text('1354.6'), findsOneWidget);
+    // 气血 = 2492 + 139 × 70 = 12,222
+    expect(find.text('12,222'), findsOneWidget);
   });
 
   testWidgets('紧凑宽度（560 / 390）：预览与成长系数自动换列不溢出', (tester) async {

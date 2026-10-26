@@ -16,7 +16,7 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 
 /// 职业加点计算器（对应原型 `v-class-point`）。
 ///
-/// 门派 pills + 等级（10~119，默认 119）+ 五行潜能滑块
+/// 门派 pills + 等级（10~119，默认 89）+ 五行潜能滑块
 /// （− 滑块 ＋，滑块上限 = 已点 + 剩余潜能）+ 一键推荐 / 全点体力 · 全点身法 / 清空 +
 /// 面板预览（气血/气/内外攻/内外防/命中/闪避/会攻/会防，按门派成长系数换算）+
 /// 门派成长系数 · 每点潜能换算表。
@@ -36,8 +36,8 @@ class _JobPointPageState extends State<JobPointPage> {
   /// 可由 `initialSect` 覆盖，支持跨页定位门派）。
   late JobSect _sect;
 
-  /// 等级（默认 119）。
-  int _lv = kPointLvMax;
+  /// 等级（默认 89，见 [kPointLvDefault]）。
+  int _lv = kPointLvDefault;
 
   @override
   void initState() {
