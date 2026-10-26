@@ -314,6 +314,8 @@ class JobPreview {
     required this.mp,
     required this.atkP,
     required this.atkW,
+    required this.defW,
+    required this.defP,
     required this.hit,
     required this.dodge,
     required this.crit,
@@ -323,12 +325,17 @@ class JobPreview {
   final double mp; // 气上限
   final double atkP; // 内功攻击
   final double atkW; // 外功攻击
+  final double defW; // 外功防御（体力 × 外防系数）
+  final double defP; // 内功防御（定力 × 内防系数）
   final double hit; // 命中
   final double dodge; // 闪避
   final double crit; // 会心攻击（会心 + 会心防御系数 × 身法）
 }
 
 /// 面板预览（对齐原型 `renderPts`：等级基线 + 加点 × 门派成长系数）。
+///
+/// 攻击与双防只按加点折算（无等级基线，与原型一致），气血 / 气 / 命中 / 闪避
+/// 另含等级基线。
 JobPreview computePreview(String sectKey, int lv, Map<String, int> pts) {
   final g = jobGrowthOf(sectKey);
   double c(String k) => g[k]?.value ?? 0;
@@ -338,6 +345,8 @@ JobPreview computePreview(String sectKey, int lv, Map<String, int> pts) {
     mp: lv * 20 + p('ding') * c('mp'),
     atkP: p('ling') * c('nei'),
     atkW: p('li') * c('wai'),
+    defW: p('ti') * c('wdef'),
+    defP: p('ding') * c('ndef'),
     hit: lv * 7 + p('shen') * c('hit'),
     dodge: lv * 5 + p('shen') * c('dodge'),
     crit: p('shen') * (c('crit') + c('critd')),

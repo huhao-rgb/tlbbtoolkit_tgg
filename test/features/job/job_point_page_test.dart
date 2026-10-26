@@ -60,6 +60,8 @@ void main() {
       expect(p.hit, 119 * 7 + 100 * 7.5);
       expect(p.dodge, 119 * 5 + 100 * 4);
       expect(p.crit, closeTo(100 * (0.05 + 0.05), 1e-9));
+      expect(p.defW, closeTo(100 * 5.07, 1e-9)); // 体力 → 外功防御
+      expect(p.defP, 0); // 未加定力
     });
 
     test('面板预览：门派系数不同 → 结果不同（少林体力/明教力量）', () {
@@ -143,8 +145,11 @@ void main() {
     expect(find.text('833'), findsOneWidget); // 命中
     expect(find.text('595'), findsOneWidget); // 闪避
 
-    // 会心攻击（7 项预览之一）
+    // 会心攻击 / 双防（9 项预览）
     expect(find.text('会心攻击'), findsOneWidget);
+    expect(find.text('外功防御'), findsOneWidget);
+    expect(find.text('内功防御'), findsOneWidget);
+    expect(find.text('0'), findsWidgets); // 未加点：内外攻 / 双防 / 会心均为 0
 
     // 门派成长系数（逍遥全为实测精确值 → 无 ≈ 标注）
     expect(find.text('门派成长系数 · 每点潜能换算'), findsOneWidget);
@@ -167,8 +172,10 @@ void main() {
 
     // 剩余 544 / 总 545
     expect(find.text('544'), findsOneWidget);
-    // 面板：气血 = 3332 + 逍遥体力系数 50 = 3382
+    // 面板：气血 = 3332 + 逍遥体力系数 50 = 3382；外防 = 5.07
     expect(find.text('3,382'), findsOneWidget);
+    // 外防 5.07：预览一项 + 成长系数表「体力 → 外功防御」一项
+    expect(find.text('5.07'), findsNWidgets(2));
   });
 
   testWidgets('滑块上限 = 剩余潜能：拖满后其他维度不可再分配', (tester) async {
@@ -240,6 +247,7 @@ void main() {
     // 面板：气血 = 3332 + 545 × 50；气/内攻等归零
     expect(find.text('30,582'), findsOneWidget);
     expect(find.text('2,380'), findsOneWidget); // 气上限只受等级基线影响
+    expect(find.text('2,763.15'), findsOneWidget); // 外防 = 545 × 5.07
     expect(find.text('2094.3'), findsNothing);
   });
 

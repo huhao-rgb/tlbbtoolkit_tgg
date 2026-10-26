@@ -18,7 +18,7 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 ///
 /// 门派 pills + 等级（10~119，默认 119）+ 五行潜能滑块
 /// （− 滑块 ＋，滑块上限 = 已点 + 剩余潜能）+ 一键推荐 / 全点体力 · 全点身法 / 清空 +
-/// 面板预览（气血/气/内外攻/命中/闪避/会心，按门派成长系数换算）+
+/// 面板预览（气血/气/内外攻/内外防/命中/闪避/会心，按门派成长系数换算）+
 /// 门派成长系数 · 每点潜能换算表。
 class JobPointPage extends StatefulWidget {
   const JobPointPage({super.key, this.initialSect});
@@ -519,7 +519,7 @@ SliderThemeData _attrSliderTheme(TgColors tg) {
   );
 }
 
-/// 面板预览（`.mat-sec` h4 + auto-fit 网格 7 项）。
+/// 面板预览（`.mat-sec` h4 + auto-fit 网格 9 项）。
 class _PreviewSection extends StatelessWidget {
   const _PreviewSection({required this.sectName, required this.preview});
 
@@ -534,6 +534,8 @@ class _PreviewSection extends StatelessWidget {
       ('气上限', formatGrouped(preview.mp)),
       ('内功攻击', formatFixed1(preview.atkP)),
       ('外功攻击', formatFixed1(preview.atkW)),
+      ('外功防御', formatGrouped(preview.defW)),
+      ('内功防御', formatGrouped(preview.defP)),
       ('命中', formatGrouped(preview.hit)),
       ('闪避', formatGrouped(preview.dodge)),
       ('会心攻击', formatCrit(preview.crit)),
