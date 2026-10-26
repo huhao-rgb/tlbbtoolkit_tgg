@@ -119,7 +119,25 @@ presentation ──► domain ◄── data
 
 ---
 
-## 6. 边界（不要做）
+## 6. Git 提交规范
+
+格式固定为 **Conventional Commits + 中文主题**：
+
+```
+<type>(<scope>): <中文主题>
+```
+
+- 常用 type：`feat`（新功能 / 新数据）/ `fix` / `docs` / `refactor` / `perf` / `style` / `build` / `ci` / `chore` / `revert`。
+- scope 按模块取：`job` / `pet` / `misc` / `app` / `theme` / `router` / `shared` / `catalog` / `installer` / `android` / `macos` / `windows` / `ci` / `release` / `server`；跨模块用逗号（`feat(job,pet): …`），横切改动可省略。
+- 主题说清「改了什么」，不加句号，建议 ≤ 50 字。一次提交只做一件事。
+- **生成物与源文件必须同提交**：改实体 / provider / 路由 / 资源先跑 `build_runner build`；改 `domain/` 静态数据先跑 `fvm flutter test tools/catalog/export_catalog.dart`。
+- 发版提交固定为 `chore: 修改版本号<版本>`（`scripts/release.sh` 生成）。
+
+细则、正反例与 scope 全表见 [`docs/commit-convention.md`](docs/commit-convention.md)。
+
+---
+
+## 7. 边界（不要做）
 
 - 不要提交 `build/`、`.dart_tool/`、`.fvm/flutter_sdk/`。
 - 不要手改生成文件；不要在 `domain/` 引入 Flutter 依赖。
