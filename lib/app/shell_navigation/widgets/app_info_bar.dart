@@ -66,9 +66,15 @@ class AppInfoBar extends ConsumerWidget {
           // 内容在此基础上再叠加安全区内缩。
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              (desktop ? TgSpacing.pagePaddingDeskH : TgSpacing.pagePaddingMobileH) + insets.left,
+              (desktop
+                      ? TgSpacing.pagePaddingDeskH
+                      : TgSpacing.pagePaddingMobileH) +
+                  insets.left,
               12 + insets.top,
-              (desktop ? TgSpacing.pagePaddingDeskH : TgSpacing.pagePaddingMobileH) + insets.right,
+              (desktop
+                      ? TgSpacing.pagePaddingDeskH
+                      : TgSpacing.pagePaddingMobileH) +
+                  insets.right,
               12,
             ),
             child: Row(
