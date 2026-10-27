@@ -1,169 +1,209 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.10.26.efdfbfc1",
+  "dataVersion": "2026.10.26.2722f0a7",
   "kind": "pet.skills",
   "items": {
     "skills": [
       {
-        "name": "猛击",
-        "desc": "",
-        "cat": "atk",
-        "tag": "自动攻击",
-        "tagColor": "gold",
+        "name": "反击",
+        "desc": "受击时一定几率反击",
+        "family": "revenge",
         "base": 20,
-        "judge": "攻击判定",
-        "icon": "sk-mengji",
-        "fx": "奋力扑出，撕咬目标要害，造成一次外功伤害。作为触发最频繁的自动攻击技，是近战宝宝的主要输出手段，「勇猛」性格可显著提高其出手频率。"
+        "judge": "受击判定",
+        "icon": "sk-fanji",
+        "fx": "受到攻击时按几率立刻回敬一击，伤害按自身外功计算。是肉盾型宝宝最经典的输出来源，体质越高越耐打，反击次数也越可观。"
       },
       {
-        "name": "连击",
-        "desc": "",
-        "cat": "atk",
-        "tag": "自动攻击",
-        "tagColor": "gold",
-        "base": 15,
-        "judge": "攻击判定",
-        "icon": "sk-lianji",
-        "fx": "身形连闪，接续两段快攻。单次伤害虽低，胜在出手迅捷、总伤可观，命中后可小幅打断目标施法节奏，攻速型宝宝的核心输出循环。"
-      },
-      {
-        "name": "痛击",
-        "desc": "",
-        "cat": "atk",
-        "tag": "自动攻击",
-        "tagColor": "gold",
-        "base": 12,
-        "judge": "攻击判定",
-        "icon": "sk-tongji",
-        "fx": "瞄准破绽，一击痛下重手，伤害明显高于普通撕咬。出手后动作幅度大、有短暂硬直，适合搭配控制类技能使用，避免被目标反打。"
-      },
-      {
-        "name": "寒冰咒",
-        "desc": "冰属性附加伤害",
-        "cat": "atk",
-        "tag": "冰系",
-        "tagColor": "cyan",
-        "base": 10,
-        "judge": "攻击判定",
-        "icon": "sk-hanbing",
-        "fx": "吐出寒气凝成冰符掷向目标，命中后附加冰属性伤害，并有概率使目标动作迟滞。与「迟缓」叠加可形成减速链，对怕冰的野怪压制力更强。"
-      },
-      {
-        "name": "烈火咒",
-        "desc": "火属性附加伤害",
-        "cat": "atk",
-        "tag": "火系",
-        "tagColor": "red",
-        "base": 10,
-        "judge": "攻击判定",
-        "icon": "sk-liehuo",
-        "fx": "周身腾起烈焰扑向目标，附加火属性伤害。灼烧效果对木质、阴寒类野怪有额外克制，刷怪路线搭配火抗药剂收益更高。"
-      },
-      {
-        "name": "虚弱",
-        "desc": "降低目标攻击力",
-        "cat": "st",
-        "tag": "状态",
-        "tagColor": "blue",
-        "base": 8,
-        "judge": "周期判定",
-        "icon": "sk-xuruo",
-        "fx": "低吼震慑，削弱目标的攻击力，持续数秒。状态类触发，按周期判定施放，「谨慎」「精明」性格的宝宝更容易施展，开荒硬仗时性价比极高。"
-      },
-      {
-        "name": "打怒",
-        "desc": "清除目标怒气",
-        "cat": "st",
-        "tag": "状态",
-        "tagColor": "blue",
-        "base": 8,
-        "judge": "周期判定",
-        "icon": "sk-danu",
-        "fx": "一击打断目标气势，清除其部分怒气值。PVP 中克制门派怒气技能的利器，对方起手攒怒时一记打怒往往能直接瓦解整套连招。"
-      },
-      {
-        "name": "迟缓",
-        "desc": "降低目标移动速度",
-        "cat": "st",
-        "tag": "状态",
-        "tagColor": "blue",
-        "base": 6,
-        "judge": "周期判定",
-        "icon": "sk-chihuan",
-        "fx": "吐息缠身如坠泥沼，降低目标移动速度。追击残血、风筝近战都靠它，与「寒冰咒」配合可将目标始终控在攻击范围之内。"
+        "name": "高级反击",
+        "desc": "受击时反击 · 几率更高",
+        "family": "revenge",
+        "base": 30,
+        "judge": "受击判定",
+        "icon": "sk-fanji",
+        "fx": "反击几率提升到 30%，挨打越多出手越勤。与「高级反震」一起佩戴后，近战目标往往进退两难。"
       },
       {
         "name": "吸血",
-        "desc": "伤害转化气血",
-        "cat": "sup",
-        "tag": "辅助",
-        "tagColor": "green",
-        "base": 6,
+        "desc": "攻击命中后吸取气血",
+        "family": "revenge",
+        "base": 20,
         "judge": "攻击判定",
         "icon": "sk-xixue",
-        "fx": "将造成伤害的一部分转化为自身气血。续航型辅助被动，挂机刷怪时显著降低药品消耗，配合高频攻击技收益成倍放大。"
+        "fx": "每次命中后按几率把所造成伤害的一部分转化为自身气血，续航能力明显提升，挂机刷怪几乎不用喂药。"
       },
       {
-        "name": "护主",
-        "desc": "主人受击时触发",
-        "cat": "sup",
-        "tag": "辅助",
-        "tagColor": "green",
-        "base": 100,
+        "name": "高级吸血",
+        "desc": "吸取气血 · 几率更高",
+        "family": "revenge",
+        "base": 30,
+        "judge": "攻击判定",
+        "icon": "sk-xixue",
+        "fx": "吸血几率提升到 30%，配合高攻速技能可形成稳定的自愈循环，长时间拉锯战中收益成倍放大。"
+      },
+      {
+        "name": "反震",
+        "desc": "受击时反弹伤害",
+        "family": "revenge",
+        "base": 20,
         "judge": "受击判定",
-        "icon": "sk-huzhu",
-        "fx": "主人受到攻击时挺身格挡，替主人承担部分伤害。「忠诚」性格触发率极高，是脆皮门派身边最可靠的一道盾，副本拉怪也常靠它稳住仇恨。"
+        "icon": "sk-fanzhen",
+        "fx": "受到近战攻击时按几率把部分伤害反弹给攻击者，对贴身输出的门派克制明显，越硬的宝宝收益越高。"
+      },
+      {
+        "name": "高级反震",
+        "desc": "反弹伤害 · 几率更高",
+        "family": "revenge",
+        "base": 30,
+        "judge": "受击判定",
+        "icon": "sk-fanzhen",
+        "fx": "反震几率提升到 30%，反弹比例也更高，是硬抗物理输出的核心被动，配合「高级反击」形成反伤闭环。"
+      },
+      {
+        "name": "灵动",
+        "desc": "受击时提升闪避",
+        "family": "defense",
+        "base": 20,
+        "judge": "受击判定",
+        "icon": "sk-lingdong",
+        "fx": "受击时按几率短暂提升自身闪避，更难被连续命中。适合需要站场吃伤害的宝宝，面对群怪时格外面子足。"
+      },
+      {
+        "name": "高级灵动",
+        "desc": "闪避加成 · 几率更高",
+        "family": "defense",
+        "base": 30,
+        "judge": "受击判定",
+        "icon": "sk-lingdong",
+        "fx": "灵动几率提升到 30%，闪避加成的覆盖时间更长，在持续挨打的场合能把生存曲线整体抬高一档。"
+      },
+      {
+        "name": "吸魔",
+        "desc": "攻击命中后吸取法力",
+        "family": "defense",
+        "base": 20,
+        "judge": "攻击判定",
+        "icon": "sk-ximo",
+        "fx": "命中后按几率吸取目标法力，对依赖技能循环的门派形成持续压制。与「打怒」同佩戴时，对手的技能节奏会被反复打断。"
+      },
+      {
+        "name": "高级吸魔",
+        "desc": "吸取法力 · 几率更高",
+        "family": "defense",
+        "base": 30,
+        "judge": "攻击判定",
+        "icon": "sk-ximo",
+        "fx": "吸魔几率提升到 30%，吸取量更高。长时间消耗战里，对手往往还没打完一套就没蓝可用。"
+      },
+      {
+        "name": "打怒",
+        "desc": "攻击命中后清除怒气",
+        "family": "defense",
+        "base": 20,
+        "judge": "攻击判定",
+        "icon": "sk-danu",
+        "fx": "命中时按几率清除目标部分怒气，直接打断对方的大招节奏。PVP 里对方起手攒怒时一记打怒，往往能瓦解整套连招。"
+      },
+      {
+        "name": "高级打怒",
+        "desc": "清除怒气 · 几率更高",
+        "family": "defense",
+        "base": 30,
+        "judge": "攻击判定",
+        "icon": "sk-danu",
+        "fx": "打怒几率提升到 30%，更容易在对手攒满怒气之前把节奏压下去，是克制怒气爆发门派的关键被动。"
+      },
+      {
+        "name": "忠心",
+        "desc": "主人受击时替主人承伤",
+        "family": "guard",
+        "base": 7,
+        "judge": "受击判定",
+        "icon": "sk-zhongxin",
+        "fx": "主人受到攻击时按几率挺身格挡，替主人承担部分伤害。「忠诚」性格触发率最高，是脆皮门派身边最可靠的一道盾。"
+      },
+      {
+        "name": "高级忠心",
+        "desc": "护主承伤 · 几率更高",
+        "family": "guard",
+        "base": 12,
+        "judge": "受击判定",
+        "icon": "sk-zhongxin",
+        "fx": "忠心几率提升到 12%，且承伤比例更高，副本拉怪与 PVP 保命都靠它稳住局面，忠诚宝宝的核心被动。"
+      },
+      {
+        "name": "灵气",
+        "desc": "主人受击时回复气值",
+        "family": "guard",
+        "base": 15,
+        "judge": "受击判定",
+        "icon": "sk-lingqi",
+        "fx": "主人受到攻击时按几率为主人回复气值，让主人的技能循环更顺畅。与「忠心」同佩时，既保命又保输出节奏。"
+      },
+      {
+        "name": "高级灵气",
+        "desc": "回复气值 · 几率更高",
+        "family": "guard",
+        "base": 25,
+        "judge": "受击判定",
+        "icon": "sk-lingqi",
+        "fx": "灵气几率提升到 25%，回气量也更高，长时间作战里主人的续航与技能衔接都会稳定不少。"
       }
     ],
     "chars": [
       {
-        "key": "general",
-        "name": "通用",
-        "atk": 1.0,
-        "st": 1.0,
-        "sup": 1.0
-      },
-      {
-        "key": "yongmeng",
-        "name": "勇猛",
-        "atk": 1.3,
-        "st": 0.8,
-        "sup": 0.9
-      },
-      {
         "key": "danxiao",
         "name": "胆小",
-        "atk": 1.15,
-        "st": 1.0,
-        "sup": 0.95
+        "factors": {
+          "physical": 0.5,
+          "magic": 2.0,
+          "guard": 0.5,
+          "defense": 1.0,
+          "revenge": 0.5
+        }
       },
       {
         "key": "jinshen",
         "name": "谨慎",
-        "atk": 0.85,
-        "st": 1.1,
-        "sup": 1.3
-      },
-      {
-        "key": "jingming",
-        "name": "精明",
-        "atk": 0.9,
-        "st": 1.4,
-        "sup": 1.0
+        "factors": {
+          "physical": 0.8,
+          "magic": 1.3,
+          "guard": 1.3,
+          "defense": 2.0,
+          "revenge": 0.8
+        }
       },
       {
         "key": "zhongcheng",
         "name": "忠诚",
-        "atk": 0.85,
-        "st": 0.95,
-        "sup": 1.5
+        "factors": {
+          "physical": 1.0,
+          "magic": 1.0,
+          "guard": 2.0,
+          "defense": 1.0,
+          "revenge": 1.0
+        }
       },
       {
-        "key": "neilian",
-        "name": "内敛",
-        "atk": 1.2,
-        "st": 1.05,
-        "sup": 0.9
+        "key": "jingming",
+        "name": "精明",
+        "factors": {
+          "physical": 1.3,
+          "magic": 0.8,
+          "guard": 1.0,
+          "defense": 0.8,
+          "revenge": 2.0
+        }
+      },
+      {
+        "key": "yongmeng",
+        "name": "勇猛",
+        "factors": {
+          "physical": 2.0,
+          "magic": 0.5,
+          "guard": 0.8,
+          "defense": 0.5,
+          "revenge": 1.3
+        }
       }
     ]
   }

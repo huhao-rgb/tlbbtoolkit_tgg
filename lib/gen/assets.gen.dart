@@ -210,6 +210,12 @@ class $AssetsIconsGen {
   /// File path: assets/icons/sk-danu.svg
   String get skDanu => 'assets/icons/sk-danu.svg';
 
+  /// File path: assets/icons/sk-fanji.svg
+  String get skFanji => 'assets/icons/sk-fanji.svg';
+
+  /// File path: assets/icons/sk-fanzhen.svg
+  String get skFanzhen => 'assets/icons/sk-fanzhen.svg';
+
   /// File path: assets/icons/sk-hanbing.svg
   String get skHanbing => 'assets/icons/sk-hanbing.svg';
 
@@ -222,17 +228,29 @@ class $AssetsIconsGen {
   /// File path: assets/icons/sk-liehuo.svg
   String get skLiehuo => 'assets/icons/sk-liehuo.svg';
 
+  /// File path: assets/icons/sk-lingdong.svg
+  String get skLingdong => 'assets/icons/sk-lingdong.svg';
+
+  /// File path: assets/icons/sk-lingqi.svg
+  String get skLingqi => 'assets/icons/sk-lingqi.svg';
+
   /// File path: assets/icons/sk-mengji.svg
   String get skMengji => 'assets/icons/sk-mengji.svg';
 
   /// File path: assets/icons/sk-tongji.svg
   String get skTongji => 'assets/icons/sk-tongji.svg';
 
+  /// File path: assets/icons/sk-ximo.svg
+  String get skXimo => 'assets/icons/sk-ximo.svg';
+
   /// File path: assets/icons/sk-xixue.svg
   String get skXixue => 'assets/icons/sk-xixue.svg';
 
   /// File path: assets/icons/sk-xuruo.svg
   String get skXuruo => 'assets/icons/sk-xuruo.svg';
+
+  /// File path: assets/icons/sk-zhongxin.svg
+  String get skZhongxin => 'assets/icons/sk-zhongxin.svg';
 
   /// File path: assets/icons/slider.svg
   String get slider => 'assets/icons/slider.svg';
@@ -285,14 +303,20 @@ class $AssetsIconsGen {
     shield,
     skChihuan,
     skDanu,
+    skFanji,
+    skFanzhen,
     skHanbing,
     skHuzhu,
     skLianji,
     skLiehuo,
+    skLingdong,
+    skLingqi,
     skMengji,
     skTongji,
+    skXimo,
     skXixue,
     skXuruo,
+    skZhongxin,
     slider,
     spark,
     sun,

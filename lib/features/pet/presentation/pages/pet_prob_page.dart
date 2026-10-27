@@ -16,13 +16,13 @@ import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/features/pet/data/pet_catalog.dart';
 import 'package:tlbbtoolkit/features/pet/domain/pet_prob.dart';
 
-/// 宝宝技能释放概率（对应原型 `v-pet-prob`）。
+/// 宝宝技能发动概率（对应原型 `v-pet-prob`）。
 ///
-/// 页头 + 两行筛选 chips（性格 / 分类）+ 技能列表卡 + 公式说明。
-/// - 性格 chips：通用 / 勇猛 / 胆小 / 谨慎 / 精明 / 忠诚 / 内敛；
-/// - 分类 chips：全部 / 攻击类 / 状态类 / 辅助类；
-/// - 列表行：技能名（+描述）/ 类型 tag / 概率条 + 百分比 / 判定 tag；
-/// - 概率 = 实测基准值 × 性格修正系数（上限 100%），逻辑见 `pet_prob.dart`。
+/// 页头 + 两行筛选 chips（性格 / 技能系）+ 技能列表卡 + 系数表 + 公式说明。
+/// - 性格 chips：胆小 / 谨慎 / 忠诚 / 精明 / 勇猛（首项默认选中）；
+/// - 技能系 chips：全部 + 技能库里出现的系（报复 / 防御 / 护主）；
+/// - 列表行：技能名（+描述）/ 系 tag / 概率条 + 百分比 / 判定 tag / 详情；
+/// - 概率 = 基础概率 × 性格发动系数（上限 100%），逻辑见 `pet_prob.dart`。
 ///
 /// 页面不含 Scaffold/AppBar（信息条与返回按钮由 shell 框架提供）。
 class PetProbPage extends ConsumerStatefulWidget {
@@ -33,13 +33,13 @@ class PetProbPage extends ConsumerStatefulWidget {
 }
 
 class _PetProbPageState extends ConsumerState<PetProbPage> {
-  /// 当前性格 key（null = 用列表首项「通用」）。
+  /// 当前性格 key（null = 用列表首项「胆小」）。
   ///
   /// 存 key 而不是对象：分片更新后旧对象会失效，按 key 重新定位才稳妥。
   String? _charKey;
 
-  /// 当前分类筛选（null = 全部）。
-  PetSkillCat? _cat;
+  /// 当前技能系筛选（null = 全部）。
+  PetSkillFamily? _family;
 
   /// catalog 分片优先；读不到/解析失败时回退内置常量。
   PetSkillCatalog get _catalog =>
@@ -49,9 +49,18 @@ class _PetProbPageState extends ConsumerState<PetProbPage> {
   PetChar _charOf(List<PetChar> chars) =>
       chars.firstWhere((c) => c.key == _charKey, orElse: () => chars.first);
 
-  List<PetSkill> _visibleSkills(List<PetSkill> skills) => _cat == null
+  List<PetSkill> _visibleSkills(List<PetSkill> skills) => _family == null
       ? skills
-      : skills.where((s) => s.cat == _cat).toList(growable: false);
+      : skills.where((s) => s.family == _family).toList(growable: false);
+
+  /// 技能库里实际出现的系，按在列表中首次出现的顺序排列（没有数据的系不出 chip）。
+  List<PetSkillFamily> _familiesOf(List<PetSkill> skills) {
+    final seen = <PetSkillFamily>[];
+    for (final skill in skills) {
+      if (!seen.contains(skill.family)) seen.add(skill.family);
+    }
+    return seen;
+  }
 
   /// 打开技能详情弹窗（对应原型 skillModal / openSkillDetail）。
   void _openDetail(PetSkill skill, PetChar char) {
@@ -112,21 +121,21 @@ class _PetProbPageState extends ConsumerState<PetProbPage> {
                       ],
                     ),
                     const SizedBox(height: TgSpacing.s10),
-                    // 分类 chips
+                    // 技能系 chips（只列出技能库里实际有数据的系）
                     Wrap(
                       spacing: TgSpacing.s9,
                       runSpacing: TgSpacing.sm,
                       children: [
                         _TgChip(
                           label: '全部',
-                          active: _cat == null,
-                          onTap: () => setState(() => _cat = null),
+                          active: _family == null,
+                          onTap: () => setState(() => _family = null),
                         ),
-                        for (final cat in PetSkillCat.values)
+                        for (final family in _familiesOf(catalog.skills))
                           _TgChip(
-                            label: cat.label,
-                            active: _cat == cat,
-                            onTap: () => setState(() => _cat = cat),
+                            label: family.label,
+                            active: _family == family,
+                            onTap: () => setState(() => _family = family),
                           ),
                       ],
                     ),
@@ -139,11 +148,14 @@ class _PetProbPageState extends ConsumerState<PetProbPage> {
                       onDetail: (skill) => _openDetail(skill, char),
                     ),
                     const SizedBox(height: TgSpacing.s14),
+                    // 系数表（图片顶表：技能系 × 性格）
+                    _CoeffTable(compact: compact, chars: catalog.chars),
+                    const SizedBox(height: TgSpacing.s14),
                     const _FormulaNote(),
                     const SizedBox(height: TgSpacing.s34),
                     const TgPageFoot(
                       text: '天工阁 · 玩家自制工具集合，与畅游官方无关',
-                      sub: '界面数据均为演示样例，正式版接入实战回归数值',
+                      sub: '基础概率与性格系数均取自玩家整理的实测概率表',
                     ),
                   ],
                 ),
@@ -267,7 +279,7 @@ class _ProbListCard extends StatelessWidget {
   }
 }
 
-/// 表头：技能 / 类型 / 触发概率 / 判定 / 详情。
+/// 表头：技能 / 系别 / 触发概率 / 判定 / 详情。
 class _ListHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -281,7 +293,7 @@ class _ListHead extends StatelessWidget {
       child: Row(
         children: [
           Expanded(flex: 125, child: _headText(tg, '技能')),
-          Expanded(flex: 75, child: _headText(tg, '类型')),
+          Expanded(flex: 75, child: _headText(tg, '系别')),
           Expanded(flex: 150, child: _headText(tg, '触发概率')),
           Expanded(flex: 55, child: _headText(tg, '判定', right: true)),
           Expanded(flex: 50, child: _headText(tg, '详情', right: true)),
@@ -534,6 +546,148 @@ class _Tag extends StatelessWidget {
   }
 }
 
+/// 性格发动系数表（参考表顶部的「技能系 × 性格」矩阵）。
+///
+/// 行 = 5 个技能系，列 = 5 种性格；
+/// 数值即发动系数：`发动概率 = 基础概率 × 系数`。
+class _CoeffTable extends StatelessWidget {
+  const _CoeffTable({required this.compact, required this.chars});
+
+  final bool compact;
+  final List<PetChar> chars;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final hPad = compact ? 14.0 : 20.0;
+    final families = PetSkillFamily.values;
+    return Container(
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: tg.card,
+        borderRadius: TgRadius.card,
+        border: Border.all(color: tg.border, width: 1),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 13, hPad, 9),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '性格发动系数',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: tg.t1,
+                    ),
+                  ),
+                ),
+                Text(
+                  '发动概率 = 基础概率 × 系数',
+                  style: TgType.tag.copyWith(color: tg.t3),
+                ),
+              ],
+            ),
+          ),
+          // 表头：技能系 + 各性格
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 9),
+            decoration: BoxDecoration(
+              color: tg.inset2,
+              border: Border.symmetric(
+                horizontal: BorderSide(color: tg.border, width: 1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text('技能系', style: TgType.note.copyWith(color: tg.t3)),
+                ),
+                for (final c in chars)
+                  Expanded(
+                    child: Text(
+                      c.name,
+                      textAlign: TextAlign.center,
+                      style: TgType.note.copyWith(color: tg.t3),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          for (var i = 0; i < families.length; i++)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 9),
+              decoration: BoxDecoration(
+                border: i == families.length - 1
+                    ? null
+                    : Border(bottom: BorderSide(color: tg.border, width: 1)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            families[i].label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12.5, color: tg.t1),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        if (!compact)
+                          Flexible(
+                            child: Text(
+                              families[i].members,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TgType.tag.copyWith(color: tg.t3),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  for (final c in chars)
+                    Expanded(
+                      child: Text(
+                        petFactorText(c.factorFor(families[i])),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: c.factorFor(families[i]) >= 1
+                              ? tg.gold2
+                              : tg.t2,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 9, hPad, 11),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '※ 系数 > 1 表示该性格更容易触发这一系技能，< 1 则更难；'
+                '基础概率见技能详情。',
+                style: TextStyle(fontSize: 11, color: tg.t3),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// 公式说明（`.note`）：info 图标 + 文案，inset 底。
 class _FormulaNote extends StatelessWidget {
   const _FormulaNote();
@@ -542,7 +696,9 @@ class _FormulaNote extends StatelessWidget {
   Widget build(BuildContext context) {
     return const TgNoteBar(
       accent: TgNoteAccent.plain,
-      text: '概率 = 实测基准值 × 性格修正系数（上限 100%），实际还受悟性与技能等级影响。',
+      text:
+          '发动概率 = 基础概率 × 性格发动系数（上限 100%）；'
+          '基础概率即技能自身的生效几率，实际还受悟性与技能等级影响。',
     );
   }
 }
@@ -605,7 +761,7 @@ class _DetailButtonState extends State<_DetailButton> {
 }
 
 /// 技能详情弹窗（对应原型 skillModal）：图标/名称/双 tag + 长描述 +
-/// 三格数据（基准概率 · 当前性格概率 · 判定方式）+ 公式注。
+/// 三格数据（基础概率 · 当前性格概率 · 发动系数）+ 公式注。
 class _SkillDetailDialog extends StatelessWidget {
   const _SkillDetailDialog({required this.skill, required this.char});
 
@@ -616,7 +772,8 @@ class _SkillDetailDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final tg = context.tg;
     final current = petProbOf(skill, char);
-    final nowLabel = char.key == 'general' ? '通用概率' : '${char.name}性格概率';
+    final factor = char.factorFor(skill.family);
+    final nowLabel = '${char.name}性格概率';
 
     // 图标配色（对应原型 .tile + .tile.t-<color>）
     final Color iconC;
@@ -690,7 +847,9 @@ class _SkillDetailDialog extends StatelessWidget {
                     children: [
                       _Tag(label: skill.tag, color: skill.tagColor),
                       const SizedBox(width: 5),
-                      _Tag(label: skill.cat.label),
+                      _Tag(
+                        label: skill.name.startsWith('高级') ? '高级技能' : '普通技能',
+                      ),
                     ],
                   ),
                 ],
@@ -713,7 +872,7 @@ class _SkillDetailDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: _Stat3Cell(value: '${skill.base}%', label: '基准概率'),
+              child: _Stat3Cell(value: '${skill.base}%', label: '基础概率'),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -721,13 +880,18 @@ class _SkillDetailDialog extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _Stat3Cell(value: skill.judge, label: '判定方式', text: true),
+              child: _Stat3Cell(
+                value: '×${petFactorText(factor)}',
+                label: '${skill.family.label}系数',
+                text: true,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 14),
         Text(
-          '※ 概率 = 基准值 × 性格系数（上限 100%），实际还受悟性与技能等级影响。',
+          '※ 判定方式：${skill.judge}｜发动概率 = 基础概率 × 性格系数（上限 100%），'
+          '实际还受悟性与技能等级影响。',
           style: TextStyle(fontSize: 11.5, color: tg.t3),
         ),
       ],

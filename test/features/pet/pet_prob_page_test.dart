@@ -25,85 +25,134 @@ Future<void> pumpPage(
 }
 
 void main() {
-  testWidgets('默认渲染：页头 + 性格/分类 chips + 10 技能行', (tester) async {
+  testWidgets('默认渲染：页头 + 性格/系别 chips + 16 技能行 + 系数表', (tester) async {
     await pumpPage(tester);
 
     // 页头
     expect(find.text('珍兽技能释放概率'), findsOneWidget);
-    expect(find.textContaining('按性格查看自动'), findsOneWidget);
+    expect(find.textContaining('五系技能的发动概率'), findsOneWidget);
 
-    // 性格 chips
-    for (final name in ['通用', '勇猛', '胆小', '谨慎', '精明', '忠诚', '内敛']) {
-      expect(find.text(name), findsOneWidget);
+    // 性格 chips：五种性格（系数表表头同名，故各出现 2 次）
+    for (final name in ['胆小', '谨慎', '忠诚', '精明', '勇猛']) {
+      expect(find.text(name), findsNWidgets(2), reason: '$name chip + 系数表表头');
     }
-    // 分类 chips
+    // 「通用」「内敛」都不是游戏内性格，不出现
+    expect(find.text('通用'), findsNothing);
+    expect(find.text('内敛'), findsNothing);
+
+    // 系别 chips（只列技能库里有的系）+ 每行系别 tag + 系数表行名
     expect(find.text('全部'), findsOneWidget);
-    expect(find.text('攻击类'), findsOneWidget);
-    expect(find.text('状态类'), findsOneWidget);
-    expect(find.text('辅助类'), findsOneWidget);
+    // 报复 / 防御：6 个技能 tag + chip + 系数表行 = 8；护主：4 + chip + 行 = 6
+    for (final (name, count) in [('报复', 8), ('防御', 8), ('护主', 6)]) {
+      expect(
+        find.text(name),
+        findsNWidgets(count),
+        reason: '$name chip + 系数表行 + 技能 tag',
+      );
+    }
+    // 技能库没有物攻/法攻数据，不出现 chip
+    expect(find.text('物攻'), findsOneWidget); // 仅系数表行
+    expect(find.text('法攻'), findsOneWidget);
 
     // 表头
     expect(find.text('技能'), findsOneWidget);
-    expect(find.text('类型'), findsOneWidget);
+    expect(find.text('系别'), findsOneWidget);
     expect(find.text('触发概率'), findsOneWidget);
     expect(find.text('判定'), findsOneWidget);
 
-    // 默认通用性格：猛击 20% · 护主 100%
-    expect(find.text('20%'), findsOneWidget);
-    expect(find.text('100%'), findsOneWidget);
-    // 全部 10 个技能名（有描述的技能经 Text.rich 渲染，用 textContaining 匹配）
-    for (final name in [
-      '猛击',
-      '连击',
-      '痛击',
-      '寒冰咒',
-      '烈火咒',
-      '虚弱',
-      '打怒',
-      '迟缓',
-      '吸血',
-      '护主',
-    ]) {
-      expect(find.textContaining(name), findsOneWidget);
-    }
-    // 公式说明
-    expect(find.textContaining('实测基准值 × 性格修正系数'), findsOneWidget);
-  });
-
-  testWidgets('性格筛选：切到勇猛后猛击概率变为 26%', (tester) async {
-    await pumpPage(tester);
-
-    expect(find.text('20%'), findsOneWidget); // 通用猛击
-    await tester.tap(find.text('勇猛'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('26%'), findsOneWidget); // 勇猛猛击 20*1.3
-    expect(find.text('20%'), findsOneWidget); // 连击 15*1.3=20
-  });
-
-  testWidgets('分类筛选：攻击类只剩 5 行', (tester) async {
-    await pumpPage(tester);
-
-    await tester.tap(find.text('攻击类'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('猛击'), findsOneWidget);
-    expect(find.text('连击'), findsOneWidget);
-    expect(find.text('虚弱'), findsNothing); // 状态类隐藏
-    expect(find.text('护主'), findsNothing); // 辅助类隐藏
-  });
-
-  testWidgets('分类+性格组合：状态类 + 精明 → 虚弱 11%', (tester) async {
-    await pumpPage(tester);
-
-    await tester.tap(find.text('状态类'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('精明'));
-    await tester.pumpAndSettle();
-
-    // 虚弱 8*1.4=11.2→11、打怒 8*1.4→11（两个 11%）；迟缓 6*1.4=8.4→8
-    expect(find.text('11%'), findsNWidgets(2));
+    // 默认选中首项「胆小」：报复 ×0.5 → 10%/15% 各 3 个；防御 ×1 → 20%/30% 各 3 个；
+    // 护主 ×0.5 → 忠心 3.5→4%、高级忠心 6%、灵气 7.5→8%、高级灵气 12.5→13%
+    expect(find.text('10%'), findsNWidgets(3));
+    expect(find.text('15%'), findsNWidgets(3));
+    expect(find.text('20%'), findsNWidgets(3));
+    expect(find.text('30%'), findsNWidgets(3));
+    expect(find.text('4%'), findsOneWidget);
+    expect(find.text('6%'), findsOneWidget);
     expect(find.text('8%'), findsOneWidget);
+    expect(find.text('13%'), findsOneWidget);
+
+    // 16 个技能（有描述，用 desc 定位）
+    for (final name in ['反击', '吸血', '反震', '灵动', '吸魔', '打怒', '忠心', '灵气']) {
+      expect(find.textContaining(name), findsWidgets, reason: '$name 应出现在列表中');
+    }
+    expect(find.textContaining('受击时一定几率反击'), findsOneWidget);
+    expect(find.textContaining('主人受击时替主人承伤'), findsOneWidget);
+
+    // 系数表（图片顶表）
+    expect(find.text('性格发动系数'), findsOneWidget);
+    expect(find.text('技能系'), findsOneWidget);
+    // 系数矩阵中 1.3 出现 4 次（物攻精明 / 法攻谨慎 / 护主谨慎 / 报复勇猛）
+    expect(find.text('1.3'), findsNWidgets(4));
+    // 0.5 / 0.8 / 2 各出现 5 次
+    for (final v in ['0.5', '0.8', '2']) {
+      expect(find.text(v), findsNWidgets(5), reason: '系数 $v');
+    }
+
+    // 公式说明
+    expect(find.textContaining('基础概率 × 性格发动系数'), findsOneWidget);
+  });
+
+  testWidgets('性格筛选：切到精明后报复类翻倍（高级反击 60%）', (tester) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.text('精明').first);
+    await tester.pumpAndSettle();
+
+    // 报复 ×2 → 40%（普通）/ 60%（高级）各 3 个
+    expect(find.text('40%'), findsNWidgets(3));
+    expect(find.text('60%'), findsNWidgets(3));
+    // 防御 ×0.8 → 16%（普通）/ 24%（高级）各 3 个
+    expect(find.text('16%'), findsNWidgets(3));
+    expect(find.text('24%'), findsNWidgets(3));
+    // 护主 ×1 → 基础概率不变：7 / 12 / 15 / 25
+    expect(find.text('7%'), findsOneWidget);
+    expect(find.text('12%'), findsOneWidget);
+    expect(find.text('15%'), findsOneWidget);
+    expect(find.text('25%'), findsOneWidget);
+  });
+
+  testWidgets('系别筛选：只选报复时防御/护主技能隐藏', (tester) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.text('报复').first);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('受击时反弹伤害'), findsOneWidget); // 反震
+    expect(find.textContaining('受击时提升闪避'), findsNothing); // 灵动（防御）
+    expect(find.textContaining('主人受击时替主人承伤'), findsNothing); // 忠心（护主）
+    // 报复 6 个技能（默认胆小 ×0.5）→ 10% / 15% 各 3 个
+    expect(find.text('10%'), findsNWidgets(3));
+    expect(find.text('15%'), findsNWidgets(3));
+  });
+
+  testWidgets('系别+性格组合：防御 + 谨慎 → 灵动 40% / 高级灵动 60%', (tester) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.text('防御').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('谨慎').first);
+    await tester.pumpAndSettle();
+
+    // 防御 ×2：20*2=40、30*2=60，各 3 个
+    expect(find.text('40%'), findsNWidgets(3));
+    expect(find.text('60%'), findsNWidgets(3));
+  });
+
+  testWidgets('详情弹窗：显示基础概率 / 性格概率 / 发动系数', (tester) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.text('精明').first);
+    await tester.pumpAndSettle();
+
+    // 打开首行「反击」详情（精明：20% × 2 = 40%）；表头也有「详情」，故取第 2 个
+    await tester.tap(find.text('详情').at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('基础概率'), findsOneWidget);
+    expect(find.text('精明性格概率'), findsOneWidget);
+    expect(find.text('×2'), findsOneWidget);
+    expect(find.text('报复系数'), findsOneWidget);
+    expect(find.textContaining('受击判定'), findsWidgets);
   });
 
   testWidgets('移动端窄屏：单列列表不溢出，chips 可切换', (tester) async {
@@ -114,22 +163,23 @@ void main() {
     // 移动端表头隐藏
     expect(find.text('触发概率'), findsNothing);
 
-    // 仍可切换性格与分类
-    await tester.tap(find.text('勇猛'));
+    // 仍可切换性格与系别
+    await tester.tap(find.text('胆小').first);
     await tester.pumpAndSettle();
-    expect(find.text('26%'), findsOneWidget);
-    await tester.tap(find.text('辅助类'));
+    expect(find.text('10%'), findsNWidgets(3));
+
+    await tester.tap(find.text('护主').first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('护主'), findsOneWidget);
-    expect(find.text('猛击'), findsNothing);
+    expect(find.textContaining('主人受击时替主人承伤'), findsOneWidget);
+    expect(find.textContaining('受击时一定几率反击'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
-  testWidgets('桌面端类型 tag 按内容自适应宽度，不撑满整列', (tester) async {
+  testWidgets('桌面端 tag 按内容自适应宽度，不撑满整列', (tester) async {
     await pumpPage(tester, size: const Size(1180, 900));
 
-    // 以「自动攻击」tag（猛击/连击/痛击三行共现）为例：
-    // 向上找紧包文字的 tag 容器（横向 padding 8 的胶囊）。
-    final tagText = find.text('自动攻击').first;
+    // 以「受击判定」tag（6 行共现）为例：向上找紧包文字的胶囊容器。
+    final tagText = find.text('受击判定').first;
     final tagContainer = tester
         .widgetList<Container>(
           find.ancestor(of: tagText, matching: find.byType(Container)),
@@ -143,13 +193,12 @@ void main() {
     final tagSize = tester.getSize(find.byWidget(tagContainer));
     final textSize = tester.getSize(tagText);
 
-    // 紧凑胶囊：tag 宽 = 文字宽 + 左右 padding(8×2) + 边框(1×2)，而非撑满列。
     expect(tagSize.width, greaterThan(textSize.width));
     expect(tagSize.width, lessThan(textSize.width + 24));
 
-    // 类型列按 flex 75/405 分配；tag 内容宽应远小于列宽（未撑满）。
+    // 判定列按 flex 55/405 分配；tag 内容宽应远小于列宽（未撑满）。
     final pageWidth = tester.getSize(find.byType(PetProbPage)).width;
-    final typeColWidth = pageWidth * 75 / 405;
-    expect(tagSize.width, lessThan(typeColWidth * 0.6));
+    final colWidth = pageWidth * 55 / 405;
+    expect(tagSize.width, lessThan(colWidth * 0.6));
   });
 }

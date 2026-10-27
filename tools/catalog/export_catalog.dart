@@ -261,9 +261,7 @@ Map<String, Object?> _shards() => {
         {
           'name': skill.name,
           'desc': skill.desc,
-          'cat': skill.cat.name,
-          'tag': skill.tag,
-          'tagColor': skill.tagColor.name,
+          'family': skill.family.name,
           'base': skill.base,
           'judge': skill.judge,
           'icon': skill.icon,
@@ -275,9 +273,10 @@ Map<String, Object?> _shards() => {
         {
           'key': char.key,
           'name': char.name,
-          'atk': char.atk,
-          'st': char.st,
-          'sup': char.sup,
+          'factors': {
+            for (final family in PetSkillFamily.values)
+              family.name: char.factorFor(family),
+          },
         },
     ],
   },

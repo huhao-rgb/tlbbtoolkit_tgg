@@ -127,7 +127,7 @@ final class PetSuitCatalogProvider
   }
 }
 
-String _$petSuitCatalogHash() => r'3f1ee8d12a113aa40a81163b927f02344035f9cb';
+String _$petSuitCatalogHash() => r'd453bb9840feb5387480ccd4207522f7355ae37d';
 
 @ProviderFor(petSkillCatalog)
 final petSkillCatalogProvider = PetSkillCatalogProvider._();

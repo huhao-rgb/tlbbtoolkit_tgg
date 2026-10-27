@@ -310,6 +310,10 @@ PetSuitCatalog _parsePetSuits(String raw) {
   );
 }
 
+/// 解析 `pet.skills` 分片。
+///
+/// 技能必须带 `family`、性格必须带 `factors`：旧版分片（只有 `cat` / `atk·st·sup`）
+/// 会被整体判空，由调用方回退到内置常量 —— 避免旧缓存把「系别」错读成物攻。
 PetSkillCatalog _parsePetSkills(String raw) {
   final items = _items(raw);
 
@@ -318,7 +322,7 @@ PetSkillCatalog _parsePetSkills(String raw) {
       if (item is Map &&
           item['name'] is String &&
           item['desc'] is String &&
-          item['tag'] is String &&
+          item['family'] is String &&
           item['base'] is int &&
           item['judge'] is String &&
           item['icon'] is String &&
@@ -326,12 +330,10 @@ PetSkillCatalog _parsePetSkills(String raw) {
         PetSkill(
           name: item['name'] as String,
           desc: item['desc'] as String,
-          cat: _enumByName(PetSkillCat.values, item['cat'], PetSkillCat.atk),
-          tag: item['tag'] as String,
-          tagColor: _enumByName(
-            PetTagColor.values,
-            item['tagColor'],
-            PetTagColor.gold,
+          family: _enumByName(
+            PetSkillFamily.values,
+            item['family'],
+            PetSkillFamily.physical,
           ),
           base: item['base'] as int,
           judge: item['judge'] as String,
@@ -345,15 +347,11 @@ PetSkillCatalog _parsePetSkills(String raw) {
       if (item is Map &&
           item['key'] is String &&
           item['name'] is String &&
-          item['atk'] is num &&
-          item['st'] is num &&
-          item['sup'] is num)
+          item['factors'] is Map)
         PetChar(
           key: item['key'] as String,
           name: item['name'] as String,
-          atk: (item['atk'] as num).toDouble(),
-          st: (item['st'] as num).toDouble(),
-          sup: (item['sup'] as num).toDouble(),
+          factors: _factorsOf(item['factors']),
         ),
   ];
 
@@ -365,6 +363,17 @@ List<String> _strings(Object? value) => [
     for (final item in value)
       if (item is String) item,
 ];
+
+/// 五系系数：缺项按 1 兜底，未知系名忽略，不让整条数据失效。
+Map<PetSkillFamily, double> _factorsOf(Object? raw) {
+  final map = raw is Map ? raw : const {};
+  return {
+    for (final family in PetSkillFamily.values)
+      family: map[family.name] is num
+          ? (map[family.name] as num).toDouble()
+          : 1,
+  };
+}
 
 List<int> _ints(Object? value) => [
   if (value is List)

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.10.26.efdfbfc1",
+  "dataVersion": "2026.10.26.e7aceec4",
   "files": [
     {
       "kind": "job.artifacts",
@@ -61,9 +61,9 @@
     {
       "kind": "pet.skills",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.efdfbfc1",
-      "sha256": "f304afc0f4b1c15ed8cf058bb5752e128c2f25139262552a9105a47e6ebd46c4",
-      "bytes": 5332
+      "dataVersion": "2026.10.26.2722f0a7",
+      "sha256": "b20b80628b422c26820eb770bc933f43e54b3ef22fe60a4a22352ff103074648",
+      "bytes": 7027
     },
     {
       "kind": "pet.suits",
