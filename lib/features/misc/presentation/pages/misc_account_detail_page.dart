@@ -49,7 +49,11 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
   /// 拉取商品详情（含几十张实拍图）。失败不影响摘要展示。
   Future<void> _load() async {
     final sn = widget.account?.sn ?? '';
-    if (sn.isEmpty) return;
+    if (sn.isEmpty) {
+      // 没有编号就拉不到详情（也拿不到多图）：明确提示而不是静默只显示封面。
+      setState(() => _error = '商品编号缺失');
+      return;
+    }
     setState(() {
       _loading = true;
       _error = '';
