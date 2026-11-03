@@ -7,8 +7,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
+import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
+import 'package:tlbbtoolkit/features/misc/data/sxds_goods_detail_fetcher.dart';
+import 'package:tlbbtoolkit/features/misc/domain/sxds_goods_detail.dart';
 import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
 import 'package:tlbbtoolkit/features/misc/domain/account_market_stats.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_common.dart';
@@ -18,18 +21,69 @@ import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_detail_widge
 ///
 /// 从行情列表点击「详情」时 `context.push(..., extra: account)` 压栈到列表之上；
 /// 返回（pop）后列表滚动位置天然保留，不会页面跳动。
-class AccountDetailPage extends StatelessWidget {
-  const AccountDetailPage({super.key, this.account});
+class AccountDetailPage extends StatefulWidget {
+  const AccountDetailPage({super.key, this.account, this.fetchDetail});
 
   /// 账号数据经路由 extra 传入；null（如直接深链）时展示缺失提示。
   final AccountListing? account;
 
+  /// 详情抓取（测试注入用）；默认走 [fetchSxdsGoodsDetail] 真实接口。
+  final Future<SxdsGoodsDetail> Function(String sn)? fetchDetail;
+
+  @override
+  State<AccountDetailPage> createState() => _AccountDetailPageState();
+}
+
+class _AccountDetailPageState extends State<AccountDetailPage> {
+  /// 详情（含全部商品图）；列表摘要已够渲染骨架，详情到位后补齐。
+  SxdsGoodsDetail? _detail;
+  bool _loading = false;
+  String _error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  /// 拉取商品详情（含几十张实拍图）。失败不影响摘要展示。
+  Future<void> _load() async {
+    final sn = widget.account?.sn ?? '';
+    if (sn.isEmpty) return;
+    setState(() {
+      _loading = true;
+      _error = '';
+    });
+    try {
+      final fetch =
+          widget.fetchDetail ?? (String sn) => fetchSxdsGoodsDetail(sn: sn);
+      final d = await fetch(sn);
+      if (!mounted) return;
+      setState(() {
+        _detail = d;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = '$e';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final tg = context.tg;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
-        final p = account;
+        final p = widget.account;
+        final d = _detail;
+        final images = d != null && d.images.isNotEmpty
+            ? d.images
+            : <String>[if (p?.img != null && p!.img!.isNotEmpty) p.img!];
+        final desc = d?.description ?? '';
         final blocks = <Widget>[
           if (p == null)
             MiscDetailMissing(
@@ -43,21 +97,53 @@ class AccountDetailPage extends StatelessWidget {
               title: '账号详情',
               subtitle:
                   '${p.area.isEmpty ? '' : '${p.area} · ${p.server}'}'
-                  ' · 编号 ${p.sn}',
+                  ' · 编号 ${p.sn}'
+                  '${images.length > 1 ? ' · ${images.length} 图' : ''}',
               crumbTail: ' / 账号行情 / 账号详情',
               onCrumbTap: () =>
                   context.go(ToolCatalog.miscAccountMarket.group.hubLocation),
             ),
+            if (_loading || _error.isNotEmpty)
+              MiscDetailLoadStatus(
+                loading: _loading,
+                error: _error,
+                onRetry: _load,
+              ),
             MiscDetailBody(
-              image: MiscDetailImage(
-                url: p.img,
+              image: MiscDetailGallery(
+                images: images,
                 caption: p.title,
                 fallbackIcon: 'user',
               ),
-              info: _DetailInfo(account: p, onBack: () => context.pop()),
+              info: _DetailInfo(
+                account: p,
+                detail: d,
+                onBack: () => context.pop(),
+              ),
             ),
+            if (desc.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              TgCard(
+                basePadding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const MiscSectionHead(title: '商品描述'),
+                    const SizedBox(height: 12),
+                    SelectableText(
+                      desc,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.85,
+                        color: tg.t2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: TgSpacing.s34),
-            const TgPageFoot(text: '点击商品图片可放大查看'),
+            const TgPageFoot(text: '点击商品图片可放大查看（多图可左右滑动）'),
           ],
         ];
         final basePad = compact
@@ -99,17 +185,81 @@ class AccountDetailPage extends StatelessWidget {
 
 /* ============================== 详情主体 ============================== */
 
-/// 详情右侧信息。
+/// 详情右侧信息：列表摘要（[account]）+ 详情补齐字段（[detail]）。
 class _DetailInfo extends StatelessWidget {
-  const _DetailInfo({required this.account, required this.onBack});
+  const _DetailInfo({
+    required this.account,
+    required this.detail,
+    required this.onBack,
+  });
 
   final AccountListing account;
+  final SxdsGoodsDetail? detail;
   final VoidCallback onBack;
+
+  /// 平台时间 → `yyyy-MM-dd HH:mm`（本地时区）。
+  static String _fmtTime(DateTime? v) {
+    if (v == null) return '';
+    final l = v.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${l.year}-${two(l.month)}-${two(l.day)} '
+        '${two(l.hour)}:${two(l.minute)}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
     final t = account;
+    final d = detail;
+
+    // 列表摘要优先，详情到位后用详情字段补齐（字段口径一致，取非空者）。
+    String pick(String fromDetail, String fallback) =>
+        fromDetail.isNotEmpty ? fromDetail : fallback;
+    final job = pick(d?.job ?? '', t.job);
+    final sex = pick(d?.sex ?? '', t.sex);
+    final lv = (d?.level ?? 0) > 0 ? d!.level : t.lv;
+    final atk = pick(d?.mainAtk ?? '', t.atk);
+    final atkShort = atk.replaceAll('主', '').replaceAll('攻', '');
+    final attr = (d?.attr ?? 0) > 0 ? d!.attr : t.attr;
+    final attr2 = (d?.attr2 ?? 0) > 0 ? d!.attr2 : (t.attr2 ?? 0);
+    final views = (d?.views ?? 0) > 0 ? d!.views : t.views;
+    final area = pick(d?.area ?? '', t.area);
+    final server = pick(d?.server ?? '', t.server);
+    final price = (d?.price ?? 0) > 0 ? d!.price : t.price;
+
+    final cells = <(String, String)>[
+      ('职业', job.isEmpty ? '—' : job),
+      ('性别', sex.isEmpty ? '—' : sex),
+      ('角色等级', lv > 0 ? '$lv 级' : '—'),
+      (
+        '主属性·攻',
+        attr > 0
+            ? '${amFmt(attr)}${atkShort.isNotEmpty ? ' · $atkShort' : ''}'
+            : '—',
+      ),
+      ('副属性', attr2 > 0 ? amFmt(attr2) : '—'),
+      ('浏览量', amThousands(views)),
+      ('大区 · 服务器', area.isEmpty ? '—' : '$area-$server'),
+      if ((d?.accountType ?? '').isNotEmpty) ('账号类型', d!.accountType),
+      if ((d?.sourceName ?? '').isNotEmpty) ('商品来源', d!.sourceName),
+      if ((d?.seller ?? '').isNotEmpty) ('卖家', d!.seller),
+      if (d?.createdAt != null) ('上架时间', _fmtTime(d!.createdAt)),
+      ('编号', t.sn),
+    ];
+
+    // 标签：详情亮点优先；否则由摘要字段拼出。
+    final tags = <String>[
+      if ((d?.tags ?? const <String>[]).isNotEmpty)
+        ...d!.tags
+      else ...[
+        if (job.isNotEmpty) job,
+        if (sex.isNotEmpty) sex,
+        if (atk.isNotEmpty) atk,
+        if (attr2 > 0) '副属性${amFmt(attr2)}',
+      ],
+      if (d?.hasEnsure ?? false) '已开通交易保障',
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,7 +280,7 @@ class _DetailInfo extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text(
-              amP(t.price),
+              amP(price),
               style: TextStyle(
                 fontFamily: TgFonts.serif,
                 fontWeight: FontWeight.w500,
@@ -140,7 +290,19 @@ class _DetailInfo extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text('不议价', style: TextStyle(fontSize: 13, color: tg.t3)),
+            Flexible(
+              child: Text(
+                d == null
+                    ? '不议价'
+                    : switch (d.canBargain) {
+                        true =>
+                          '可议价${d.minBargainPrice != null ? ' · 最低 ${amP(d.minBargainPrice!)}' : ''}',
+                        false => '不议价',
+                        null => '议价以原帖为准',
+                      },
+                style: TextStyle(fontSize: 13, color: tg.t3),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -160,47 +322,13 @@ class _DetailInfo extends StatelessWidget {
               spacing: gap,
               runSpacing: gap,
               children: [
-                MiscInfoCell(
-                  label: '职业',
-                  value: t.job.isEmpty ? '—' : t.job,
-                  width: cellW,
-                ),
-                MiscInfoCell(
-                  label: '性别',
-                  value: t.sex.isEmpty ? '—' : t.sex,
-                  gold: true,
-                  width: cellW,
-                ),
-                MiscInfoCell(
-                  label: '角色等级',
-                  value: t.lv > 0 ? '${t.lv} 级' : '—',
-                  width: cellW,
-                ),
-                MiscInfoCell(
-                  label: '主属性·攻',
-                  value: t.attr > 0
-                      ? '${amFmt(t.attr)}${t.atk.isNotEmpty ? ' · ${t.atkShort}' : ''}'
-                      : '—',
-                  width: cellW,
-                ),
-                MiscInfoCell(
-                  label: '副属性',
-                  value: t.attr2 != null && t.attr2! > 0
-                      ? amFmt(t.attr2!)
-                      : '—',
-                  width: cellW,
-                ),
-                MiscInfoCell(
-                  label: '浏览量',
-                  value: amThousands(t.views),
-                  width: cellW,
-                ),
-                MiscInfoCell(
-                  label: '大区 · 服务器',
-                  value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',
-                  width: cellW,
-                ),
-                MiscInfoCell(label: '编号', value: t.sn, width: cellW),
+                for (final (label, value) in cells)
+                  MiscInfoCell(
+                    label: label,
+                    value: value,
+                    gold: label == '性别' || label == '商品来源',
+                    width: cellW,
+                  ),
               ],
             );
           },
@@ -210,16 +338,10 @@ class _DetailInfo extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
-            if (t.job.isNotEmpty) MiscTag(text: t.job, gold: true),
-            if (t.sex.isNotEmpty) MiscTag(text: t.sex),
-            if (t.atk.isNotEmpty) MiscTag(text: t.atk, gold: true),
-            if (t.attr2 != null && t.attr2! > 0)
-              MiscTag(text: '副属性${amFmt(t.attr2!)}'),
-            if (t.job.isEmpty &&
-                t.sex.isEmpty &&
-                t.atk.isEmpty &&
-                (t.attr2 == null || t.attr2! <= 0))
-              const MiscTag(text: '无附加标签'),
+            if (tags.isEmpty)
+              const MiscTag(text: '无附加标签')
+            else
+              for (final tag in tags) MiscTag(text: tag, gold: true),
           ],
         ),
         const SizedBox(height: 18),

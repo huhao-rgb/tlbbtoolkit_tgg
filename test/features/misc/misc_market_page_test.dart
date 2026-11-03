@@ -7,6 +7,7 @@ import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_snapshot.dart';
 import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
+import 'package:tlbbtoolkit/features/misc/domain/sxds_goods_detail.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_market_page.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_text_field.dart';
@@ -72,7 +73,36 @@ Future<void> pumpPage(
           final pet = state.extra is PetListing
               ? state.extra! as PetListing
               : null;
-          return Scaffold(body: PetDetailPage(pet: pet));
+          return Scaffold(
+            body: PetDetailPage(
+              pet: pet,
+              // 详情接口走 mock：避免 widget 测试发出真实网络请求。
+              fetchDetail: (sn) async => SxdsGoodsDetail(
+                sn: sn,
+                title: pet?.title ?? '',
+                price: pet?.price ?? 0,
+                area: pet?.area ?? '',
+                server: pet?.server ?? '',
+                petLevel: '95',
+                carryText: '95级',
+                ling: '10',
+                wu: '10',
+                locked: false,
+                views: pet?.views ?? 0,
+                sourceName: '神仙购买',
+                seller: '测试卖家',
+                canBargain: true,
+                minBargainPrice: 800,
+                hasEnsure: true,
+                description: '测试珍兽描述：双十成品宝宝。',
+                tags: const ['亮点一', '亮点二'],
+                images: const [
+                  'https://cdn.example.com/a.png',
+                  'https://cdn.example.com/b.png',
+                ],
+              ),
+            ),
+          );
         },
       ),
     ],
@@ -460,6 +490,44 @@ void main() {
     // 进入独立详情页（路由 push）
     expect(find.text('珍兽详情'), findsOneWidget);
     expect(find.text('返回行情列表'), findsOneWidget);
+  });
+
+  testWidgets('珍兽详情：多图画廊 + 详情补齐信息 + 商品描述', (tester) async {
+    await pumpPage(tester);
+    final goBtn = find.text('详情').first;
+    await tester.ensureVisible(goBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(goBtn);
+    await tester.pumpAndSettle();
+
+    // 多图画廊：页码
+    expect(find.text('1 / 2'), findsOneWidget);
+    // 详情接口补齐的字段
+    expect(find.text('宝宝等级'), findsOneWidget);
+    expect(find.text('95 级'), findsOneWidget);
+    expect(find.text('是否上锁'), findsOneWidget);
+    expect(find.text('未上锁'), findsOneWidget);
+    expect(find.text('卖家'), findsOneWidget);
+    expect(find.text('测试卖家'), findsOneWidget);
+    expect(find.text('商品来源'), findsOneWidget);
+    // 议价（详情替代默认「不议价」）
+    expect(find.textContaining('可议价'), findsOneWidget);
+    // 描述 + 亮点
+    expect(find.text('商品描述'), findsOneWidget);
+    expect(find.textContaining('测试珍兽描述'), findsOneWidget);
+    expect(find.text('亮点一'), findsOneWidget);
+  });
+
+  testWidgets('珍兽详情（移动端 390）：画廊与信息格无溢出', (tester) async {
+    await pumpPage(tester, size: const Size(390, 20000));
+    final goBtn = find.text('详情').first;
+    await tester.ensureVisible(goBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(goBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 / 2'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('大数据量（500 条）：明细行惰性构建，无异常且行内可进入详情', (tester) async {

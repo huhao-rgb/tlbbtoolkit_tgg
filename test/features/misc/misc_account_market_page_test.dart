@@ -7,6 +7,7 @@ import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/features/misc/data/account_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/account_market_snapshot.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart';
+import 'package:tlbbtoolkit/features/misc/domain/sxds_goods_detail.dart';
 import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_account_detail_page.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/pages/misc_account_market_page.dart';
@@ -72,7 +73,39 @@ Future<void> pumpPage(
           final acc = state.extra is AccountListing
               ? state.extra! as AccountListing
               : null;
-          return Scaffold(body: AccountDetailPage(account: acc));
+          return Scaffold(
+            body: AccountDetailPage(
+              account: acc,
+              // 详情接口走 mock：避免 widget 测试发出真实网络请求。
+              fetchDetail: (sn) async => SxdsGoodsDetail(
+                sn: sn,
+                title: acc?.title ?? '',
+                price: acc?.price ?? 0,
+                area: acc?.area ?? '',
+                server: acc?.server ?? '',
+                job: acc?.job ?? '',
+                sex: acc?.sex ?? '',
+                level: acc?.lv ?? 0,
+                mainAtk: acc?.atk ?? '',
+                attr: acc?.attr ?? 0,
+                attr2: acc?.attr2 ?? 0,
+                views: acc?.views ?? 0,
+                accountType: '畅游账号登录',
+                sourceName: '神仙购买',
+                seller: '测试卖家',
+                canBargain: true,
+                minBargainPrice: 1000,
+                hasEnsure: true,
+                description: '测试商品描述：珍兽与本号装备齐全。',
+                tags: const ['亮点一', '亮点二'],
+                images: const [
+                  'https://cdn.example.com/a.png',
+                  'https://cdn.example.com/b.png',
+                  'https://cdn.example.com/c.png',
+                ],
+              ),
+            ),
+          );
         },
       ),
     ],
@@ -157,6 +190,39 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('账号行情分析'), findsOneWidget);
     expect(find.text('共 132 条'), findsOneWidget);
+  });
+
+  testWidgets('账号详情：多图画廊 + 详情补齐信息 + 商品描述', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.text('详情').first);
+    await tester.pumpAndSettle();
+
+    // 多图画廊：页码 + 上一张/下一张
+    expect(find.text('1 / 3'), findsOneWidget);
+    expect(find.text('2 / 3'), findsNothing);
+    // 详情接口补齐的字段
+    expect(find.text('账号类型'), findsOneWidget);
+    expect(find.text('畅游账号登录'), findsOneWidget);
+    expect(find.text('商品来源'), findsOneWidget);
+    expect(find.text('神仙购买'), findsOneWidget);
+    expect(find.text('卖家'), findsOneWidget);
+    expect(find.text('测试卖家'), findsOneWidget);
+    // 可议价（详情字段替代默认「不议价」）
+    expect(find.textContaining('可议价'), findsOneWidget);
+    expect(find.text('不议价'), findsNothing);
+    // 描述卡 + 亮点标签
+    expect(find.text('商品描述'), findsOneWidget);
+    expect(find.textContaining('测试商品描述'), findsOneWidget);
+    expect(find.text('亮点一'), findsOneWidget);
+  });
+
+  testWidgets('账号详情（移动端 390）：多图画廊与信息格无溢出', (tester) async {
+    await pumpPage(tester, size: const Size(390, 16000));
+    await tester.tap(find.text('详情').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 / 3'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('大数据量（500 条）：明细行惰性构建，无异常且行内可操作', (tester) async {

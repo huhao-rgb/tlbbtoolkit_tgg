@@ -19,8 +19,10 @@ import 'package:tlbbtoolkit/shared/widgets/tg_page_foot.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_select.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart';
+import 'package:tlbbtoolkit/features/misc/data/sxds_goods_detail_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/domain/pet_market.dart';
 import 'package:tlbbtoolkit/features/misc/domain/pet_market_stats.dart';
+import 'package:tlbbtoolkit/features/misc/domain/sxds_goods_detail.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_common.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_detail_widgets.dart';
 
@@ -1484,17 +1486,74 @@ class _FeatureCell extends StatelessWidget {
 
 /* ============================== 详情主体 ============================== */
 
-/// 详情右侧信息（`pd-name/price/grid/tags/act/src`）。
+/// 详情右侧信息（`pd-name/price/grid/tags/act/src`）：
+/// 列表摘要（[pet]）+ 详情补齐字段（[detail]）。
 class _DetailInfo extends StatelessWidget {
-  const _DetailInfo({required this.pet, required this.onBack});
+  const _DetailInfo({
+    required this.pet,
+    required this.detail,
+    required this.onBack,
+  });
 
   final PetListing pet;
+  final SxdsGoodsDetail? detail;
   final VoidCallback onBack;
+
+  /// 平台时间 → `yyyy-MM-dd HH:mm`（本地时区）。
+  static String _fmtTime(DateTime? v) {
+    if (v == null) return '';
+    final l = v.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${l.year}-${two(l.month)}-${two(l.day)} '
+        '${two(l.hour)}:${two(l.minute)}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
     final t = pet;
+    final d = detail;
+
+    // 列表摘要优先，详情到位后用详情字段补齐（平台字段更权威）。
+    String pick(String fromDetail, String fallback) =>
+        fromDetail.isNotEmpty ? fromDetail : fallback;
+    final ling = pick(d?.ling ?? '', t.ling);
+    final wu = pick(d?.wu ?? '', t.wu);
+    final carryText = pick(d?.carryText ?? '', t.carryText);
+    final views = (d?.views ?? 0) > 0 ? d!.views : t.views;
+    final area = pick(d?.area ?? '', t.area);
+    final server = pick(d?.server ?? '', t.server);
+    final price = (d?.price ?? 0) > 0 ? d!.price : t.price;
+
+    final cells = <(String, String)>[
+      ('资质', t.apt?.toString() ?? '未标注'),
+      ('可携带等级', carryText.isEmpty ? '—' : carryText),
+      if ((d?.petLevel ?? '').isNotEmpty) ('宝宝等级', '${d!.petLevel} 级'),
+      ('灵性 / 悟性', '${ling != '0' ? ling : '—'} / ${wu != '0' ? wu : '—'}'),
+      if (d?.locked != null) ('是否上锁', d!.locked! ? '已上锁' : '未上锁'),
+      ('上架时间', d?.createdAt == null ? '—' : _fmtTime(d!.createdAt)),
+      ('浏览量', _thousands(views)),
+      ('大区 · 服务器', area.isEmpty ? '—' : '$area-$server'),
+      if ((d?.seller ?? '').isNotEmpty) ('卖家', d!.seller),
+      if ((d?.sourceName ?? '').isNotEmpty) ('商品来源', d!.sourceName),
+    ];
+
+    // 标签：详情亮点优先；否则沿用列表摘要推导出的标签。
+    final detailTags = d?.tags ?? const <String>[];
+    final tags = <String>[
+      if (detailTags.isNotEmpty)
+        ...detailTags
+      else ...[
+        if (t.ding) '顶变',
+        if (t.ss) '双十',
+        if (t.ch != null) t.ch!,
+        if (t.skill != null && t.skill! > 0) '技能全${t.skill}',
+        if (t.pet.isNotEmpty && t.pet != '其他') t.pet,
+        if (ling != '0') '灵$ling',
+      ],
+      if (d?.hasEnsure ?? false) '已开通交易保障',
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1515,7 +1574,7 @@ class _DetailInfo extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text(
-              _p(t.price),
+              _p(price),
               style: TextStyle(
                 fontFamily: TgFonts.serif,
                 fontWeight: FontWeight.w500,
@@ -1525,7 +1584,19 @@ class _DetailInfo extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text('不议价', style: TextStyle(fontSize: 13, color: tg.t3)),
+            Flexible(
+              child: Text(
+                d == null
+                    ? '不议价'
+                    : switch (d.canBargain) {
+                        true =>
+                          '可议价${d.minBargainPrice != null ? ' · 最低 ${_p(d.minBargainPrice!)}' : ''}',
+                        false => '不议价',
+                        null => '议价以原帖为准',
+                      },
+                style: TextStyle(fontSize: 13, color: tg.t3),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -1545,30 +1616,13 @@ class _DetailInfo extends StatelessWidget {
               spacing: gap,
               runSpacing: gap,
               children: [
-                MiscInfoCell(
-                  label: '资质',
-                  value: t.apt?.toString() ?? '未标注',
-                  gold: true,
-                  width: cellW,
-                ),
-                MiscInfoCell(label: '可携带等级', value: t.carryText, width: cellW),
-                MiscInfoCell(
-                  label: '灵性 / 悟性',
-                  value:
-                      '${t.ling != '0' ? t.ling : '—'} / ${t.wu != '0' ? t.wu : '—'}',
-                  width: cellW,
-                ),
-                MiscInfoCell(label: '上架时间', value: '—', width: cellW),
-                MiscInfoCell(
-                  label: '浏览量',
-                  value: _thousands(t.views),
-                  width: cellW,
-                ),
-                MiscInfoCell(
-                  label: '大区 · 服务器',
-                  value: t.area.isEmpty ? '—' : '${t.area}-${t.server}',
-                  width: cellW,
-                ),
+                for (final (label, value) in cells)
+                  MiscInfoCell(
+                    label: label,
+                    value: value,
+                    gold: label == '资质' || label == '商品来源',
+                    width: cellW,
+                  ),
               ],
             );
           },
@@ -1578,20 +1632,10 @@ class _DetailInfo extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
-            if (t.ding) const MiscTag(text: '顶变', gold: true),
-            if (t.ss) const MiscTag(text: '双十', gold: true),
-            if (t.ch != null) MiscTag(text: t.ch!),
-            if (t.skill != null && t.skill! > 0) MiscTag(text: '技能全${t.skill}'),
-            if (t.pet.isNotEmpty && t.pet != '其他')
-              MiscTag(text: t.pet, gold: true),
-            if (t.ling != '0') MiscTag(text: '灵${t.ling}'),
-            if (t.ding == false &&
-                t.ss == false &&
-                t.ch == null &&
-                t.skill == null &&
-                (t.pet.isEmpty || t.pet == '其他') &&
-                t.ling == '0')
-              const MiscTag(text: '无附加标签'),
+            if (tags.isEmpty)
+              const MiscTag(text: '无附加标签')
+            else
+              for (final tag in tags) MiscTag(text: tag, gold: true),
           ],
         ),
         const SizedBox(height: 18),
@@ -1657,18 +1701,69 @@ Future<void> _openSourcePage(BuildContext context, String sn) async {
 /// 从行情列表点击「详情」时 `context.push(..., extra: pet)` 压栈到列表之上；
 /// 列表页仍在路由栈中、滚动位置天然保留。返回（系统返回 / 「返回行情列表」
 /// 按钮）走 `context.pop()`，因此不会出现页内切换那种回顶跳动。
-class PetDetailPage extends StatelessWidget {
-  const PetDetailPage({super.key, this.pet});
+class PetDetailPage extends StatefulWidget {
+  const PetDetailPage({super.key, this.pet, this.fetchDetail});
 
   /// 商品数据经路由 extra 传入；null（如直接深链）时展示缺失提示。
   final PetListing? pet;
 
+  /// 详情抓取（测试注入用）；默认走 [fetchSxdsGoodsDetail] 真实接口。
+  final Future<SxdsGoodsDetail> Function(String sn)? fetchDetail;
+
+  @override
+  State<PetDetailPage> createState() => _PetDetailPageState();
+}
+
+class _PetDetailPageState extends State<PetDetailPage> {
+  /// 详情（含全部商品图）；列表摘要已够渲染骨架，详情到位后补齐。
+  SxdsGoodsDetail? _detail;
+  bool _loading = false;
+  String _error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  /// 拉取商品详情（含全部实拍图）。失败不影响摘要展示。
+  Future<void> _load() async {
+    final sn = widget.pet?.sn ?? '';
+    if (sn.isEmpty) return;
+    setState(() {
+      _loading = true;
+      _error = '';
+    });
+    try {
+      final fetch =
+          widget.fetchDetail ?? (String sn) => fetchSxdsGoodsDetail(sn: sn);
+      final d = await fetch(sn);
+      if (!mounted) return;
+      setState(() {
+        _detail = d;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = '$e';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final tg = context.tg;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
-        final p = pet;
+        final p = widget.pet;
+        final d = _detail;
+        final images = d != null && d.images.isNotEmpty
+            ? d.images
+            : <String>[if (p?.img != null && p!.img!.isNotEmpty) p.img!];
+        final desc = d?.description ?? '';
         final blocks = <Widget>[
           if (p == null)
             MiscDetailMissing(
@@ -1682,21 +1777,49 @@ class PetDetailPage extends StatelessWidget {
               title: '珍兽详情',
               subtitle:
                   '${p.area.isEmpty ? '' : '${p.area} · ${p.server}'}'
-                  ' · 编号 ${p.sn}',
+                  ' · 编号 ${p.sn}'
+                  '${images.length > 1 ? ' · ${images.length} 图' : ''}',
               crumbTail: ' / 珍兽行情 / 商品详情',
               onCrumbTap: () =>
                   context.go(ToolCatalog.miscMarket.group.hubLocation),
             ),
+            if (_loading || _error.isNotEmpty)
+              MiscDetailLoadStatus(
+                loading: _loading,
+                error: _error,
+                onRetry: _load,
+              ),
             MiscDetailBody(
-              image: MiscDetailImage(
-                url: p.img,
+              image: MiscDetailGallery(
+                images: images,
                 caption: p.title,
                 fallbackIcon: 'paw',
               ),
-              info: _DetailInfo(pet: p, onBack: () => context.pop()),
+              info: _DetailInfo(pet: p, detail: d, onBack: () => context.pop()),
             ),
+            if (desc.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              TgCard(
+                basePadding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const MiscSectionHead(title: '商品描述'),
+                    const SizedBox(height: 12),
+                    SelectableText(
+                      desc,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.85,
+                        color: tg.t2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: TgSpacing.s34),
-            const TgPageFoot(text: '点击商品图片可放大查看'),
+            const TgPageFoot(text: '点击商品图片可放大查看（多图可左右滑动）'),
           ],
         ];
         // 与行情列表一致的内边距 / 限宽 1180 居中换算。

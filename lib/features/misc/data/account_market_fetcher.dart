@@ -14,53 +14,33 @@ library;
 
 import 'dart:convert' as conv;
 
-import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:tlbbtoolkit/features/misc/data/sxds_api.dart';
 import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
-
-/// 站点请求签名密钥（逆向自站方 JS，与珍兽行情共用）。
-const String _kSignSecret = 'lzadIuYtSA6CpdE0llu8';
 
 /// 真实接口地址（gameId=74 天龙怀旧服；goodsTypeId=1 账号类目）。
 const String _kApiBase = 'https://www.sxds.com/api/goods/getGoodsList';
-
-/// 商品图 OSS 域名（thumbnail 为相对路径，需加此前缀）。
-const String _kImgOrigin = 'https://oss.sxds.com/';
-
-/// 把平台缩略图路径规整为可加载的完整 URL。
-///
-/// - 已是 `http(s)://` → 原样返回；
-/// - `img/...` 相对路径 → 加 `https://oss.sxds.com/` 前缀；
-/// - 空/无效 → null。
-String? _resolveImg(String? raw) {
-  if (raw == null) return null;
-  final t = raw.trim();
-  if (t.isEmpty) return null;
-  if (t.startsWith('http://') || t.startsWith('https://')) return t;
-  if (t.startsWith('/')) return '$_kImgOrigin${t.substring(1)}';
-  return '$_kImgOrigin$t';
-}
 
 /// 从商品原始记录解析主图 URL（thumbnail / goodsImages 主图均可）。
 String? _pickImg(dynamic item) {
   if (item is! Map) return null;
   final thumb = item['thumbnail'];
   if (thumb is String) {
-    final u = _resolveImg(thumb);
+    final u = sxdsResolveImg(thumb);
     if (u != null) return u;
   }
   final gi = item['goodsImages'];
   if (gi is List && gi.isNotEmpty) {
     for (final g in gi) {
       if (g is String) {
-        final u = _resolveImg(g);
+        final u = sxdsResolveImg(g);
         if (u != null) return u;
       } else if (g is Map) {
         final raw = g['url'] ?? g['img'] ?? g['thumbnail'];
         if (raw is String) {
-          final u = _resolveImg(raw);
+          final u = sxdsResolveImg(raw);
           if (u != null) return u;
         }
       }
@@ -68,7 +48,7 @@ String? _pickImg(dynamic item) {
   } else if (gi is Map) {
     final raw = gi['url'] ?? gi['img'] ?? gi['thumbnail'];
     if (raw is String) {
-      final u = _resolveImg(raw);
+      final u = sxdsResolveImg(raw);
       if (u != null) return u;
     }
   }
@@ -97,19 +77,6 @@ class AccountMarketFetchResult {
 
   /// 能映射成账号的条目（可刷新统计）。
   final List<AccountListing> parsed;
-}
-
-/// 计算站点签名 header（timestamp + visitauth）。
-Map<String, String> _signHeaders() {
-  final ts = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-  final digest = crypto.sha256
-      .convert(conv.utf8.encode('$ts$_kSignSecret'))
-      .bytes;
-  return {
-    'timestamp': ts,
-    'visitauth': conv.base64Encode(digest),
-    'pragma': 'no-cache',
-  };
 }
 
 /// 解析单页响应：期望 `{"code":0,"data":{"goodsList":[...]}}`。
@@ -286,7 +253,7 @@ Future<AccountMarketFetchResult> fetchSxdsAccountMarket({
         options: Options(
           responseType: ResponseType.plain,
           headers: {
-            ..._signHeaders(),
+            ...sxdsSignHeaders(),
             'Referer': 'https://www.sxds.com/wares/',
           },
         ),

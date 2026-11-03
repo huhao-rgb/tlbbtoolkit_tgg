@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
+import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_common.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_icon.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_image_gallery.dart';
@@ -265,6 +266,322 @@ class _MiscDetailImageState extends State<MiscDetailImage> {
                       ),
                     ),
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 详情加载状态条：加载中（中性）/ 失败（琥珀 + 重试）。
+///
+/// 详情是「摘要先渲染、详情后补齐」的渐进加载，所以状态条放在页头下方，
+/// 失败时仍保留列表摘要可看。
+class MiscDetailLoadStatus extends StatelessWidget {
+  const MiscDetailLoadStatus({
+    super.key,
+    required this.loading,
+    required this.error,
+    required this.onRetry,
+  });
+
+  final bool loading;
+  final String error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    if (loading) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.6,
+                color: tg.gold2,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '正在加载商品详情与全部图片…',
+              style: TextStyle(fontSize: 12, color: tg.t3),
+            ),
+          ],
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Expanded(child: MiscStatusWarn(message: '商品详情加载失败：$error（当前展示列表摘要）')),
+          const SizedBox(width: 8),
+          MiscMiniButton(label: '重试', onTap: onRetry),
+        ],
+      ),
+    );
+  }
+}
+
+/// 详情多图画廊：主图 + 横向缩略图条。
+///
+/// 平台账号/商品详情通常带几十张实拍图（列表接口只给一张封面）：
+/// 底部缩略图条切换主图，点击主图进全屏画廊（可左右滑 / 捏合放大）。
+/// 无图时退回 [MiscDetailImage] 的占位样式。
+class MiscDetailGallery extends StatefulWidget {
+  const MiscDetailGallery({
+    super.key,
+    required this.images,
+    required this.caption,
+    required this.fallbackIcon,
+  });
+
+  /// 完整图片 URL 列表（已按平台顺序去重）。
+  final List<String> images;
+
+  final String caption;
+
+  /// 占位 / 失败回退图标资产名（见 `TgIcon._paths`）。
+  final String fallbackIcon;
+
+  @override
+  State<MiscDetailGallery> createState() => _MiscDetailGalleryState();
+}
+
+class _MiscDetailGalleryState extends State<MiscDetailGallery> {
+  int _index = 0;
+  bool _hover = false;
+
+  @override
+  void didUpdateWidget(MiscDetailGallery oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 异步加载完成后图片列表变长/变短：把当前页钳制在有效范围内。
+    if (_index >= widget.images.length) {
+      _index = widget.images.isEmpty ? 0 : widget.images.length - 1;
+    }
+  }
+
+  void _select(int i) {
+    if (i < 0 || i >= widget.images.length || i == _index) return;
+    setState(() => _index = i);
+  }
+
+  void _open() {
+    if (widget.images.isEmpty) return;
+    showTgImageGallery(
+      context,
+      images: [
+        for (final u in widget.images)
+          TgGalleryImage(
+            url: u,
+            caption: widget.caption,
+            errorIcon: widget.fallbackIcon,
+          ),
+      ],
+      initialIndex: _index,
+      sourceRect: _widgetRect(context),
+      title: '商品图片预览',
+    );
+  }
+
+  Widget _fallback(Color color, double size) {
+    return TgIcon(widget.fallbackIcon, size: size, color: color);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final images = widget.images;
+    if (images.isEmpty) {
+      return MiscDetailImage(
+        url: null,
+        caption: widget.caption,
+        fallbackIcon: widget.fallbackIcon,
+      );
+    }
+    final multi = images.length > 1;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        MouseRegion(
+          onEnter: (_) => setState(() => _hover = true),
+          onExit: (_) => setState(() => _hover = false),
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: _open,
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: tg.inset,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _hover ? tg.goldTint(.5) : tg.border,
+                        width: 1,
+                      ),
+                    ),
+                    child: Image.network(
+                      images[_index],
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      cacheWidth: 960,
+                      filterQuality: FilterQuality.medium,
+                      gaplessPlayback: true,
+                      loadingBuilder: (_, child, progress) => progress == null
+                          ? child
+                          : Center(
+                              child: SizedBox(
+                                width: 26,
+                                height: 26,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: tg.gold2,
+                                  backgroundColor: tg.goldTint(.15),
+                                ),
+                              ),
+                            ),
+                      errorBuilder: (_, _, _) =>
+                          Center(child: _fallback(tg.t3, 52)),
+                    ),
+                  ),
+                  if (multi) ...[
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: IgnorePointer(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: tg.inset.withValues(alpha: .78),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: tg.border, width: 1),
+                          ),
+                          child: Text(
+                            '${_index + 1} / ${images.length}',
+                            style: TextStyle(fontSize: 11, color: tg.t1),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: _GalleryArrow(
+                          icon: 'chev-l',
+                          onTap: () => _select(_index - 1),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: _GalleryArrow(
+                          icon: 'chev',
+                          onTap: () => _select(_index + 1),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (multi) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 56,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: images.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final active = i == _index;
+                return GestureDetector(
+                  onTap: () => _select(i),
+                  child: Container(
+                    width: 56,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: tg.inset,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: active ? tg.gold : tg.border,
+                        width: active ? 2 : 1,
+                      ),
+                    ),
+                    child: Image.network(
+                      images[i],
+                      fit: BoxFit.cover,
+                      cacheWidth: 168,
+                      filterQuality: FilterQuality.medium,
+                      gaplessPlayback: true,
+                      errorBuilder: (_, _, _) =>
+                          Center(child: _fallback(tg.t3, 20)),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// 画廊左右切换按钮（圆形半透明 · 金色描边 hover）。
+class _GalleryArrow extends StatefulWidget {
+  const _GalleryArrow({required this.icon, required this.onTap});
+
+  final String icon;
+  final VoidCallback onTap;
+
+  @override
+  State<_GalleryArrow> createState() => _GalleryArrowState();
+}
+
+class _GalleryArrowState extends State<_GalleryArrow> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Container(
+          width: 30,
+          height: 30,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: tg.inset.withValues(alpha: .72),
+            shape: BoxShape.circle,
+            border: Border.all(color: _hover ? tg.gold : tg.border, width: 1),
+          ),
+          child: TgIcon(
+            widget.icon,
+            size: 14,
+            color: _hover ? tg.gold2 : tg.t2,
           ),
         ),
       ),
