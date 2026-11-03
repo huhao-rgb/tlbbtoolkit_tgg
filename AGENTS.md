@@ -107,6 +107,7 @@ presentation ──► domain ◄── data
 | **release 的 `.so` 是压缩存储的** | `androidComponents.onVariants { variant.packaging.jniLibs.useLegacyPackaging.set(true) }`（仅 release 变体），AGP 因此合并出 `android:extractNativeLibs="true"`，安装时把 lib 解压到 `/data/app/.../lib`。收益：APK 33 MB → 22.4 MB（`libflutter.so` + `libapp.so` 20.2 MB → 8.9 MB）；代价：**安装后磁盘占用反而变大**（APK + 解压后的 lib），首启多一次解压。debug 变体保持不压缩，`flutter run` 重装不受影响。 |
 | **pub 源必须与 `pubspec.lock` 一致** | `pubspec.lock` 里每个包都记了 `url`（本仓库统一为 `https://pub.dev`）。若当前环境的 `PUB_HOSTED_URL` 与 lock 记录的源不同（例如本机设了国内镜像），pub 会判定 lock 失效并**整体重新解析依赖**，静默升级到新版本。v1.1.2 黑屏事故即由此触发（`shared_preferences_android` 被升到 2.5.1）。CI 已固定 `PUB_HOSTED_URL` + `--enforce-lockfile`；**本地若设了镜像源，请把它去掉**，否则 `fvm flutter pub get` 会改写 lock。 |
 | **R8 会破坏 Pigeon JNI 插件** | `shared_preferences_android` 2.5.x 起改用 Pigeon JNI：Dart 侧按「类名 + 方法签名」反射调用 Java，类名与签名不能被混淆。`android/app/proguard-rules.pro` 已 `-keep` 相关类（含 `kotlin.coroutines.*`），**不要删**，否则 release 包启动即黑屏（只影响 release，debug 正常）。 |
+| **macOS 开发 profile 只有 7 天有效期** | 免费个人团队签发的 `Mac Team Provisioning Profile: <bundle-id>` 到期后 `flutter run -d macos` 会报 `No profiles for '…' were found ... pass -allowProvisioningUpdates`。根因是 **Flutter 的 macOS 构建路径不传 `-allowProvisioningUpdates`**（只有 iOS 路径传）。跑 `./scripts/macos-signing-refresh.sh` 续签；VS Code 的 macOS 启动配置与 `build_macos_dmg.sh` 已自动调用。详见 [`docs/macos-signing.md`](docs/macos-signing.md)。 |
 
 ---
 

@@ -63,6 +63,9 @@ echo "==> 版本 ${VERSION}，应用 ${PRODUCT_NAME}"
 
 if [ "${SKIP_BUILD}" -eq 0 ]; then
   echo "==> 构建 macOS release（universal）"
+  # 配了本地签名但开发 profile 过期时会硬失败（Flutter 不传 -allowProvisioningUpdates）。
+  # CI 上没有本地签名配置，脚本会自行跳过。
+  FLUTTER_BIN="${FLUTTER_BIN}" bash "${ROOT}/scripts/macos-signing-refresh.sh" || true
   if [ -n "${SYNC_BASE_URL}" ]; then
     echo "    云同步地址：${SYNC_BASE_URL}"
   else

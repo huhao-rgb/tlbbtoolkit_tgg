@@ -23,6 +23,20 @@
         "panel": "shared",
         "clear": true
       }
+    },
+    {
+      // 免费个人团队的 "Mac Team Provisioning Profile" 只有 7 天有效期，
+      // 过期后 flutter run 会报 "No profiles for ... were found"（Flutter 调
+      // xcodebuild 时不传 -allowProvisioningUpdates）。该任务在启动前刷新它。
+      "label": "macOS: 刷新开发签名 profile",
+      "type": "shell",
+      "command": "./scripts/macos-signing-refresh.sh",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
     }
   ]
 }

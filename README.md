@@ -114,6 +114,27 @@ keychain access group，配对凭据写入会抛
 **不配也能构建**：未生成本地配置时，`Debug/Release.xcconfig` 会回落到 ad-hoc
 （macOS 能用一次性同步码，只是云同步不可用），因此 clone 后直接构建不会失败。
 
+**profile 只有 7 天有效期**：免费个人团队签发的
+`Mac Team Provisioning Profile: me.huhao.tools.tlbbtoolkit` 是临时 profile，7 天后过期，
+此时 `flutter run -d macos` / `flutter build macos` 会硬失败：
+
+```
+error: No profiles for 'me.huhao.tools.tlbbtoolkit' were found: Xcode couldn't find
+any Mac App Development provisioning profiles matching 'me.huhao.tools.tlbbtoolkit'.
+Automatic signing is disabled and unable to generate a profile.
+```
+
+根因是 **Flutter 的 macOS 构建路径不传 `-allowProvisioningUpdates`**（只有 iOS 路径传），
+xcodebuild 因此被禁止联网续签。修复方式：
+
+```sh
+./scripts/macos-signing-refresh.sh   # profile 有效时 0.1s 跳过，失效才真正续签
+```
+
+VS Code 里两个 macOS 启动配置已挂上同名 `preLaunchTask`，按 F5 会自动刷新。
+详见 [`docs/macos-signing.md`](docs/macos-signing.md)；签名相关的 entitlements 细节
+见 [`docs/code-signing-policy.md`](docs/code-signing-policy.md)。
+
 ## 目录结构
 
 ```

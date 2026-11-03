@@ -6,6 +6,11 @@
   //
   // 云同步地址与后端部署说明见 server/cloudbase/README.md。
   // 数据目录默认复用 SYNC_BASE_URL（同一 CloudBase 环境），无需重复配置。
+  //
+  // ⚠️ macOS 启动前会先跑 `preLaunchTask`：免费个人团队的开发 profile 只有 7 天
+  //    有效期，过期时 flutter run 会报 "No profiles for ... were found"
+  //    （Flutter 调 xcodebuild 不传 -allowProvisioningUpdates）。该任务负责刷新，
+  //    本地 profile 有效时约 0.1s 直接跳过。详见 docs/macos-signing.md。
   "version": "0.2.0",
   "configurations": [
     {
@@ -14,6 +19,7 @@
       "request": "launch",
       "program": "lib/main.dart",
       "deviceId": "macos",
+      "preLaunchTask": "macOS: 刷新开发签名 profile",
       "toolArgs": [
         "--dart-define=SYNC_BASE_URL=https://tgg-account-d8gd8q1mc16b81044.service.tcloudbase.com"
       ]
@@ -35,7 +41,8 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
-      "deviceId": "macos"
+      "deviceId": "macos",
+      "preLaunchTask": "macOS: 刷新开发签名 profile"
     }
   ]
 }

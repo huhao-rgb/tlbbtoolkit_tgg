@@ -81,4 +81,6 @@ PY
 
 echo "✅ 完成。接下来："
 echo "   1) 打开 macos/Runner.xcworkspace，Runner → Signing & Capabilities → Team 选同一个团队"
-echo "   2) 验证：fvm flutter test integration_test/secure_storage_smoke_test.dart -d macos"
+echo "   2) 刷新开发 profile（免费个人团队的 profile 只有 7 天有效期）："
+echo "        ./scripts/macos-signing-refresh.sh"
+echo "   3) 验证：fvm flutter test integration_test/secure_storage_smoke_test.dart -d macos"
