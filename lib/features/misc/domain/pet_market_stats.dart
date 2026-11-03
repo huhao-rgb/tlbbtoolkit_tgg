@@ -40,7 +40,14 @@ List<PetListing> pmFiltered(List<PetListing> data, PetMarketFilter f) {
   return data
       .where((x) {
         if (f.area.isNotEmpty && x.area != f.area) return false;
-        if (f.server.isNotEmpty && x.server != f.server) return false;
+        if (f.server.isNotEmpty) {
+          // 合区服按 serverId 集合匹配（商品仍带各自旧服名称）；
+          // 快照/旧数据没有 serverId 时退回按名称精确匹配。
+          final hit = f.serverIds.isNotEmpty && x.serverId != null
+              ? f.serverIds.contains(x.serverId)
+              : x.server == f.server;
+          if (!hit) return false;
+        }
         if (f.carryBand != PetCarryBand.all && x.band != f.carryBand) {
           return false;
         }

@@ -122,20 +122,29 @@ class AccountMarketFilter {
   const AccountMarketFilter({
     this.area = '',
     this.server = '',
+    this.serverIds = const {},
     this.band = AccountLevelBand.all,
   });
 
   final String area;
   final String server;
+
+  /// 服务器对应的平台 serverId 集合（含合区）。非空时按 id 过滤，
+  /// 否则退回按名称精确匹配——合区服的商品会带各自旧服的名字，
+  /// 只按名称过滤会把它们全丢掉。
+  final Set<int> serverIds;
+
   final AccountLevelBand band;
 
   AccountMarketFilter copyWith({
     String? area,
     String? server,
+    Set<int>? serverIds,
     AccountLevelBand? band,
   }) => AccountMarketFilter(
     area: area ?? this.area,
     server: server ?? this.server,
+    serverIds: serverIds ?? this.serverIds,
     band: band ?? this.band,
   );
 }

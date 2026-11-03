@@ -66,8 +66,12 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
   /// 整页唯一滚动体的控制器（「回到顶部」悬浮按钮共用）。
   final ScrollController _scroll = ScrollController();
 
-  PetMarketFilter get _filter =>
-      PetMarketFilter(area: _area, server: _server, carryBand: _band);
+  PetMarketFilter get _filter => PetMarketFilter(
+    area: _area,
+    server: _server,
+    serverIds: _server.isEmpty ? const {} : _serverIdSetOf(_server),
+    carryBand: _band,
+  );
 
   @override
   void initState() {
@@ -129,18 +133,28 @@ class _MiscMarketPageState extends State<MiscMarketPage> {
     return null;
   }
 
-  /// 由服务器名称解析平台服务器 id 集合（目录优先，数据兜底）。
+  /// 由服务器名称解析平台服务器 id 参数（目录优先，数据兜底）。
+  ///
+  /// 合区服必须传整串（如紫气东来 → `22311,23597,24371,25143`），只传首个 id
+  /// 只能拿到其中一个服的商品。
   String? _serverIdsOf(String name) {
+    final hit = findSxdsServerByName(_regions, name);
+    if (hit != null) return hit.serverParam;
     final ids = <int>{};
-    for (final r in _regions) {
-      for (final s in r.servers) {
-        if (s.serverName == name) ids.add(s.serverId);
-      }
-    }
     for (final it in _items) {
       if (it.server == name && it.serverId != null) ids.add(it.serverId!);
     }
     return ids.isEmpty ? null : ids.join(',');
+  }
+
+  /// 由服务器名称解析平台 serverId 集合（含合区，供本地过滤用）。
+  Set<int> _serverIdSetOf(String name) {
+    final hit = findSxdsServerByName(_regions, name);
+    if (hit != null) return hit.serverIds;
+    return {
+      for (final it in _items)
+        if (it.server == name && it.serverId != null) it.serverId!,
+    };
   }
 
   /// 把当前下拉选择（名称）翻译成平台接口查询条件。

@@ -190,20 +190,28 @@ class PetMarketFilter {
   const PetMarketFilter({
     this.area = '',
     this.server = '',
+    this.serverIds = const {},
     this.carryBand = PetCarryBand.all,
   });
 
   final String area;
   final String server;
+
+  /// 服务器对应的平台 serverId 集合（含合区）。非空时按 id 过滤，
+  /// 否则退回按名称精确匹配（见 [AccountMarketFilter.serverIds] 同款说明）。
+  final Set<int> serverIds;
+
   final PetCarryBand carryBand;
 
   PetMarketFilter copyWith({
     String? area,
     String? server,
+    Set<int>? serverIds,
     PetCarryBand? carryBand,
   }) => PetMarketFilter(
     area: area ?? this.area,
     server: server ?? this.server,
+    serverIds: serverIds ?? this.serverIds,
     carryBand: carryBand ?? this.carryBand,
   );
 }

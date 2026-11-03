@@ -19,7 +19,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_select.dart';
 import 'package:tlbbtoolkit/features/misc/data/account_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart'
-    show SxdsRegion, SxdsServer, fetchSxdsRegions;
+    show SxdsRegion, SxdsServer, fetchSxdsRegions, findSxdsServerByName;
 import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
 import 'package:tlbbtoolkit/features/misc/domain/account_market_stats.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_common.dart';
@@ -71,8 +71,12 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
   /// 整页唯一滚动体的控制器（「回到顶部」悬浮按钮共用）。
   final ScrollController _scroll = ScrollController();
 
-  AccountMarketFilter get _filter =>
-      AccountMarketFilter(area: _area, server: _server, band: _band);
+  AccountMarketFilter get _filter => AccountMarketFilter(
+    area: _area,
+    server: _server,
+    serverIds: _server.isEmpty ? const {} : _serverIdSetOf(_server),
+    band: _band,
+  );
 
   @override
   void initState() {
@@ -142,18 +146,28 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
     return null;
   }
 
-  /// 由服务器名称解析平台服务器 id 集合（目录优先，数据兜底）。
+  /// 由服务器名称解析平台服务器 id 参数（目录优先，数据兜底）。
+  ///
+  /// 合区服必须传整串（如紫气东来 → `22311,23597,24371,25143`），只传首个 id
+  /// 只能拿到其中一个服的商品。
   String? _serverIdsOf(String name) {
+    final hit = findSxdsServerByName(_regions, name);
+    if (hit != null) return hit.serverParam;
     final ids = <int>{};
-    for (final r in _regions) {
-      for (final s in r.servers) {
-        if (s.serverName == name) ids.add(s.serverId);
-      }
-    }
     for (final it in _items) {
       if (it.server == name && it.serverId != null) ids.add(it.serverId!);
     }
     return ids.isEmpty ? null : ids.join(',');
+  }
+
+  /// 由服务器名称解析平台 serverId 集合（含合区，供本地过滤用）。
+  Set<int> _serverIdSetOf(String name) {
+    final hit = findSxdsServerByName(_regions, name);
+    if (hit != null) return hit.serverIds;
+    return {
+      for (final it in _items)
+        if (it.server == name && it.serverId != null) it.serverId!,
+    };
   }
 
   /// 把当前下拉选择（名称）翻译成平台接口查询条件。

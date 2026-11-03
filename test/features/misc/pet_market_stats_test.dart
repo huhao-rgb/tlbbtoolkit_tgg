@@ -41,6 +41,41 @@ void main() {
       expect(r.every((x) => x.server == '少年游'), isTrue);
     });
 
+    test('合区服：按 serverIds 集合匹配，保留合区内其他旧服的商品', () {
+      PetListing make(String server, int serverId) => PetListing(
+        title: '',
+        price: 100,
+        area: '万人大区',
+        server: server,
+        lv: 89,
+        ling: '10',
+        wu: '10',
+        pet: '其他',
+        ch: null,
+        apt: null,
+        ss: false,
+        ding: false,
+        skill: null,
+        carry: 85,
+        views: 1,
+        sn: 'S$serverId',
+        serverId: serverId,
+      );
+      final data = [
+        make('紫气东来', 22311),
+        make('万兽之王', 23597),
+        make('红尘客栈', 23939), // 不在同一合区 → 应被排除
+      ];
+      final r = pmFiltered(
+        data,
+        const PetMarketFilter(
+          server: '紫气东来',
+          serverIds: {22311, 23597, 24371, 25143},
+        ),
+      );
+      expect(r.map((x) => x.server), ['紫气东来', '万兽之王']);
+    });
+
     test('携带等级档位：65 级档只保留 band==p65', () {
       final r = pmFiltered(
         kPetMarketData,

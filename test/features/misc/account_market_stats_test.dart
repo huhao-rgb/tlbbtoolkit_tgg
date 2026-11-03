@@ -96,6 +96,37 @@ void main() {
       expect(r.every((x) => x.server == '紫气东来'), isTrue);
     });
 
+    test('合区服：按 serverIds 集合匹配，保留合区内其他旧服的商品', () {
+      AccountListing make(String server, int serverId) => AccountListing(
+        sn: 'S$serverId',
+        title: '',
+        price: 100,
+        views: 1,
+        area: '万人大区',
+        server: server,
+        job: '少林',
+        sex: '男',
+        lv: 119,
+        atk: '主玄攻',
+        attr: 100,
+        serverId: serverId,
+      );
+      final data = [
+        make('紫气东来', 22311),
+        make('万兽之王', 23597),
+        make('红尘客栈', 23939), // 不在同一合区 → 应被排除
+        make('无 id 商品', 0),
+      ];
+      final r = amFiltered(
+        data,
+        const AccountMarketFilter(
+          server: '紫气东来',
+          serverIds: {22311, 23597, 24371, 25143},
+        ),
+      );
+      expect(r.map((x) => x.server), ['紫气东来', '万兽之王']);
+    });
+
     test('角色等级段 60-70：只保留 60 ≤ lv < 70', () {
       final r = amFiltered(
         kAccountMarketData,

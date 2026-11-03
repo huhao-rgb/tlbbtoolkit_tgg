@@ -322,6 +322,67 @@ void main() {
       dio.close();
     });
   });
+
+  group('fetchSxdsRegions（区服目录 / 合区映射）', () {
+    /// 构造 gamefilter 响应（`data` 为 "1".."N" 的筛选项字典）。
+    String body() => jsonEncode({
+      'code': 0,
+      'msg': '成功',
+      'data': {
+        '2': {
+          'fieldKey': 'areaId',
+          'options': [
+            {
+              'specialId': 1207,
+              'specialName': '万人大区',
+              'secondOptions': [
+                {
+                  'twoSpecialId': 22311,
+                  'twoSpecialName': '紫气东来',
+                  'twospecialValue': '22311,23597,24371,25143',
+                },
+                {
+                  'twoSpecialId': 23597,
+                  'twoSpecialName': '万兽之王',
+                  'twospecialValue': '22311,23597,24371,25143',
+                },
+                {
+                  'twoSpecialId': 25701,
+                  'twoSpecialName': '大展鸿图',
+                  'twospecialValue': '',
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    test('twospecialValue → serverParam 整串 / 未合区退回单 id', () async {
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter([body()]);
+
+      final regions = await fetchSxdsRegions(dio: dio);
+
+      expect(regions, hasLength(1));
+      expect(regions.first.areaName, '万人大区');
+      final merged = findSxdsServerByName(regions, '紫气东来')!;
+      expect(merged.serverId, 22311);
+      expect(merged.serverParam, '22311,23597,24371,25143');
+      expect(merged.serverIds, {22311, 23597, 24371, 25143});
+      // 同一合区内的另一个旧服解析出同一串 → 查询结果一致。
+      expect(
+        findSxdsServerByName(regions, '万兽之王')!.serverParam,
+        merged.serverParam,
+      );
+      // 未合区：serverParam 退回自身 id，serverIds 只含自己。
+      final solo = findSxdsServerByName(regions, '大展鸿图')!;
+      expect(solo.serverParam, '25701');
+      expect(solo.serverIds, {25701});
+      expect(findSxdsServerByName(regions, '不存在'), isNull);
+      dio.close();
+    });
+  });
 }
 
 /// 内存 HTTP 适配器：按序返回给定 JSON 响应。

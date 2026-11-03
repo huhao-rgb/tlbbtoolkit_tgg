@@ -411,12 +411,46 @@ class SxdsRegion {
 }
 
 /// 平台一个服务器。
+///
+/// 平台把已合区的若干老服归到同一个「当前服」下：目录里的 `twospecialValue`
+/// 给出该服对应的全部 serverId（逗号分隔，如紫气东来 = `22311,23597,24371,25143`）。
+/// 查询时必须整串传给平台，只传首个 id 会漏掉其余已合入的服。
 @immutable
 class SxdsServer {
-  const SxdsServer({required this.serverId, required this.serverName});
+  const SxdsServer({
+    required this.serverId,
+    required this.serverName,
+    this.serverValue = '',
+  });
 
   final int serverId;
   final String serverName;
+
+  /// 合区映射（平台目录 `twospecialValue`）；未合区时为空串。
+  final String serverValue;
+
+  /// 传给平台 `serverId` 参数的值：有合区映射用整串，否则用单服 id。
+  String get serverParam =>
+      serverValue.isEmpty ? serverId.toString() : serverValue;
+
+  /// 该服覆盖的 serverId 集合（含已合入的老服），用于本地按服过滤。
+  Set<int> get serverIds {
+    final parsed = serverValue
+        .split(',')
+        .map((e) => int.tryParse(e.trim()))
+        .whereType<int>();
+    return {serverId, ...parsed};
+  }
+}
+
+/// 在区服目录中按服务器名称查找（返回含合区映射的条目）；未找到返回 null。
+SxdsServer? findSxdsServerByName(List<SxdsRegion> regions, String name) {
+  for (final r in regions) {
+    for (final s in r.servers) {
+      if (s.serverName == name) return s;
+    }
+  }
+  return null;
 }
 
 /// 拉取平台区服目录（`/api/comm/gamefilter`）。
@@ -487,8 +521,16 @@ Future<List<SxdsRegion>> fetchSxdsRegions({
           if (s is! Map) continue;
           final sid = s['twoSpecialId'];
           final sname = s['twoSpecialName'];
+          // twospecialValue：合区后该服包含的全部 serverId（逗号分隔）。
+          final sval = s['twospecialValue'];
           if (sid is num && sname is String && sname.isNotEmpty) {
-            servers.add(SxdsServer(serverId: sid.round(), serverName: sname));
+            servers.add(
+              SxdsServer(
+                serverId: sid.round(),
+                serverName: sname,
+                serverValue: sval is String ? sval.trim() : '',
+              ),
+            );
           }
         }
       }
