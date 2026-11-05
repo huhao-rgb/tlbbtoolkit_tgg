@@ -118,7 +118,7 @@ void main() {
     expect(find.textContaining('曼陀山庄与慕容（重制）官网页面暂未提供'), findsOneWidget);
   });
 
-  testWidgets('切换门派：昆仑「斩妄」按截图渲染四重节点', (tester) async {
+  testWidgets('切换门派：昆仑「斩妄 / 怒啸」按截图渲染四重节点', (tester) async {
     await pumpPage(tester);
 
     await tester.ensureVisible(find.text('昆仑'));
@@ -128,17 +128,23 @@ void main() {
 
     expect(find.text('昆仑'), findsNWidgets(2));
     expect(find.text('内功 · 双形态'), findsOneWidget);
-    // 流派与被动
+    // 两条流派：斩妄与怒啸
     expect(find.text('斩妄'), findsOneWidget);
+    expect(find.text('怒啸'), findsOneWidget);
     expect(find.textContaining('流派被动 · 杀意凝锋'), findsOneWidget);
-    expect(find.textContaining('流派 1 / 1'), findsOneWidget);
-    // 四重节点抽样
-    expect(find.text('无情剑·神威'), findsOneWidget);
+    expect(find.textContaining('流派被动 · 怒涛逐风'), findsOneWidget);
+    expect(find.textContaining('流派 1 / 2'), findsOneWidget);
+    expect(find.textContaining('流派 2 / 2'), findsOneWidget);
+    // 怒啸节点抽样
+    expect(find.text('寒山镇怒'), findsOneWidget);
+    expect(find.text('祝东风'), findsOneWidget);
+    // 四重节点抽样（无情剑·神威 / 武道X重 两条流派各一份）
+    expect(find.text('无情剑·神威'), findsNWidgets(2));
     expect(find.text('刃无心'), findsOneWidget);
     expect(find.text('潮信急'), findsOneWidget);
     expect(find.text('战心长啸'), findsOneWidget);
     expect(find.textContaining('千峰誓'), findsOneWidget);
-    expect(find.text('武道一重'), findsOneWidget);
-    expect(find.text('武道四重'), findsOneWidget);
+    expect(find.text('武道一重'), findsNWidgets(2));
+    expect(find.text('武道四重'), findsNWidgets(2));
   });
 }

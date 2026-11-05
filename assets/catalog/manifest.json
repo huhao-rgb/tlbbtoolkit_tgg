@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.11.05.f0d27468",
+  "dataVersion": "2026.11.05.e7aceec4",
   "files": [
     {
       "kind": "job.artifacts",
@@ -40,9 +40,9 @@
     {
       "kind": "job.wudao",
       "schemaVersion": 1,
-      "dataVersion": "2026.11.05.f0d27468",
-      "sha256": "8cf6a8e9c23df890b074446e1c34aa8ea549b437ab55f8532241429c554b9481",
-      "bytes": 81997
+      "dataVersion": "2026.11.05.3d06be4f",
+      "sha256": "eb8ace7ba4a60e9d7f34a53c77cae2ab4ffea86399aea2992da7d91be84fdbd8",
+      "bytes": 92862
     },
     {
       "kind": "pet.beast_souls",
