@@ -207,7 +207,6 @@ void main() {
 
     // 两张账号卡（选中面板头部也会出现名称，取树序第一个 = 网格卡）。
     // 名称左对齐 + 固定内边距，用左上角 x 精确比较卡片位置。
-    final first = tester.getTopLeft(find.text('逍遥生').first);
     final second = tester.getTopLeft(find.text('武当山长').first);
 
     // 长按第一张卡（超过 400ms 阈值），拖到第二张卡处松手。
