@@ -420,11 +420,35 @@ SxdsServer? findSxdsServerByName(List<SxdsRegion> regions, String name) {
   return null;
 }
 
-/// 拉取平台区服目录（`/api/comm/gamefilter`）。
+/// 平台一个门派（角色职业）。
+@immutable
+class SxdsJob {
+  const SxdsJob({required this.jobsId, required this.jobName});
+
+  /// 平台 `jobsId`（查询参数同名）。
+  final int jobsId;
+
+  /// 门派名（如「天山」「逍遥」），与商品 `jobsName` 口径一致。
+  final String jobName;
+}
+
+/// 平台下拉目录：区服（大区 → 服务器）+ 门派（角色职业）。
+@immutable
+class SxdsCatalog {
+  const SxdsCatalog({this.regions = const [], this.jobs = const []});
+
+  final List<SxdsRegion> regions;
+
+  /// 全部门派（游戏账号类目筛选用）。
+  final List<SxdsJob> jobs;
+}
+
+/// 拉取平台下拉目录（`/api/comm/gamefilter`，一次拿到区服与门派）。
 ///
-/// 返回该游戏下全部大区与服务器（用于顶部大区/服务器下拉的固定候选，
-/// 不随当前聚焦数据缩水）。失败（Web CORS/网络）时抛 [PetMarketFetchException]。
-Future<List<SxdsRegion>> fetchSxdsRegions({
+/// 区服用于顶部大区/服务器下拉的固定候选（不随当前聚焦数据缩水）；
+/// 门派用于账号行情的 `jobsId` 筛选。失败（Web CORS/网络）时抛
+/// [PetMarketFetchException]。
+Future<SxdsCatalog> fetchSxdsCatalog({
   Dio? dio,
   String base = 'https://www.sxds.com/api/comm/gamefilter',
 }) async {
@@ -466,53 +490,7 @@ Future<List<SxdsRegion>> fetchSxdsRegions({
     if (data is! Map) {
       throw const PetMarketFetchException('接口返回格式异常（无数据）', isWebBlocked: false);
     }
-    // data 是 "1".."N" 的筛选项字典，取 fieldKey==areaId 那组。
-    dynamic areaFilter;
-    for (final v in data.values) {
-      if (v is Map && v['fieldKey'] == 'areaId') {
-        areaFilter = v;
-        break;
-      }
-    }
-    final options = areaFilter is Map ? areaFilter['options'] : null;
-    if (options is! List) {
-      return const [];
-    }
-    final regions = <SxdsRegion>[];
-    for (final o in options) {
-      if (o is! Map) continue;
-      final aid = o['specialId'];
-      final name = o['specialName'];
-      if (aid is! num || name is! String || name.isEmpty) continue;
-      final servers = <SxdsServer>[];
-      final sec = o['secondOptions'];
-      if (sec is List) {
-        for (final s in sec) {
-          if (s is! Map) continue;
-          final sid = s['twoSpecialId'];
-          final sname = s['twoSpecialName'];
-          // twospecialValue：合区后该服包含的全部 serverId（逗号分隔）。
-          final sval = s['twospecialValue'];
-          if (sid is num && sname is String && sname.isNotEmpty) {
-            servers.add(
-              SxdsServer(
-                serverId: sid.round(),
-                serverName: sname,
-                serverValue: sval is String ? sval.trim() : '',
-              ),
-            );
-          }
-        }
-      }
-      regions.add(
-        SxdsRegion(
-          areaId: aid.round(),
-          areaName: name.trim(),
-          servers: servers,
-        ),
-      );
-    }
-    return regions;
+    return SxdsCatalog(regions: _parseRegions(data), jobs: _parseJobs(data));
   } on DioException catch (e) {
     final blocked = kIsWeb;
     throw PetMarketFetchException(
@@ -526,6 +504,74 @@ Future<List<SxdsRegion>> fetchSxdsRegions({
   } finally {
     if (dio == null) client.close();
   }
+}
+
+/// 拉取平台区服目录（只关心大区/服务器时的便捷入口）。
+///
+/// 返回该游戏下全部大区与服务器。失败时抛 [PetMarketFetchException]。
+Future<List<SxdsRegion>> fetchSxdsRegions({
+  Dio? dio,
+  String base = 'https://www.sxds.com/api/comm/gamefilter',
+}) async => (await fetchSxdsCatalog(dio: dio, base: base)).regions;
+
+/// 从 gamefilter 的 `data` 里按 `fieldKey` 找筛选项的 `options`。
+List<dynamic> _optionsOf(Map data, String fieldKey) {
+  for (final v in data.values) {
+    if (v is Map && v['fieldKey'] == fieldKey) {
+      final options = v['options'];
+      if (options is List) return options;
+    }
+  }
+  return const [];
+}
+
+/// 解析区服（`fieldKey == areaId`）。
+List<SxdsRegion> _parseRegions(Map data) {
+  final regions = <SxdsRegion>[];
+  for (final o in _optionsOf(data, 'areaId')) {
+    if (o is! Map) continue;
+    final aid = o['specialId'];
+    final name = o['specialName'];
+    if (aid is! num || name is! String || name.isEmpty) continue;
+    final servers = <SxdsServer>[];
+    final sec = o['secondOptions'];
+    if (sec is List) {
+      for (final s in sec) {
+        if (s is! Map) continue;
+        final sid = s['twoSpecialId'];
+        final sname = s['twoSpecialName'];
+        // twospecialValue：合区后该服包含的全部 serverId（逗号分隔）。
+        final sval = s['twospecialValue'];
+        if (sid is num && sname is String && sname.isNotEmpty) {
+          servers.add(
+            SxdsServer(
+              serverId: sid.round(),
+              serverName: sname,
+              serverValue: sval is String ? sval.trim() : '',
+            ),
+          );
+        }
+      }
+    }
+    regions.add(
+      SxdsRegion(areaId: aid.round(), areaName: name.trim(), servers: servers),
+    );
+  }
+  return regions;
+}
+
+/// 解析门派（`fieldKey == jobsId`）。
+List<SxdsJob> _parseJobs(Map data) {
+  final jobs = <SxdsJob>[];
+  for (final o in _optionsOf(data, 'jobsId')) {
+    if (o is! Map) continue;
+    final id = o['specialId'];
+    final name = o['specialName'];
+    if (id is num && name is String && name.trim().isNotEmpty) {
+      jobs.add(SxdsJob(jobsId: id.round(), jobName: name.trim()));
+    }
+  }
+  return jobs;
 }
 
 /// 分页抓取神仙代售宝宝类目在售列表。

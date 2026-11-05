@@ -178,6 +178,7 @@ AccountListing? _mapGood(dynamic item) {
     ]))?.round(),
     areaId: (_pickNum(item, ['areaId', '大区id']))?.round(),
     serverId: (_pickNum(item, ['serverId', '服务器id']))?.round(),
+    jobsId: (_pickNum(item, ['jobsId', '职业id']))?.round(),
     img: _pickImg(item),
   );
 }
@@ -189,7 +190,12 @@ AccountListing? _mapGood(dynamic item) {
 /// [fetchSxdsAccountMarket.pages] 页（默认前 400 条）作为行情快照。
 @immutable
 class AccountMarketQuery {
-  const AccountMarketQuery({this.areaId, this.serverId, this.levelLimit});
+  const AccountMarketQuery({
+    this.areaId,
+    this.serverId,
+    this.jobsId,
+    this.levelLimit,
+  });
 
   /// 平台大区 id（如 320 = 怀旧一区）。
   final int? areaId;
@@ -197,10 +203,17 @@ class AccountMarketQuery {
   /// 平台服务器 id（可逗号分隔多值字符串传入）。
   final String? serverId;
 
+  /// 平台门派（角色职业）id（如 332 = 天山）。
+  final int? jobsId;
+
   /// 平台等级段参数（`min-max`，如 '60-70'）；null=全部。
   final String? levelLimit;
 
-  bool get isEmpty => areaId == null && serverId == null && levelLimit == null;
+  bool get isEmpty =>
+      areaId == null &&
+      serverId == null &&
+      jobsId == null &&
+      levelLimit == null;
 }
 
 /// 分页抓取神仙代售账号类目在售列表。
@@ -243,6 +256,7 @@ Future<AccountMarketFetchResult> fetchSxdsAccountMarket({
       if (query.serverId != null && query.serverId!.isNotEmpty) {
         params['serverId'] = query.serverId;
       }
+      if (query.jobsId != null) params['jobsId'] = query.jobsId;
       if (query.levelLimit != null && query.levelLimit!.isNotEmpty) {
         params['roleLevelLimit'] = query.levelLimit;
       }

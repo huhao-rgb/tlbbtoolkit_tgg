@@ -21,8 +21,25 @@ Future<AccountMarketFetchResult> _defaultFetch() async =>
       parsed: kAccountMarketData,
     );
 
-/// 默认 mock：从快照数据推导区服目录。
-Future<List<SxdsRegion>> _defaultRegions() async {
+/// 平台门派目录（与线上 gamefilter 一致）。
+const List<SxdsJob> kTestJobs = [
+  SxdsJob(jobsId: 331, jobName: '峨嵋'),
+  SxdsJob(jobsId: 332, jobName: '天山'),
+  SxdsJob(jobsId: 333, jobName: '逍遥'),
+  SxdsJob(jobsId: 334, jobName: '明教'),
+  SxdsJob(jobsId: 335, jobName: '丐帮'),
+  SxdsJob(jobsId: 336, jobName: '武当'),
+  SxdsJob(jobsId: 337, jobName: '少林'),
+  SxdsJob(jobsId: 338, jobName: '星宿'),
+  SxdsJob(jobsId: 339, jobName: '天龙'),
+  SxdsJob(jobsId: 1310, jobName: '曼陀山庄'),
+  SxdsJob(jobsId: 2169, jobName: '恶人谷'),
+  SxdsJob(jobsId: 2472, jobName: '慕容'),
+  SxdsJob(jobsId: 2520, jobName: '昆仑'),
+];
+
+/// 默认 mock：从快照数据推导区服目录 + 固定门派目录。
+Future<SxdsCatalog> _defaultCatalog() async {
   final areaOrder = <String, List<(int, String)>>{};
   var id = 1000;
   for (final p in kAccountMarketData) {
@@ -32,39 +49,42 @@ Future<List<SxdsRegion>> _defaultRegions() async {
       list.add((++id, p.server));
     }
   }
-  return [
-    for (final e in areaOrder.entries)
-      SxdsRegion(
-        areaId: ++id,
-        areaName: e.key,
-        servers: [
-          for (final (sid, name) in e.value)
-            SxdsServer(serverId: sid, serverName: name),
-        ],
-      ),
-  ];
+  return SxdsCatalog(
+    regions: [
+      for (final e in areaOrder.entries)
+        SxdsRegion(
+          areaId: ++id,
+          areaName: e.key,
+          servers: [
+            for (final (sid, name) in e.value)
+              SxdsServer(serverId: sid, serverName: name),
+          ],
+        ),
+    ],
+    jobs: kTestJobs,
+  );
 }
 
 /// 以完整主题（含 TgColors extension）泵入账号行情页。
 /// [fetch] 可注入模拟抓取函数（为空则用快照 mock，避免真实网络）。
-/// [regions] 可注入模拟区服目录（为空则用快照推导）。
+/// [catalog] 可注入模拟下拉目录（为空则用快照推导）。
 Future<void> pumpPage(
   WidgetTester tester, {
   Size size = const Size(1180, 14000),
   Future<AccountMarketFetchResult> Function()? fetch,
-  Future<List<SxdsRegion>> Function()? regions,
+  Future<SxdsCatalog> Function()? catalog,
 }) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   addTearDown(tester.view.resetPhysicalSize);
   final f = fetch ?? _defaultFetch;
-  final r = regions ?? _defaultRegions;
+  final c = catalog ?? _defaultCatalog;
   final router = GoRouter(
     initialLocation: '/misc/acc-market',
     routes: [
       GoRoute(
         path: '/misc/acc-market',
         builder: (_, _) => Scaffold(
-          body: MiscAccountMarketPage(fetchAccounts: f, fetchRegions: r),
+          body: MiscAccountMarketPage(fetchAccounts: f, fetchCatalog: c),
         ),
       ),
       GoRoute(
@@ -132,9 +152,11 @@ void main() {
     // 筛选区
     expect(find.text('大区'), findsOneWidget);
     expect(find.text('服务器'), findsOneWidget);
+    expect(find.text('门派'), findsOneWidget);
     expect(find.text('角色等级'), findsOneWidget);
     expect(find.text('全部大区'), findsWidgets);
     expect(find.text('全部服务器'), findsWidgets);
+    expect(find.text('全部门派'), findsWidgets);
     expect(find.text('全部等级'), findsWidgets);
     expect(find.text('一键获取最新数据'), findsOneWidget);
 
@@ -404,6 +426,23 @@ void main() {
     // 万人大区样本 10 条（快照区服分布）
     final count = kAccountMarketData.where((x) => x.area == '万人大区').length;
     expect(find.text('$count 条'), findsWidgets);
+    expect(find.text('共 $count 条'), findsOneWidget);
+  });
+
+  testWidgets('门派筛选联动：选「少林」后只保留该门派样本', (tester) async {
+    await pumpPage(tester);
+
+    // 门派下拉候选来自平台目录（13 个门派），不是当前数据推导。
+    await tester.tap(find.text('全部门派').first);
+    await tester.pumpAndSettle();
+    expect(find.text('曼陀山庄'), findsWidgets);
+    expect(find.text('恶人谷'), findsWidgets);
+
+    await tester.tap(find.text('少林').last);
+    await tester.pumpAndSettle();
+
+    final count = kAccountMarketData.where((x) => x.job == '少林').length;
+    expect(count, greaterThan(0));
     expect(find.text('共 $count 条'), findsOneWidget);
   });
 

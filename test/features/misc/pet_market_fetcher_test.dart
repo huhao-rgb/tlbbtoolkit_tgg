@@ -382,6 +382,50 @@ void main() {
       expect(findSxdsServerByName(regions, '不存在'), isNull);
       dio.close();
     });
+
+    test('fetchSxdsCatalog：同一次请求同时解析门派（fieldKey==jobsId）', () async {
+      final dio = Dio();
+      dio.httpClientAdapter = _FakeAdapter([
+        jsonEncode({
+          'code': 0,
+          'msg': '成功',
+          'data': {
+            '2': {
+              'fieldKey': 'areaId',
+              'options': [
+                {
+                  'specialId': 1207,
+                  'specialName': '万人大区',
+                  'secondOptions': [
+                    {
+                      'twoSpecialId': 22311,
+                      'twoSpecialName': '紫气东来',
+                      'twospecialValue': '22311,23597,24371,25143',
+                    },
+                  ],
+                },
+              ],
+            },
+            '3': {
+              'fieldKey': 'jobsId',
+              'options': [
+                {'specialId': 331, 'specialName': '峨嵋'},
+                {'specialId': 332, 'specialName': '天山'},
+                {'specialId': 2169, 'specialName': '恶人谷'},
+                {'specialId': 0, 'specialName': '  '}, // 无效项 → 跳过
+              ],
+            },
+          },
+        }),
+      ]);
+
+      final catalog = await fetchSxdsCatalog(dio: dio);
+
+      expect(catalog.regions.single.areaName, '万人大区');
+      expect(catalog.jobs.map((j) => j.jobName), ['峨嵋', '天山', '恶人谷']);
+      expect(catalog.jobs.map((j) => j.jobsId), [331, 332, 2169]);
+      dio.close();
+    });
   });
 }
 

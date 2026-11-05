@@ -68,6 +68,7 @@ class AccountListing {
     this.attr2,
     this.areaId,
     this.serverId,
+    this.jobsId,
     this.img,
   });
 
@@ -89,6 +90,9 @@ class AccountListing {
 
   /// 平台服务器 id（真实接口带，用于按区服重新拉取）。
   final int? serverId;
+
+  /// 平台门派（角色职业）id（真实接口带，用于按门派筛选）。
+  final int? jobsId;
 
   /// 商品图完整 URL（真实接口 thumbnail 加 OSS 域名前缀；无则空）。
   final String? img;
@@ -112,6 +116,7 @@ class AccountListing {
     attr2: (j['attr2'] as num?)?.round(),
     areaId: (j['areaId'] as num?)?.round(),
     serverId: (j['serverId'] as num?)?.round(),
+    jobsId: (j['jobsId'] as num?)?.round(),
     img: j['img'] as String?,
   );
 }
@@ -123,6 +128,7 @@ class AccountMarketFilter {
     this.area = '',
     this.server = '',
     this.serverIds = const {},
+    this.job = '',
     this.band = AccountLevelBand.all,
   });
 
@@ -134,17 +140,22 @@ class AccountMarketFilter {
   /// 只按名称过滤会把它们全丢掉。
   final Set<int> serverIds;
 
+  /// 门派（角色职业）名称，空 = 全部门派。
+  final String job;
+
   final AccountLevelBand band;
 
   AccountMarketFilter copyWith({
     String? area,
     String? server,
     Set<int>? serverIds,
+    String? job,
     AccountLevelBand? band,
   }) => AccountMarketFilter(
     area: area ?? this.area,
     server: server ?? this.server,
     serverIds: serverIds ?? this.serverIds,
+    job: job ?? this.job,
     band: band ?? this.band,
   );
 }

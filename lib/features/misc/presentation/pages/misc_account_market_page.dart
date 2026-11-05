@@ -19,7 +19,13 @@ import 'package:tlbbtoolkit/shared/widgets/tg_scroll_top_button.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_select.dart';
 import 'package:tlbbtoolkit/features/misc/data/account_market_fetcher.dart';
 import 'package:tlbbtoolkit/features/misc/data/pet_market_fetcher.dart'
-    show SxdsRegion, SxdsServer, fetchSxdsRegions, findSxdsServerByName;
+    show
+        SxdsCatalog,
+        SxdsJob,
+        SxdsRegion,
+        SxdsServer,
+        fetchSxdsCatalog,
+        findSxdsServerByName;
 import 'package:tlbbtoolkit/features/misc/domain/account_market.dart';
 import 'package:tlbbtoolkit/features/misc/domain/account_market_stats.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_common.dart';
@@ -28,7 +34,7 @@ import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_detail_widge
 /// 账号行情分析（对应原型 `v-acc-market`）。
 ///
 /// - 数据完全来自神仙代售平台真实接口（`fetchSxdsAccountMarket`），无静态快照；
-/// - 首次进入自动拉取；顶部筛选（大区 / 服务器 / 角色等级）联动统计；
+/// - 首次进入自动拉取；顶部筛选（大区 / 服务器 / 门派 / 角色等级）联动统计；
 /// - 统计卡、价位分布、价位段画像、区服在售分布、性价比推荐、在售明细；
 /// - 「一键获取」可手动重新拉取；Web 端被 CORS 拦截时显示
 ///   「浏览器跨域拦截」提示与空态，桌面/移动端可直连。
@@ -36,14 +42,14 @@ class MiscAccountMarketPage extends StatefulWidget {
   const MiscAccountMarketPage({
     super.key,
     this.fetchAccounts,
-    this.fetchRegions,
+    this.fetchCatalog,
   });
 
   /// 抓取函数（测试注入用）；默认走 `fetchSxdsAccountMarket` 真实接口。
   final Future<AccountMarketFetchResult> Function()? fetchAccounts;
 
-  /// 区服目录抓取（测试注入用）；默认走 `fetchSxdsRegions` 真实接口。
-  final Future<List<SxdsRegion>> Function()? fetchRegions;
+  /// 下拉目录（区服 + 门派）抓取（测试注入用）；默认走 `fetchSxdsCatalog`。
+  final Future<SxdsCatalog> Function()? fetchCatalog;
 
   @override
   State<MiscAccountMarketPage> createState() => _MiscAccountMarketPageState();
@@ -52,6 +58,9 @@ class MiscAccountMarketPage extends StatefulWidget {
 class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
   String _area = '';
   String _server = '';
+
+  /// 门派（角色职业）名称，空 = 全部门派。
+  String _job = '';
   AccountLevelBand _band = AccountLevelBand.all;
 
   /// 明细标题关键字（防抖后生效，见 [_onKw]）。
@@ -61,8 +70,9 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
   // 数据源：初始为空，进入页面后自动从接口拉取。
   List<AccountListing> _items = const [];
 
-  // 区服目录候选（下拉选项来源）：从平台 gamefilter 加载，避免聚焦后缩水。
+  // 下拉目录候选：从平台 gamefilter 加载，避免聚焦后缩水。
   List<SxdsRegion> _regions = const [];
+  List<SxdsJob> _jobs = const [];
 
   // 加载状态：none 隐藏 / loading / ok（绿）/ warn（琥珀）。
   _FetchState _fetch = _FetchState.loading;
@@ -75,26 +85,29 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
     area: _area,
     server: _server,
     serverIds: _server.isEmpty ? const {} : _serverIdSetOf(_server),
+    job: _job,
     band: _band,
   );
 
   @override
   void initState() {
     super.initState();
-    // 首次进入自动拉取真实行情 + 区服目录（目录失败静默，回退数据驱动）。
+    // 首次进入自动拉取真实行情 + 下拉目录（目录失败静默，回退数据驱动）。
     _loadLatest();
-    _loadRegions();
+    _loadCatalog();
   }
 
-  /// 加载平台区服目录作为下拉候选；失败静默（回退到基于数据的选项）。
-  Future<void> _loadRegions() async {
+  /// 加载平台下拉目录（区服 + 门派）；失败静默（回退到基于数据的选项）。
+  Future<void> _loadCatalog() async {
     try {
-      final list = widget.fetchRegions != null
-          ? await widget.fetchRegions!()
-          : await fetchSxdsRegions();
-      if (mounted && list.isNotEmpty) {
-        setState(() => _regions = list);
-      }
+      final catalog = widget.fetchCatalog != null
+          ? await widget.fetchCatalog!()
+          : await fetchSxdsCatalog();
+      if (!mounted) return;
+      setState(() {
+        if (catalog.regions.isNotEmpty) _regions = catalog.regions;
+        if (catalog.jobs.isNotEmpty) _jobs = catalog.jobs;
+      });
     } catch (_) {
       // 静默：未加载到目录时下拉回退到数据驱动选项。
     }
@@ -170,14 +183,27 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
     };
   }
 
+  /// 由门派名称解析平台 `jobsId`（目录优先，数据兜底）。
+  int? _jobsIdOf(String name) {
+    for (final j in _jobs) {
+      if (j.jobName == name) return j.jobsId;
+    }
+    for (final it in _items) {
+      if (it.job == name && it.jobsId != null) return it.jobsId;
+    }
+    return null;
+  }
+
   /// 把当前下拉选择（名称）翻译成平台接口查询条件。
   ///
   /// 区服目录已加载时用目录映射名称→id；否则回退从已抓数据里找同名商品。
-  /// 角色等级直接映射 `roleLevelLimit`。全空时返回 [AccountMarketQuery]。
+  /// 门派映射 `jobsId`，角色等级映射 `roleLevelLimit`。全空时返回
+  /// [AccountMarketQuery]。
   AccountMarketQuery _buildQuery() {
     return AccountMarketQuery(
       areaId: _area.isEmpty ? null : _areaIdOf(_area),
       serverId: _server.isEmpty ? null : _serverIdsOf(_server),
+      jobsId: _job.isEmpty ? null : _jobsIdOf(_job),
       levelLimit: _band == AccountLevelBand.all ? null : _band.limit,
     );
   }
@@ -187,6 +213,7 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
     final parts = <String>[
       if (_area.isNotEmpty) _area,
       if (_server.isNotEmpty) _server,
+      if (_job.isNotEmpty) _job,
       if (_band != AccountLevelBand.all) _band.label,
     ];
     return parts.isEmpty ? '全部大区' : parts.join(' · ');
@@ -194,7 +221,7 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
 
   /// 拉取平台真实行情（首次进入自动 + 「一键获取」手动共用）。
   ///
-  /// - 自动携带当前筛选条件（大区/服务器/角色等级）；
+  /// - 自动携带当前筛选条件（大区/服务器/门派/角色等级）；
   /// - 无筛选（全部）→ 只取前 400 条；有筛选 → 分页拉取该条件下全部数据；
   /// - 成功后**保留**当前筛选（不重置）；
   /// - Web 端 CORS 拦截 / 网络失败 → 琥珀提示，展示空态。
@@ -266,11 +293,13 @@ class _MiscAccountMarketPageState extends State<MiscAccountMarketPage> {
           ),
           _FilterBar(
             regions: _regions,
+            jobs: _jobs,
             data: data,
             filter: _filter,
             fetching: _fetch == _FetchState.loading,
             onArea: _onArea,
             onServer: (v) => setState(() => _server = v),
+            onJob: (v) => setState(() => _job = v),
             onBand: (v) => setState(() => _band = v),
             onFetch: _loadLatest,
           ),
@@ -417,11 +446,13 @@ class _MarketHead extends StatelessWidget {
 class _FilterBar extends StatelessWidget {
   const _FilterBar({
     required this.regions,
+    required this.jobs,
     required this.data,
     required this.filter,
     required this.fetching,
     required this.onArea,
     required this.onServer,
+    required this.onJob,
     required this.onBand,
     required this.onFetch,
   });
@@ -429,11 +460,15 @@ class _FilterBar extends StatelessWidget {
   /// 平台区服目录候选；非空时优先用它生成下拉选项（不随数据缩水）。
   final List<SxdsRegion> regions;
 
+  /// 平台门派目录候选；非空时优先用它生成门派下拉选项。
+  final List<SxdsJob> jobs;
+
   final List<AccountListing> data;
   final AccountMarketFilter filter;
   final bool fetching;
   final ValueChanged<String> onArea;
   final ValueChanged<String> onServer;
+  final ValueChanged<String> onJob;
   final ValueChanged<AccountLevelBand> onBand;
   final VoidCallback onFetch;
 
@@ -455,6 +490,13 @@ class _FilterBar extends StatelessWidget {
     final serverNames = serverPool != null
         ? [for (final s in serverPool) s.serverName]
         : amServersOf(amAreas(data), filter.area);
+    // 门派下拉候选：优先平台目录（全量）；否则回退到当前数据里出现过的门派。
+    final jobNames = jobs.isNotEmpty
+        ? [for (final j in jobs) j.jobName]
+        : {
+            for (final it in data)
+              if (it.job.isNotEmpty) it.job,
+          }.toList();
     return LayoutBuilder(
       builder: (context, w) {
         // 窄屏（移动端）收窄筛选卡左右内边距，提升横向内容容纳；桌面保持 18。
@@ -492,6 +534,14 @@ class _FilterBar extends StatelessWidget {
                   onChanged: onServer,
                 ),
                 TgSelect(
+                  label: '门派',
+                  value: filter.job,
+                  hint: '全部门派',
+                  width: colW,
+                  options: [for (final j in jobNames) (j, j)],
+                  onChanged: onJob,
+                ),
+                TgSelect(
                   label: '角色等级',
                   value: filter.band == AccountLevelBand.all
                       ? ''
@@ -521,7 +571,23 @@ class _FilterBar extends StatelessWidget {
                   ],
                 );
               }
-              // 桌面：三下拉之间保留 12px 间距，获取按钮右对齐。
+              // 桌面：下拉之间保留 12px 间距、获取按钮右对齐；
+              // 容器不够宽（4 个下拉 + 按钮放不下）时改为换行排布，避免溢出。
+              const btnW = 180.0; // 获取按钮 + 与下拉之间的间隙
+              final needW =
+                  selects.length * _kSelectWidth +
+                  gap * (selects.length - 1) +
+                  btnW;
+              if (c.maxWidth < needW) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(spacing: gap, runSpacing: 12, children: selects),
+                    const SizedBox(height: 14),
+                    MiscFetchButton(fetching: fetching, onTap: onFetch),
+                  ],
+                );
+              }
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
