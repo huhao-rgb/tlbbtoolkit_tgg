@@ -1,75 +1,75 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.10.26.e7aceec4",
+  "dataVersion": "2026.11.05.e7aceec4",
   "files": [
     {
       "kind": "job.artifacts",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.1c31c521",
-      "sha256": "1bd98d0f97698d7766c2c94debbc7c8f4ccb4367b71a4f78e7f6b4f07edc64f5",
+      "dataVersion": "2026.11.05.1c31c521",
+      "sha256": "1f943fcb282896242eac8f5b31efc8953c1148b3fe2c17ddce69b2a9ad04fdb9",
       "bytes": 90431
     },
     {
       "kind": "job.point",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.e7aceec4",
-      "sha256": "94ec2d80aca0a23c8852f0a519d24071725c99c1c4cc76e3c970f187cdccc6d2",
+      "dataVersion": "2026.11.05.e7aceec4",
+      "sha256": "c0a9dd6a8a10e27b66af2247a26a2c4c42f611e30b23603c005c815a5234858c",
       "bytes": 13292
     },
     {
       "kind": "job.sect_info",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.d863779e",
-      "sha256": "f51045ab05cc474efcc4f763a715c790632b65327fe0c8c7b2b2f8fdd95a157d",
-      "bytes": 22666
+      "dataVersion": "2026.11.05.80a8fb42",
+      "sha256": "fc7260ca123d654d9c19442c0b0047cb5a5a7162ad72c79fcb9a544265574ca1",
+      "bytes": 22900
     },
     {
       "kind": "job.sects",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.bef43f00",
-      "sha256": "afb04359507d786fbbbcdc6c63673e1a4bb45efdd272f9fd1df81ee8523181b2",
+      "dataVersion": "2026.11.05.bef43f00",
+      "sha256": "b0f636ae03c11b2386d99dc92d686709e16537d39846f3944c8457a819575859",
       "bytes": 1750
     },
     {
       "kind": "job.skills",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.dc53fff2",
-      "sha256": "b789665f1a49a7980c5589f26f516ea33be6b60a244314db0247329d3ef7ac71",
+      "dataVersion": "2026.11.05.dc53fff2",
+      "sha256": "bbfdd4436bc7e35608e5f6cc1d4b3e1ca2ae27be6b1dd6395fe54075f2a46e73",
       "bytes": 92809
     },
     {
       "kind": "job.wudao",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.31bea32c",
-      "sha256": "e7e1962e8a6488ac19203b861a6c1a6c92e8ce98c6317849bec8d8dd52a9e986",
+      "dataVersion": "2026.11.05.31bea32c",
+      "sha256": "910d7ea33e03276bb25dc43663633d5c79a6b82d5c28d162117adf0655d1ae83",
       "bytes": 71509
     },
     {
       "kind": "pet.beast_souls",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.a66aaed8",
-      "sha256": "e33713215b878eb4658b70fda8e9f05a122e356c0d1a71fc40e121255f99b736",
+      "dataVersion": "2026.11.05.a66aaed8",
+      "sha256": "8be1e82b6d819578a2eeb3bcadc6f40b7ce6f0d03dbf83ecbaa20f15d4caa029",
       "bytes": 14638
     },
     {
       "kind": "pet.beast_spirits",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.60a6ff62",
-      "sha256": "6d1281a04318b2a64dbb8df8bff0fd337fe463ffa7acfce69703ec629aaafd7c",
+      "dataVersion": "2026.11.05.60a6ff62",
+      "sha256": "c7721c176e3575bd633054da448a7960f27be8e4fead140a5a8c6448f33c2d5c",
       "bytes": 231031
     },
     {
       "kind": "pet.skills",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.2722f0a7",
-      "sha256": "b20b80628b422c26820eb770bc933f43e54b3ef22fe60a4a22352ff103074648",
+      "dataVersion": "2026.11.05.2722f0a7",
+      "sha256": "41803f78fa4ad823ad56fc3fe84093a56be7973a84942ab08b623eadb2407267",
       "bytes": 7027
     },
     {
       "kind": "pet.suits",
       "schemaVersion": 1,
-      "dataVersion": "2026.10.26.a9920945",
-      "sha256": "1406ae82648e0123e2f59c4fe7cfbc6ecb42d8449cc0aedce8580f7d3f9c79ab",
+      "dataVersion": "2026.11.05.a9920945",
+      "sha256": "e729cb785a2257bfe9aa816869b68955f275cd06facb85ed0efc9e58c1dbef5b",
       "bytes": 8813
     }
   ]
