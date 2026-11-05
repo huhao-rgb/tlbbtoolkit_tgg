@@ -4,11 +4,10 @@
 /// - 每个门派 1~2 个流派（school），每个流派有流派被动（pd：名/效果/图标）；
 /// - 每个流派下分若干「重」（layers，武道一重~四重），同层择一、每重 5 级；
 /// - 每个节点为 [名称, 效果, 图标路径]。
-/// - 慕容 / 曼陀山庄 / 昆仑暂无官网武道数据（页面显示占位提示）。
-///   昆仑已知有「斩妄」（偏副本输出）与「怒啸」（偏怒气积累 / PK）两条线；
-///   2026-11-05 复核到的节点线索（媒体攻略，非官方数值）：
-///   斩妄系「杀生无忍」（虚弱概率）、「混沌剑阵」（伤害）、「凝心」（杀意属性伤害加成）、
-///   「以杀止杀」（叠层增伤）。节点名与数值官方尚未公布，故暂不收录。
+/// - 慕容 / 曼陀山庄暂无官网武道数据（页面显示占位提示）。
+/// - 昆仑「斩妄」流派按游戏内截图（2026-11-05）收录：四重 × 每重 10 个节点，
+///   流派被动「杀意凝锋」；「怒啸」流派暂无截图，未收录。
+///   节点图标官方未公开，故 icon 留空（页面显示占位方块）。
 library;
 
 import 'package:flutter/foundation.dart';
@@ -292,6 +291,20 @@ const Map<String, List<WudaoSchool>> kWudao = {
         WudaoLayer(nodes: [WudaoNode(name: '剜心镰·神威', effect: '剜心镰增加的内功攻击额外增加100%', icon: 'assets/wudao_icons/erengu_s1_l0_n0.webp'), WudaoNode(name: '世难由己', effect: '摧魂定魄的定身效果增加1秒', icon: 'assets/wudao_icons/erengu_s1_l0_n1.webp'), WudaoNode(name: '飞魂九霄', effect: '拘魂·天增加的直接攻击额外增加500点', icon: 'assets/wudao_icons/erengu_s1_l0_n2.webp'), WudaoNode(name: '动骨伤筋', effect: '剔魂削骨触发虚弱效果时，同时降低目标2000点命中', icon: 'assets/wudao_icons/erengu_s1_l0_n3.webp'), WudaoNode(name: '魂牵梦绊', effect: '摧魂定魄的冷却时间降低10秒', icon: 'assets/wudao_icons/erengu_s1_l0_n4.webp'), WudaoNode(name: '惊心怵目', effect: '剜心镰对目标造成会心一击时，有35%概率减少炉上青烟2秒冷却', icon: 'assets/wudao_icons/erengu_s1_l0_n5.webp'), WudaoNode(name: '镰风摄魄', effect: '剜心镰命中目标时有10%概率减少摧魂定魄2秒冷却', icon: 'assets/wudao_icons/erengu_s1_l0_n6.webp'), WudaoNode(name: '因果有终', effect: '百倍奉还对目标造成会心一击伤害时，此次最终伤害额外提高15%', icon: 'assets/wudao_icons/erengu_s1_l0_n7.webp'), WudaoNode(name: '一网打尽', effect: '百倍奉还击败目标时，立即清除拘魂·天、拘魂·地、拘魂·命和百倍奉还100%的冷却时间', icon: 'assets/wudao_icons/erengu_s1_l0_n8.webp'), WudaoNode(name: '斩草除根', effect: '魂离魄散每成功击败一个目标，则减少魂离魄散3秒的冷却时间', icon: 'assets/wudao_icons/erengu_s1_l0_n9.webp')]),
         WudaoLayer(nodes: [WudaoNode(name: '剜心镰·滞脉', effect: '剜心镰攻击目标时，有20%概率无视目标30%的内功防御', icon: 'assets/wudao_icons/erengu_s1_l1_n0.webp'), WudaoNode(name: '固若金汤', effect: '受到玩家的内外功伤害降低5%', icon: 'assets/wudao_icons/erengu_s1_l1_n1.webp'), WudaoNode(name: '雨锁危楼', effect: '拘魂·天会心一击后有40%概率使目标封印1.5秒', icon: 'assets/wudao_icons/erengu_s1_l1_n2.webp'), WudaoNode(name: '挥镰断魂', effect: '拘魂·地的会心一击伤害增加35%', icon: 'assets/wudao_icons/erengu_s1_l1_n3.webp'), WudaoNode(name: '夜半蛇影', effect: '炉上青烟额外增加750的毒攻击', icon: 'assets/wudao_icons/erengu_s1_l1_n4.webp'), WudaoNode(name: '噩梦缠身', effect: '剜心镰对目标造成会心一击时，有20%概率使目标减速45%，持续3秒', icon: 'assets/wudao_icons/erengu_s1_l1_n5.webp'), WudaoNode(name: '天命所归', effect: '拘魂·命对玩家目标造成会心一击时100%概率立即回复自身血上限3%的血量', icon: 'assets/wudao_icons/erengu_s1_l1_n6.webp'), WudaoNode(name: '唯我自在', effect: '主动技，使自身会心一击伤害提高20%，持续8秒。冷却时间150秒', icon: 'assets/wudao_icons/erengu_s1_l1_n7.webp'), WudaoNode(name: '凝光照雪', effect: '主动技，使自身会心提高10%，持续8秒。冷却时间150秒', icon: 'assets/wudao_icons/erengu_s1_l1_n8.webp'), WudaoNode(name: '气定神闲', effect: '主动技，自身获得1个持续5秒的状态，状态持续期间内有30%概率免疫伤害，最多免疫2次伤害，冷却时间130秒', icon: 'assets/wudao_icons/erengu_s1_l1_n9.webp')]),
         WudaoLayer(nodes: [WudaoNode(name: '有仇必报', effect: '百倍奉还的会心一击率增加3%', icon: 'assets/wudao_icons/erengu_s1_l2_n0.webp'), WudaoNode(name: '长镰葬魂', effect: '魂离魄散的会心一击率增加3%', icon: 'assets/wudao_icons/erengu_s1_l2_n1.webp'), WudaoNode(name: '魂不附体', effect: '拘魂·天的命中率提高5%', icon: 'assets/wudao_icons/erengu_s1_l2_n2.webp'), WudaoNode(name: '清浊怎辨', effect: '炉上青烟触发失明的概率提高5%', icon: 'assets/wudao_icons/erengu_s1_l2_n3.webp'), WudaoNode(name: '镰引忘川', effect: '判指阴阳的会心一击率增加3%', icon: 'assets/wudao_icons/erengu_s1_l2_n4.webp'), WudaoNode(name: '旧怨新仇', effect: '百倍奉还命中目标有30%概率减少锁魂斩2秒的冷却时间', icon: 'assets/wudao_icons/erengu_s1_l2_n5.webp'), WudaoNode(name: '残雪将融', effect: '无我三界的冷却时间减少10秒', icon: 'assets/wudao_icons/erengu_s1_l2_n6.webp'), WudaoNode(name: '嗔恨俱消', effect: '天地不仁的打怒效果额外增加100点', icon: 'assets/wudao_icons/erengu_s1_l2_n7.webp'), WudaoNode(name: '前缘再续', effect: '生死由我的持续时间增加2秒', icon: 'assets/wudao_icons/erengu_s1_l2_n8.webp'), WudaoNode(name: '斩尽杀绝', effect: '百倍奉还对血量低于20%的目标造成的伤害额外再次提高15%', icon: 'assets/wudao_icons/erengu_s1_l2_n9.webp')]),
+      ],
+    ),
+  ],
+  // 昆仑「斩妄」：数据来自 2026-11-05 游戏内武道界面截图（用户提供），
+  // 四重各 10 个节点；「怒啸」流派未获截图，暂缺。
+  'kunlun': [
+    WudaoSchool(
+      name: '斩妄',
+      passive: WudaoPassive(name: '杀意凝锋', desc: '杀意·一阶至杀意·四阶期间造成的属性攻伤害增加25%。对怪物造成伤害时，修改为增加20%。'),
+      layers: [
+        WudaoLayer(nodes: [WudaoNode(name: '无情剑·神威', effect: '无情剑增加的内功攻击额外增加100%'), WudaoNode(name: '孤玄剑意', effect: '昆仑剑气增加的玄攻击额外增加20%'), WudaoNode(name: '杀生一念', effect: '杀生无忍造成虚弱的概率增加10%'), WudaoNode(name: '剑指山河', effect: '昆仑剑气造成的伤害提高15%'), WudaoNode(name: '快意红尘', effect: '剑渡红尘·止的冷却时间降低5秒'), WudaoNode(name: '剑意孤鸣', effect: '混沌剑阵如果只命中一个目标，则激活混沌剑阵·执的概率提高5%'), WudaoNode(name: '剑阵断月', effect: '混沌剑阵造成的伤害提高10%'), WudaoNode(name: '山高目远', effect: '自身受到千峰誓效果时，额外使会心增加5%'), WudaoNode(name: '静心藏锋', effect: '宁心状态下，杀意·一阶至四阶增加的属性伤害额外增加5%'), WudaoNode(name: '宁心止戈', effect: '宁心状态下，杀意·一阶至四阶时受到的伤害减少7.5%')]),
+        WudaoLayer(nodes: [WudaoNode(name: '无情剑·滞脉', effect: '无情剑攻击目标时，有20%概率无视目标30%的内功防御'), WudaoNode(name: '无情剑·攻心', effect: '无情剑对目标造成的内功攻击伤害增加5%'), WudaoNode(name: '阴阳化玄', effect: '阴阳为敕增加的玄攻击额外增加400点'), WudaoNode(name: '心浊气衰', effect: '举世皆浊命中非玩家目标时，使其内外功攻击降低10%，持续10秒'), WudaoNode(name: '疏影凝锋', effect: '混沌剑阵·执若打中3个以下时，会心率额外增加10%，否则降低5%'), WudaoNode(name: '杀心砺刃', effect: '使用杀意涌现或杀意觉醒后，使自身获得一个5秒的状态：下一个释放的无情剑造成的伤害提高30%'), WudaoNode(name: '怒涌寒峰', effect: '寒山倾每命中一个目标，获得10点怒气'), WudaoNode(name: '唯我自在', effect: '获得技能：唯我自在，使自身会心一击伤害提高20%，持续8秒，冷却时间150秒'), WudaoNode(name: '凝光照雪', effect: '获得技能：凝光照雪，使自身会心提高10%，持续8秒，冷却时间150秒'), WudaoNode(name: '气定神闲', effect: '获得技能：气定神闲，自身获得1个持续5秒的状态，状态持续期间内有30%概率免疫伤害，最多免疫2次伤害，冷却时间130秒')]),
+        WudaoLayer(nodes: [WudaoNode(name: '肃杀四方', effect: '剑渡红尘·止的攻击目标数量有100%概率增加2个'), WudaoNode(name: '此身淹留', effect: '剑渡红尘造成的定身时间增加1秒'), WudaoNode(name: '物华休', effect: '杀生无忍的虚弱有50%概率额外降低5%会心防御'), WudaoNode(name: '战意磨锋', effect: '混沌剑阵·执在杀意·四阶及以上时，触发混沌剑阵·极的概率提升10%'), WudaoNode(name: '病骨支离', effect: '杀生无忍的虚弱持续时间增加2.5秒'), WudaoNode(name: '剑挑千钧', effect: '混沌剑阵·极造成的伤害提高10%'), WudaoNode(name: '杀伐果断', effect: '混沌剑阵及其变化技能每击杀1个目标，减少混沌剑阵5秒的冷却时间。击杀怪物时减少的时间减少一半'), WudaoNode(name: '刃心无忍', effect: '对怪物造成伤害时，获得的怒气增加15%'), WudaoNode(name: '潮信急', effect: '怒海扬波获得怒气减少50点，冷却时间减少30秒'), WudaoNode(name: '怒海浮沉', effect: '使用怒海扬波后，使自身获得怒气的效率增加30%，持续10秒（小提示：引怒凌渡的回复效果不受影响）')]),
+        WudaoLayer(nodes: [WudaoNode(name: '刃照雷影', effect: '剑渡红尘的定身效果有10%概率变为麻痹'), WudaoNode(name: '刃无心', effect: '剑渡红尘及其变化技能的会心一击率增加5%'), WudaoNode(name: '杀心长存', effect: '使用杀意涌现及其变化技能获得的免疫打怒效果增加3秒'), WudaoNode(name: '斩落月', effect: '以杀止杀的会心一击率增加5%'), WudaoNode(name: '阴阳缚影', effect: '阴阳为敕的封印概率增加10%'), WudaoNode(name: '怒极山倾', effect: '杀意·三阶及以上时，寒山倾的会心一击率增加10%'), WudaoNode(name: '追影逐光', effect: '杀意·一阶及以上时，无情剑的命中率增加5%'), WudaoNode(name: '愤意不平', effect: '以杀止杀消耗的怒气减少10点'), WudaoNode(name: '血涌云天', effect: '在同一杀意阶段，每释放1次以杀止杀，增加其5%的伤害，最多增加4次'), WudaoNode(name: '战心长啸', effect: '以杀止杀击杀目标后，恢复25点怒气')]),
       ],
     ),
   ],

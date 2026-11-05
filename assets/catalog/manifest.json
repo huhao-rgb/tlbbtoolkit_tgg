@@ -40,9 +40,9 @@
     {
       "kind": "job.wudao",
       "schemaVersion": 1,
-      "dataVersion": "2026.11.05.31bea32c",
-      "sha256": "910d7ea33e03276bb25dc43663633d5c79a6b82d5c28d162117adf0655d1ae83",
-      "bytes": 71509
+      "dataVersion": "2026.11.05.6dca20eb",
+      "sha256": "06e443a487b54ab46a9323205a0bb82f2d39c5658ee96ed3cc9b815a4c75d077",
+      "bytes": 80483
     },
     {
       "kind": "pet.beast_souls",
