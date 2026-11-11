@@ -40,6 +40,13 @@ jobs:
       - name: 拉取依赖（锁定版本）
         run: flutter pub get --enforce-lockfile
 
+      - name: 拉取安装器依赖（嵌套工程）
+        # installer/ 是带独立 pubspec.yaml 的工程，但根目录跑 flutter analyze 时
+        # 会连它一起分析。缺 .dart_tool 时 package:tiangongge_installer/... 全部
+        # 解析失败，一次性报出几百条 undefined_* 假错误（看起来像代码写错了）。
+        working-directory: installer
+        run: flutter pub get --enforce-lockfile
+
       - name: 重新生成代码
         # --delete-conflicting-outputs：provider / 路由改名或删除时旧产物会冲突，
         # 带上它 CI 才能自愈重生成，而不是抛 "conflicting outputs" 误导排查。

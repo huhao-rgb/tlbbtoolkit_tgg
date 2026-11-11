@@ -99,6 +99,7 @@ presentation ──► domain ◄── data
 | **`PopupMenuButton` 无界宽** | 作非弹性 `Row` 子项时会收到无界宽度，其 child `Row` 内不能再放 `Expanded` → 下拉容器须设 `maxWidth`；标题列用 `Expanded` 换行。 |
 | **紧凑断点 560** | 大量表格在 `< 560` 宽度隐藏次要列（如 灵/悟、区服），改表格时注意保持无溢出。 |
 | **清理 `build` / `.dart_tool` 后** | 必须重新 `fvm flutter pub get`。 |
+| **根目录 `flutter analyze` 会连 `installer/` 一起分析** | installer 是独立工程（自己的 `pubspec.yaml` / `analysis_options.yaml`），根目录分析时按嵌套上下文一起跑。没跑过它的 `pub get`（新克隆 / CI）时 `package:tiangongge_installer/...` 全部解析失败，一次报几百条 `undefined_*` 假错误，**不是代码写错了**。对策：`cd installer && fvm flutter pub get`，CI 已固化为独立步骤。 |
 | **`.fvmrc` 是 YAML 陷阱** | FVM 4.x 只读 `fvm_config.json`（JSON）。`.fvmrc` 若存在会被当 JSON 解析导致 `FormatException`。 |
 | **数据表靠 `dart format off` 保命** | `job_skill` / `job_wudao` / `job_artifact` / `job_sect_info` 四个 domain 文件的人工紧凑数据表（一行一个门派 / 一条记录，最长单行 3000+ 字符）由 `// dart format off` … `// dart format on` 豁免。**不要删这两行注释**，否则一跑格式化会被展开成上千行（实测 1024 行 → 5418 行）。 |
 | **`assets/fonts/*.ttf` 是子集** | 4 个 Noto 字体按「源码用字 ∪ GB2312」裁剪过（全量 5 个文件 48.6 MB → 打包 4 个子集 9.0 MB）。全量原始字体在 `tools/fonts/`（**不参与打包**，不要挪回 `assets/`）。改了中文文案且用字超出 GB2312 时跑 `pip install fonttools && python3 scripts/subset_fonts.py`，`--check` 可校验覆盖；未覆盖的字会走系统字体回退（字形风格会略有出入）。 |
