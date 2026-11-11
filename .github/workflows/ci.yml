@@ -41,13 +41,28 @@ jobs:
         run: flutter pub get --enforce-lockfile
 
       - name: 重新生成代码
-        run: dart run build_runner build
+        # --delete-conflicting-outputs：provider / 路由改名或删除时旧产物会冲突，
+        # 带上它 CI 才能自愈重生成，而不是抛 "conflicting outputs" 误导排查。
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: 校验生成物已入库
         # 改了实体 / provider / 路由 / 资源却没重跑 build_runner 时，这里会失败。
+        #
+        # 用 git status 而不是 git diff：新增 provider / 路由时会生成**新的**
+        # ‹名称›.g.dart，git diff 只看已跟踪文件，看不到未 add 的新生成文件。
+        # 同时把实际差异打出来，省得去翻日志猜是哪个文件哪一行。
         run: |
-          if ! git diff --exit-code --stat; then
+          if [ -n "$(git status --porcelain)" ]; then
             echo "::error::生成物与源码不一致，请在本地运行 fvm dart run build_runner build 后一并提交"
+            {
+              echo '## 生成物与源码不一致'
+              echo '```'
+              echo "==== 变更文件 ===="
+              git status --porcelain
+              echo "==== 具体差异（最多 300 行）===="
+              git diff | head -300
+              echo '```'
+            } | tee -a "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 

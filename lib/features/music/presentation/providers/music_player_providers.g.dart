@@ -78,7 +78,7 @@ final class MusicPlayerControllerProvider
 }
 
 String _$musicPlayerControllerHash() =>
-    r'5fe0b059b5e5d60f8951acddf5dd2837b99ea86d';
+    r'e7d133c59509dced7c033d700cf28b4487cac1e7';
 
 /// 怀旧音律播放器状态（对应原型 `bgmState` + `BGM_TRACKS` 相关逻辑）。
 ///
