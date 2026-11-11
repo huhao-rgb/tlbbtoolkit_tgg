@@ -23,6 +23,7 @@
 | 代码生成（一次性） | `fvm dart run build_runner build` |
 | 代码生成（监听，推荐边改边生成） | `fvm dart run build_runner watch` |
 | 静态检查 | `fvm flutter analyze` |
+| 架构边界检查（feature 隔离 / 反向依赖） | `python3 scripts/check_feature_boundaries.py` |
 | 格式检查（不改文件，不适则非 0 退出） | `fvm dart format --output=none --set-exit-if-changed lib test` |
 | 格式化写回 | `fvm dart format lib test` |
 | 全量测试 | `fvm flutter test` |

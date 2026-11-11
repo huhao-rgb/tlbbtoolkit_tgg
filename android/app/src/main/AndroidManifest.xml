@@ -1,10 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 访问神仙代售平台等外部接口所需（release 亦需要） -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 本地数据含用户导入的账号名单（卡回归）与音乐列表，不进云备份 /
+         换机迁移：Android 11- 用 allowBackup + fullBackupContent，
+         Android 12+ 用 dataExtractionRules（两者互补，不能只留其一）。 -->
     <application
         android:label="天工阁"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <!-- 全屏启动图页：Launcher 入口，windowBackground 原生渲染整幅 splash 图，
              展示固定时长后无动画切到 MainActivity（Flutter 主界面） -->
         <activity

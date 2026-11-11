@@ -2212,6 +2212,334 @@ class $AssetsWudaoIconsGen {
   AssetGenImage get gaibangS1Pd =>
       const AssetGenImage('assets/wudao_icons/gaibang_s1_pd.webp');
 
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n0.webp
+  AssetGenImage get kunlunS0L0N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n1.webp
+  AssetGenImage get kunlunS0L0N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n2.webp
+  AssetGenImage get kunlunS0L0N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n3.webp
+  AssetGenImage get kunlunS0L0N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n4.webp
+  AssetGenImage get kunlunS0L0N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n5.webp
+  AssetGenImage get kunlunS0L0N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n6.webp
+  AssetGenImage get kunlunS0L0N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n7.webp
+  AssetGenImage get kunlunS0L0N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n8.webp
+  AssetGenImage get kunlunS0L0N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l0_n9.webp
+  AssetGenImage get kunlunS0L0N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l0_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n0.webp
+  AssetGenImage get kunlunS0L1N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n1.webp
+  AssetGenImage get kunlunS0L1N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n2.webp
+  AssetGenImage get kunlunS0L1N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n3.webp
+  AssetGenImage get kunlunS0L1N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n4.webp
+  AssetGenImage get kunlunS0L1N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n5.webp
+  AssetGenImage get kunlunS0L1N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n6.webp
+  AssetGenImage get kunlunS0L1N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n7.webp
+  AssetGenImage get kunlunS0L1N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n8.webp
+  AssetGenImage get kunlunS0L1N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l1_n9.webp
+  AssetGenImage get kunlunS0L1N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l1_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n0.webp
+  AssetGenImage get kunlunS0L2N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n1.webp
+  AssetGenImage get kunlunS0L2N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n2.webp
+  AssetGenImage get kunlunS0L2N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n3.webp
+  AssetGenImage get kunlunS0L2N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n4.webp
+  AssetGenImage get kunlunS0L2N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n5.webp
+  AssetGenImage get kunlunS0L2N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n6.webp
+  AssetGenImage get kunlunS0L2N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n7.webp
+  AssetGenImage get kunlunS0L2N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n8.webp
+  AssetGenImage get kunlunS0L2N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l2_n9.webp
+  AssetGenImage get kunlunS0L2N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l2_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n0.webp
+  AssetGenImage get kunlunS0L3N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n1.webp
+  AssetGenImage get kunlunS0L3N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n2.webp
+  AssetGenImage get kunlunS0L3N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n3.webp
+  AssetGenImage get kunlunS0L3N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n4.webp
+  AssetGenImage get kunlunS0L3N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n5.webp
+  AssetGenImage get kunlunS0L3N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n6.webp
+  AssetGenImage get kunlunS0L3N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n7.webp
+  AssetGenImage get kunlunS0L3N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n8.webp
+  AssetGenImage get kunlunS0L3N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_l3_n9.webp
+  AssetGenImage get kunlunS0L3N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_l3_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s0_pd.webp
+  AssetGenImage get kunlunS0Pd =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s0_pd.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n0.webp
+  AssetGenImage get kunlunS1L0N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n1.webp
+  AssetGenImage get kunlunS1L0N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n2.webp
+  AssetGenImage get kunlunS1L0N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n3.webp
+  AssetGenImage get kunlunS1L0N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n4.webp
+  AssetGenImage get kunlunS1L0N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n5.webp
+  AssetGenImage get kunlunS1L0N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n6.webp
+  AssetGenImage get kunlunS1L0N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n7.webp
+  AssetGenImage get kunlunS1L0N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n8.webp
+  AssetGenImage get kunlunS1L0N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l0_n9.webp
+  AssetGenImage get kunlunS1L0N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l0_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n0.webp
+  AssetGenImage get kunlunS1L1N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n1.webp
+  AssetGenImage get kunlunS1L1N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n2.webp
+  AssetGenImage get kunlunS1L1N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n3.webp
+  AssetGenImage get kunlunS1L1N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n4.webp
+  AssetGenImage get kunlunS1L1N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n5.webp
+  AssetGenImage get kunlunS1L1N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n6.webp
+  AssetGenImage get kunlunS1L1N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n7.webp
+  AssetGenImage get kunlunS1L1N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n8.webp
+  AssetGenImage get kunlunS1L1N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l1_n9.webp
+  AssetGenImage get kunlunS1L1N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l1_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n0.webp
+  AssetGenImage get kunlunS1L2N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n1.webp
+  AssetGenImage get kunlunS1L2N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n2.webp
+  AssetGenImage get kunlunS1L2N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n3.webp
+  AssetGenImage get kunlunS1L2N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n4.webp
+  AssetGenImage get kunlunS1L2N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n5.webp
+  AssetGenImage get kunlunS1L2N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n6.webp
+  AssetGenImage get kunlunS1L2N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n7.webp
+  AssetGenImage get kunlunS1L2N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n8.webp
+  AssetGenImage get kunlunS1L2N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l2_n9.webp
+  AssetGenImage get kunlunS1L2N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l2_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n0.webp
+  AssetGenImage get kunlunS1L3N0 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n0.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n1.webp
+  AssetGenImage get kunlunS1L3N1 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n1.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n2.webp
+  AssetGenImage get kunlunS1L3N2 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n2.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n3.webp
+  AssetGenImage get kunlunS1L3N3 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n3.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n4.webp
+  AssetGenImage get kunlunS1L3N4 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n4.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n5.webp
+  AssetGenImage get kunlunS1L3N5 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n5.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n6.webp
+  AssetGenImage get kunlunS1L3N6 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n6.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n7.webp
+  AssetGenImage get kunlunS1L3N7 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n7.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n8.webp
+  AssetGenImage get kunlunS1L3N8 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n8.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_l3_n9.webp
+  AssetGenImage get kunlunS1L3N9 =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_l3_n9.webp');
+
+  /// File path: assets/wudao_icons/kunlun_s1_pd.webp
+  AssetGenImage get kunlunS1Pd =>
+      const AssetGenImage('assets/wudao_icons/kunlun_s1_pd.webp');
+
   /// File path: assets/wudao_icons/mingjiao_s0_l0_n0.webp
   AssetGenImage get mingjiaoS0L0N0 =>
       const AssetGenImage('assets/wudao_icons/mingjiao_s0_l0_n0.webp');
@@ -2936,6 +3264,88 @@ class $AssetsWudaoIconsGen {
     gaibangS1L3N1,
     gaibangS1L3N2,
     gaibangS1Pd,
+    kunlunS0L0N0,
+    kunlunS0L0N1,
+    kunlunS0L0N2,
+    kunlunS0L0N3,
+    kunlunS0L0N4,
+    kunlunS0L0N5,
+    kunlunS0L0N6,
+    kunlunS0L0N7,
+    kunlunS0L0N8,
+    kunlunS0L0N9,
+    kunlunS0L1N0,
+    kunlunS0L1N1,
+    kunlunS0L1N2,
+    kunlunS0L1N3,
+    kunlunS0L1N4,
+    kunlunS0L1N5,
+    kunlunS0L1N6,
+    kunlunS0L1N7,
+    kunlunS0L1N8,
+    kunlunS0L1N9,
+    kunlunS0L2N0,
+    kunlunS0L2N1,
+    kunlunS0L2N2,
+    kunlunS0L2N3,
+    kunlunS0L2N4,
+    kunlunS0L2N5,
+    kunlunS0L2N6,
+    kunlunS0L2N7,
+    kunlunS0L2N8,
+    kunlunS0L2N9,
+    kunlunS0L3N0,
+    kunlunS0L3N1,
+    kunlunS0L3N2,
+    kunlunS0L3N3,
+    kunlunS0L3N4,
+    kunlunS0L3N5,
+    kunlunS0L3N6,
+    kunlunS0L3N7,
+    kunlunS0L3N8,
+    kunlunS0L3N9,
+    kunlunS0Pd,
+    kunlunS1L0N0,
+    kunlunS1L0N1,
+    kunlunS1L0N2,
+    kunlunS1L0N3,
+    kunlunS1L0N4,
+    kunlunS1L0N5,
+    kunlunS1L0N6,
+    kunlunS1L0N7,
+    kunlunS1L0N8,
+    kunlunS1L0N9,
+    kunlunS1L1N0,
+    kunlunS1L1N1,
+    kunlunS1L1N2,
+    kunlunS1L1N3,
+    kunlunS1L1N4,
+    kunlunS1L1N5,
+    kunlunS1L1N6,
+    kunlunS1L1N7,
+    kunlunS1L1N8,
+    kunlunS1L1N9,
+    kunlunS1L2N0,
+    kunlunS1L2N1,
+    kunlunS1L2N2,
+    kunlunS1L2N3,
+    kunlunS1L2N4,
+    kunlunS1L2N5,
+    kunlunS1L2N6,
+    kunlunS1L2N7,
+    kunlunS1L2N8,
+    kunlunS1L2N9,
+    kunlunS1L3N0,
+    kunlunS1L3N1,
+    kunlunS1L3N2,
+    kunlunS1L3N3,
+    kunlunS1L3N4,
+    kunlunS1L3N5,
+    kunlunS1L3N6,
+    kunlunS1L3N7,
+    kunlunS1L3N8,
+    kunlunS1L3N9,
+    kunlunS1Pd,
     mingjiaoS0L0N0,
     mingjiaoS0L0N1,
     mingjiaoS0L1N0,

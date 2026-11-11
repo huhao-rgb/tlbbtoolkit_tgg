@@ -114,4 +114,41 @@ void main() {
       expect(await broken.remove('${library.path}/a.mp3'), isFalse);
     });
   });
+
+  group('repair：找回沙盒容器路径变化后的副本', () {
+    test('路径仍有效时原样返回', () async {
+      final imported = await store.import(makeSource('a.mp3').path);
+
+      expect(await store.repair(imported), imported);
+    });
+
+    test('旧容器路径失效时，按文件名在新目录找回', () async {
+      final imported = await store.import(makeSource('a.mp3').path);
+      // 模拟 iOS 更新后容器 UUID 变化：旧绝对路径不再存在。
+      final stale =
+          '/var/mobile/Containers/Data/Application/OLD-UUID/'
+          'Library/Application Support/music/a.mp3';
+
+      final repaired = await store.repair(stale);
+
+      expect(repaired, imported);
+      expect(File(repaired).existsSync(), isTrue);
+    });
+
+    test('新目录里也没有同名文件时回退原路径（交给 unavailable 兜底）', () async {
+      const stale =
+          '/var/mobile/Containers/Data/Application/OLD-UUID/'
+          'Library/Application Support/music/gone.mp3';
+
+      expect(await store.repair(stale), stale);
+    });
+
+    test('目录解析失败不抛异常，回退原路径', () async {
+      final broken = LocalMusicFileStore(
+        directory: () async => throw const FileSystemException('no permission'),
+      );
+
+      expect(await broken.repair('/old/a.mp3'), '/old/a.mp3');
+    });
+  });
 }

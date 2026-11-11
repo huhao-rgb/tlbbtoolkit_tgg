@@ -25,12 +25,18 @@ class LocalStorage {
 
   Future<void> setInt(String key, int value) => _prefs.setInt(key, value);
 
-  /// 读取 JSON 对象，损坏或缺失时返回 null。
+  /// 读取 JSON 对象，损坏、不是对象或缺失时返回 null。
+  ///
+  /// 注意：`jsonDecode` 对 `[]` / `"x"` / `123` 这类**合法非对象 JSON**
+  /// 不会抛 [FormatException]，若直接 `as Map` 会抛出 `TypeError` 并击穿
+  /// 调用方（设置页在根组件 build 时读取，会直接白屏）。因此先判类型。
   Map<String, dynamic>? getJson(String key) {
     final raw = _prefs.getString(key);
     if (raw == null) return null;
     try {
-      return jsonDecode(raw) as Map<String, dynamic>;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return null;
+      return decoded;
     } on FormatException {
       return null;
     }

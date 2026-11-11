@@ -1,0 +1,64 @@
+name: CI
+
+# 每次 PR / 合入 main 都跑一遍质量门禁：
+# 依赖锁定、生成物与源码一致、格式、静态检查、测试、架构边界。
+# 发布流水线（release.yml 等）只在打 tag 时构建，不能替代这里。
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: 静态检查与测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # 必须与 pubspec.lock 中记录的 source 一致，否则 pub 会判定 lock 失效
+      # 并整体重新解析依赖（v1.1.2 黑屏事故的起因）。
+      PUB_HOSTED_URL: https://pub.dev
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          cache: true
+
+      - name: 拉取依赖（锁定版本）
+        run: flutter pub get --enforce-lockfile
+
+      - name: 重新生成代码
+        run: dart run build_runner build
+
+      - name: 校验生成物已入库
+        # 改了实体 / provider / 路由 / 资源却没重跑 build_runner 时，这里会失败。
+        run: |
+          if ! git diff --exit-code --stat; then
+            echo "::error::生成物与源码不一致，请在本地运行 fvm dart run build_runner build 后一并提交"
+            exit 1
+          fi
+
+      - name: 格式检查
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: 静态检查
+        run: flutter analyze
+
+      - name: 架构边界检查
+        run: python3 scripts/check_feature_boundaries.py
+
+      - name: 单元 / Widget 测试
+        run: flutter test

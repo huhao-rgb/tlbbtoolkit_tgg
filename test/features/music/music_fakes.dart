@@ -134,6 +134,9 @@ class FakeMusicFileStore implements MusicFileStore {
   final List<String> imported = <String>[];
   final List<String> removed = <String>[];
 
+  /// 预置「失效旧路径 → 新路径」映射，供 repair 用例使用。
+  final Map<String, String> repaired = <String, String>{};
+
   /// 置 true 时模拟复制失败（回退原路径）。
   bool failImport = false;
 
@@ -151,4 +154,7 @@ class FakeMusicFileStore implements MusicFileStore {
     // 真实的 MusicFileStore 只删应用目录内的副本，外部路径返回 false。
     return path.startsWith('/app/music/');
   }
+
+  @override
+  Future<String> repair(String path) async => repaired[path] ?? path;
 }

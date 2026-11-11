@@ -1,45 +1,18 @@
 import 'package:dio/dio.dart';
 
-import 'package:tlbbtoolkit/core/constants/app_constants.dart';
 import 'package:tlbbtoolkit/core/network/api_exception.dart';
 
 /// [Dio] 实例工厂与统一配置。
 ///
-/// 只负责创建配置完整的 [Dio] 实例，实例本身通过
-/// `core/di/providers.dart` 中的 [dioProvider] 提供给各 feature。
+/// 只负责按用途创建配置好的 [Dio] 实例；实例由使用方（各 feature 的
+/// data 层 / 云同步 / 数据目录）自己持有并负责关闭，**不再提供全局共享实例**
+/// ——全局 autoDispose 客户端曾导致进行中的请求被 `close()` 打断。
 class ApiClient {
   const ApiClient._();
 
-  /// 创建配置完成的 [Dio] 实例。
-  static Dio createDio() {
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: AppConstants.apiBaseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 15),
-        sendTimeout: const Duration(seconds: 15),
-        headers: const {'Accept': 'application/json'},
-      ),
-    );
-
-    dio.interceptors.addAll(<Interceptor>[
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (object) {
-          // 统一走 Logger 或直接输出
-          // ignore: avoid_print
-          print(object);
-        },
-      ),
-    ]);
-
-    return dio;
-  }
-
   /// 创建云同步专用的 [Dio]。
   ///
-  /// 与 [createDio] 的区别：**不挂 LogInterceptor**。云同步是高频静默调用，
+  /// **不挂 LogInterceptor**：云同步是高频静默调用，
   /// 且请求体是整段密文，打日志既无用又吵闹。
   static Dio createSyncDio(String baseUrl) => Dio(
     BaseOptions(

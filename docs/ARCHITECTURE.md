@@ -75,10 +75,10 @@ features/home/
 // 数据层注入：@riverpod 函数
 @riverpod
 HomeRepository homeRepository(Ref ref) {
-  final dataSource = AppConstants.useLocalDataSource
-      ? const LocalHomeDataSource()
-      : RemoteHomeDataSource(ref.watch(dioProvider));
-  return HomeRepositoryImpl(dataSource);
+  // 数据源由 feature 自己的 data 层构造；网络客户端按用途从
+  // `core/network/api_client.dart` 取工厂（云同步 / 数据目录各一套），
+  // 由 feature 自己持有并关闭，不共享全局 Dio。
+  return HomeRepositoryImpl(const LocalHomeDataSource());
 }
 ```
 
@@ -105,8 +105,8 @@ class HomeItems extends _$HomeItems {
 
 ## 依赖注入
 
-- 全局能力在 `lib/core/di/providers.dart` 定义（`dioProvider`、`sharedPreferencesProvider`、
-  `localStorageProvider`，均为 `@riverpod`）。
+- 全局能力在 `lib/core/di/providers.dart` 定义（`sharedPreferencesProvider`、
+  `localStorageProvider`、`secureKvStoreProvider`，均为 `@riverpod`）。
 - `sharedPreferencesProvider` 在 `main()` 中通过 `ProviderScope(overrides: [...])` 注入真实实例，
   便于测试时替换。
 - feature 内部的仓储 provider 负责把 `core` 的能力组装给 `presentation`。
@@ -294,6 +294,11 @@ fvm dart run build_runner build
 
 - 网络错误统一转为 `core/network/api_exception.dart` 的 `ApiException`。
 - 仓储/数据源向上抛出领域友好异常，`presentation` 层只做展示与重试。
+- **全局兜底**：`core/utils/error_handlers.dart` 注册 `FlutterError.onError` 与
+  `PlatformDispatcher.onError`，根 zone 由 `main()` 的 `runZonedGuarded` 兜底；
+  三路异常都写入 `core/utils/error_log.dart` 的 `ErrorLog`（内存 + SharedPreferences
+  环形缓冲，最多 20 条，**不联网上报**，与隐私政策一致）。
+  用户可在「设置 → 关于 → 诊断日志」复制文本反馈。
 
 ## 测试
 

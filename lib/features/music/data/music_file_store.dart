@@ -27,6 +27,13 @@ abstract interface class MusicFileStore {
   /// **绝不碰用户的原始文件**：只有位于应用目录内的路径才会被删除，
   /// 外部路径（Web blob URL、复制失败时的回退路径）一律返回 false。
   Future<bool> remove(String path);
+
+  /// 修复因沙盒容器路径变化而失效的落盘路径。
+  ///
+  /// iOS 在 App 更新 / 恢复备份后，应用容器目录里的 UUID 会变，之前按绝对
+  /// 路径保存的曲目会全部读不到（表现为列表还在、每首都 `unavailable`）。
+  /// 实现按**文件名**在应用音乐目录里找回；找不到时原样返回。
+  Future<String> repair(String path);
 }
 
 /// 基于 path_provider 的实现：落盘到 `<应用支持目录>/music/`。
@@ -75,6 +82,21 @@ class LocalMusicFileStore implements MusicFileStore {
     } on Object {
       // 删不掉（占用中 / 无权限）不该影响列表，交给系统回收。
       return false;
+    }
+  }
+
+  @override
+  Future<String> repair(String path) async {
+    if (kIsWeb || path.isEmpty) return path;
+    try {
+      if (File(path).existsSync()) return path;
+      final dir = await _resolveDirectory();
+      if (!dir.existsSync()) return path;
+      // 容器路径变了，但副本还在 `<应用支持目录>/music/<同名文件>`。
+      final candidate = File('${dir.path}/${_basename(path)}');
+      return candidate.existsSync() ? candidate.path : path;
+    } on Object {
+      return path;
     }
   }
 

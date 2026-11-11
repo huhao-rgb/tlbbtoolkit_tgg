@@ -23,13 +23,16 @@ void main() {
   late ProviderContainer container;
   late MusicPlayerController controller;
 
-  void setUpContainer({MusicPlayerState? initial}) {
+  void setUpContainer({
+    MusicPlayerState? initial,
+    Map<String, String> repaired = const {},
+  }) {
     engine = FakeMusicEngine();
     repository = FakeMusicPlayerRepository(
       initial ?? const MusicPlayerState(tracks: [trackA, trackB, trackC]),
     );
     picker = FakeMusicFilePicker();
-    store = FakeMusicFileStore();
+    store = FakeMusicFileStore()..repaired.addAll(repaired);
     container = ProviderContainer.test(
       overrides: [
         musicPlayerRepositoryProvider.overrideWithValue(repository),
@@ -353,6 +356,37 @@ void main() {
       expect(repository.state.currentIndex, 1);
       expect(repository.state.volume, .2);
       expect(repository.state.loop, isTrue);
+    });
+  });
+
+  group('沙盒路径修复', () {
+    test('启动时把失效路径换成新路径，并清掉 unavailable 标记', () async {
+      const stale = '/var/mobile/OLD-UUID/Library/music/a.mp3';
+      const fresh = '/var/mobile/NEW-UUID/Library/music/a.mp3';
+      const track = MusicTrack(path: stale, name: '大理城');
+      final initial = MusicPlayerState(
+        tracks: const [track],
+        // 旧路径读不到时曾被标记为不可用。
+        unavailable: const {stale},
+      );
+
+      setUpContainer(initial: initial, repaired: {stale: fresh});
+      // 触发 build 时修复逻辑异步执行；等微任务跑完再断言。
+      await pumpEventQueue();
+
+      expect(controller.state.tracks.single.path, fresh);
+      expect(controller.state.unavailable, isEmpty);
+      expect(repository.state.tracks.single.path, fresh, reason: '修复结果应落盘');
+    });
+
+    test('修复不到时保持原路径，不误改可用性状态', () async {
+      const stale = '/old/a.mp3';
+      const track = MusicTrack(path: stale, name: 'a');
+      setUpContainer(initial: const MusicPlayerState(tracks: [track]));
+      await pumpEventQueue();
+
+      expect(controller.state.tracks.single.path, stale);
+      expect(controller.state.unavailable, isEmpty);
     });
   });
 }

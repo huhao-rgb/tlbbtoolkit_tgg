@@ -33,10 +33,42 @@ class MusicPlayerController extends _$MusicPlayerController {
   /// 引擎当前已加载的音源路径；用于区分「暂停后续播」与「重新起播」。
   String? _loadedPath;
 
+  /// provider 是否已销毁（竞态修复路径时避免写已 dispose 的 state）。
+  bool _disposed = false;
+
   @override
   MusicPlayerState build() {
+    ref.onDispose(() => _disposed = true);
     // 只读仓储（同步），不触碰引擎：仅渲染顶栏按钮时不应创建插件实例。
-    return ref.read(musicPlayerRepositoryProvider).load();
+    final loaded = ref.read(musicPlayerRepositoryProvider).load();
+    // iOS 更新/恢复后沙盒路径会变，异步找回并落盘（不阻塞首帧渲染）。
+    // 传 loaded 而不是在这里读 state：build 返回前 state 尚未初始化。
+    unawaited(_repairTrackPaths(loaded));
+    return loaded;
+  }
+
+  /// 修复因沙盒容器路径变化而失效的曲目路径（见 [MusicFileStore.repair]）。
+  ///
+  /// 只改路径、不动顺序与选中项；修复成功的曲目同时从 `unavailable` 里移除。
+  Future<void> _repairTrackPaths(MusicPlayerState loaded) async {
+    final tracks = loaded.tracks;
+    if (tracks.isEmpty) return;
+    final store = ref.read(musicFileStoreProvider);
+    final fixed = <String, String>{};
+    for (final track in tracks) {
+      final path = await store.repair(track.path);
+      if (path != track.path) fixed[track.path] = path;
+    }
+    // 修复期间用户可能增删曲目：按当前 state 重新映射，不整表覆盖。
+    if (_disposed || fixed.isEmpty) return;
+    state = state.copyWith(
+      tracks: [
+        for (final track in state.tracks)
+          track.copyWith(path: fixed[track.path] ?? track.path),
+      ],
+      unavailable: {...state.unavailable}..removeAll(fixed.keys),
+    );
+    _persist();
   }
 
   /// 惰性取得引擎；首次使用时挂上「播完 → 下一首」与「出错 → 标记不可用」的订阅。

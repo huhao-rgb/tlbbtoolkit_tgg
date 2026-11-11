@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +7,7 @@ import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/constants/app_constants.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
+import 'package:tlbbtoolkit/core/utils/error_log.dart';
 import 'package:tlbbtoolkit/shared/tools/tool_catalog.dart';
 import 'package:tlbbtoolkit/shared/widgets/page_head.dart';
 import 'package:tlbbtoolkit/shared/widgets/tg_card.dart';
@@ -39,6 +41,7 @@ class SettingsPage extends ConsumerWidget {
     final notifier = ref.read(appSettingsControllerProvider.notifier);
     // 版本号运行时读取（来源 pubspec.yaml）；未就绪 / 读取失败时不展示版本段。
     final version = ref.watch(packageInfoProvider).value?.version;
+    final errorCount = ErrorLog.instance.entries.length;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -115,6 +118,24 @@ class SettingsPage extends ConsumerWidget {
                             '玩家自制工具，与官方无关',
                           ].join(' · '),
                         ),
+                        _SectionRow(
+                          icon: 'note',
+                          title: '诊断日志',
+                          subtitle: errorCount == 0
+                              ? '暂无错误记录（仅保存在本机）'
+                              : '最近 $errorCount 条错误记录（仅保存在本机）',
+                          trailing: Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              key: const Key('settings-copy-error-log'),
+                              onPressed: errorCount == 0
+                                  ? null
+                                  : () => _copyErrorLog(context),
+                              icon: const Icon(Icons.copy_rounded, size: 16),
+                              label: const Text('复制日志'),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: TgSpacing.s18),
@@ -138,6 +159,16 @@ class SettingsPage extends ConsumerWidget {
 /// [ThemeMode] → 分段文案。
 String _labelOf(ThemeMode mode) =>
     _themeOptions.firstWhere((o) => o.$1 == mode).$2;
+
+/// 把本机诊断日志复制到剪贴板（用户可自行粘贴反馈，不自动上传）。
+Future<void> _copyErrorLog(BuildContext context) async {
+  final text = ErrorLog.instance.exportText();
+  if (text.isEmpty) return;
+  await Clipboard.setData(ClipboardData(text: text));
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context)
+      .showSnackBar(const SnackBar(content: Text('诊断日志已复制到剪贴板')));
+}
 
 /// 分段文案 → [ThemeMode]。
 ThemeMode _modeOf(String label) =>

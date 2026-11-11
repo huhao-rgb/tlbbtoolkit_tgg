@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ 的备份 / 换机迁移规则。
+
+  天工阁是「本地优先」工具，隐私政策承诺数据只存在本机：
+  - 卡回归账号名单、导入的音乐副本、设置都在应用私有目录；
+  - 默认的云备份与设备间迁移会把它们带出去（且 flutter_secure_storage
+    的 Keystore 密钥本就不参与备份，恢复后旧密文也解不开）。
+
+  因此这里对每个备份域显式 exclude "."，等价于「整包不备份」。
+  旧系统（Android 11 及以下）由 AndroidManifest 的
+  android:allowBackup="false" + android:fullBackupContent="false" 覆盖。
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </device-transfer>
+</data-extraction-rules>

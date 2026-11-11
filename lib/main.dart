@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,36 +9,51 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tlbbtoolkit/app/app.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/core/platform/app_window.dart';
+import 'package:tlbbtoolkit/core/utils/error_handlers.dart';
+import 'package:tlbbtoolkit/core/utils/error_log.dart';
 import 'package:tlbbtoolkit/shared/widgets/splash_screen.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // 全局异常兜底：框架 / 引擎 / 根 zone 三路都进 ErrorLog。
+  // 日志只落本机（设置页可复制），不联网上报，符合隐私政策。
+  await runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      installGlobalErrorHandlers(ErrorLog.instance);
 
-  // Android：edge-to-edge，让 Flutter 内容绘制到系统栏背后，
-  // 配合顶栏毛玻璃实现沉浸式状态栏/导航栏（iOS / Web / 桌面本身即全屏绘制）。
-  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  }
+      // Android：edge-to-edge，让 Flutter 内容绘制到系统栏背后，
+      // 配合顶栏毛玻璃实现沉浸式状态栏/导航栏（iOS / Web / 桌面本身即全屏绘制）。
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      }
 
-  // 桌面端（macOS/Windows/Linux）：frameless 窗口 + 自定义标题栏初始化。
-  await initDesktopWindow();
+      // 桌面端（macOS/Windows/Linux）：frameless 窗口 + 自定义标题栏初始化。
+      await initDesktopWindow();
 
-  // 在 runApp 前获取 SharedPreferences，避免首帧异步竞态。
-  final prefs = await SharedPreferences.getInstance();
+      // 在 runApp 前获取 SharedPreferences，避免首帧异步竞态。
+      // 同一个实例也交给错误日志落盘（attach 之前的错误仅在内存中）。
+      final prefs = await SharedPreferences.getInstance();
+      await ErrorLog.instance.attach(prefs);
 
-  // iOS：原生 LaunchScreen 会展示全幅启动图但时长很短，叠加 Flutter 全幅
-  // 启动页把它拉长到 1.3s 再淡出进首页；桌面 / Web 不叠加。
-  // Android：整幅启动图已由原生 SplashActivity（windowBackground）渲染，
-  // Flutter 侧不再叠加，避免重复显示。
-  final needsSplashGate =
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-  final app = ProviderScope(
-    overrides: [
-      // 注入全局 SharedPreferences 实例。
-      sharedPreferencesProvider.overrideWithValue(prefs),
-    ],
-    child: const TlbbApp(),
+      // iOS：原生 LaunchScreen 会展示全幅启动图但时长很短，叠加 Flutter 全幅
+      // 启动页把它拉长到 1.3s 再淡出进首页；桌面 / Web 不叠加。
+      // Android：整幅启动图已由原生 SplashActivity（windowBackground）渲染，
+      // Flutter 侧不再叠加，避免重复显示。
+      final needsSplashGate =
+          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      final app = ProviderScope(
+        overrides: [
+          // 注入全局 SharedPreferences 实例。
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: const TlbbApp(),
+      );
+
+      runApp(needsSplashGate ? AppSplashGate(child: app) : app);
+    },
+    (error, stack) {
+      // 根 zone 的未捕获异步异常（return true 由 PlatformDispatcher 处理的那部分除外）。
+      ErrorLog.instance.record(error, stack, context: 'zone');
+    },
   );
-
-  runApp(needsSplashGate ? AppSplashGate(child: app) : app);
 }
