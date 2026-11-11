@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.11.05.e7aceec4",
+  "dataVersion": "2026.11.11.a2789e55",
   "files": [
     {
       "kind": "job.artifacts",
@@ -68,9 +68,9 @@
     {
       "kind": "pet.suits",
       "schemaVersion": 1,
-      "dataVersion": "2026.11.05.a9920945",
-      "sha256": "e729cb785a2257bfe9aa816869b68955f275cd06facb85ed0efc9e58c1dbef5b",
-      "bytes": 8813
+      "dataVersion": "2026.11.11.a2789e55",
+      "sha256": "57142aa9d90c84aebc9217115b1b3a573ad42c0cff0e9b2f02e788aae9bb3fae",
+      "bytes": 12948
     }
   ]
 }

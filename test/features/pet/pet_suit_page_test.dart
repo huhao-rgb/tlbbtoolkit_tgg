@@ -36,7 +36,7 @@ void main() {
 
     // 页头
     expect(find.text('珍兽套装图鉴'), findsWidgets);
-    expect(find.textContaining('22 个珍兽套装系列'), findsOneWidget);
+    expect(find.textContaining('27 个珍兽套装系列'), findsOneWidget);
 
     // 视图 chips
     expect(find.text('套装图鉴'), findsOneWidget);
@@ -45,16 +45,16 @@ void main() {
     // 档位 chips + 系列数
     expect(find.text('共 9 个系列'), findsOneWidget);
 
-    // 85 档 9 个系列
+    // 85 档 9 个系列（顺序照《珍兽套装明细》表）
     for (final name in [
+      '飞鹰翔空·怯',
+      '飞鹰翔空·狡',
+      '飞鹰翔空·慎',
       '猛虎越山·勇',
       '猛虎越山·狡',
       '猛虎越山·慎',
-      '飞鹰翔空·狡',
-      '飞鹰翔空·怯',
-      '飞鹰翔空·慎',
-      '巨熊哮路·忠',
-      '巨熊哮路·慎',
+      '巨熊踏路·忠',
+      '巨熊踏路·慎',
       '奔马逐风·慎',
     ]) {
       expect(find.text(name), findsOneWidget, reason: name);
@@ -66,12 +66,19 @@ void main() {
     expect(find.text('体力'), findsNWidgets(2));
     expect(find.text('身法'), findsOneWidget);
 
-    // 全套效果与项圈出战效果
-    expect(find.text('增加痛击技能的伤害'), findsOneWidget);
-    expect(find.text('出战后提升灵气、体力'), findsOneWidget);
+    // 套装词条（技能增强 / 兽环属性 / 推荐说明）
+    expect(find.text('痛击伤害'), findsOneWidget);
+    expect(find.text('出战后灵气+体力'), findsOneWidget);
+    expect(find.text('内功+命中+灵气'), findsWidgets);
 
     // 底部档位
     expect(find.text('85 级档'), findsNWidgets(9));
+
+    // 表格表头的加成说明（圣兽鳞总量 / 概率 / 伤害）
+    expect(find.text('套装加成说明'), findsOneWidget);
+    expect(find.textContaining('75 套装：全套五星需 130 个圣兽鳞'), findsOneWidget);
+    expect(find.textContaining('概率加成'), findsOneWidget);
+    expect(find.textContaining('打怪伤害 ×5'), findsOneWidget);
 
     // 无溢出
     expect(tester.takeException(), isNull);
@@ -83,30 +90,46 @@ void main() {
     await tester.tap(find.text('75 级套装'));
     await tester.pumpAndSettle();
 
-    expect(find.text('共 4 个系列'), findsOneWidget);
-    for (final name in ['黄雀戏水·怯', '苍狼啸月·勇', '苍狼啸月·狡', '乌豚望日·忠']) {
+    expect(find.text('共 9 个系列'), findsOneWidget);
+    for (final name in [
+      '黄雀戏水·怯',
+      '黄雀戏水·狡',
+      '黄雀戏水·慎',
+      '苍狼啸月·勇',
+      '苍狼啸月·狡',
+      '苍狼啸月·慎',
+      '乌鹏望日·忠',
+      '乌鹏望日·慎',
+      '白兔隐林·慎',
+    ]) {
       expect(find.text(name), findsOneWidget, reason: name);
     }
     expect(find.text('猛虎越山·勇'), findsNothing);
-    // 75 档才有散件属性方向
-    expect(find.text('内功攻击 · 灵气 · 命中'), findsOneWidget);
-    expect(find.text('75 级档'), findsNWidgets(4)); // 4 张卡（chip 文案为「75 级套装」）
+    // 75 档自带词条
+    expect(find.text('内功+会心'), findsOneWidget);
+    expect(find.text('命中+闪避'), findsOneWidget);
+    expect(find.text('75 级档'), findsNWidgets(9)); // 9 张卡（chip 文案为「75 级套装」）
   });
 
   testWidgets('点击卡片弹出五件套部件弹窗（含圣兽鳞消耗）', (tester) async {
     await pumpPage(tester);
 
+    // 卡片变高后可能落在首屏之外，先滚到可见再点
+    await tester.ensureVisible(find.text('猛虎越山·勇'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('猛虎越山·勇'));
     await tester.pumpAndSettle();
 
     // 弹窗内容
     expect(find.text('五件套部件'), findsOneWidget);
+    // 「兽环」在卡片词条行里也出现，故只校验存在
     for (final slot in ['兽盔', '兽爪', '兽甲', '兽环', '兽饰']) {
-      expect(find.text(slot), findsOneWidget, reason: slot);
+      expect(find.text(slot), findsWidgets, reason: slot);
     }
-    expect(find.text('出战后提升力量、体力'), findsWidgets);
-    expect(find.text('穿齐 5 件效果'), findsOneWidget);
-    expect(find.text('增加猛击技能的释放几率'), findsNWidgets(2)); // 卡片 + 弹窗
+    expect(find.text('出战后力量+体力'), findsWidgets);
+    expect(find.text('套装词条'), findsOneWidget);
+    expect(find.text('猛击释放几率'), findsNWidgets(2)); // 卡片 + 弹窗
+    expect(find.text('神坑！！一定不要选这个套'), findsNWidgets(2)); // 推荐说明（红字劝退）
     expect(find.text('圣兽鳞消耗 · 85 级档'), findsOneWidget);
     expect(find.text('兑换 1★（每件）'), findsOneWidget);
     expect(find.text('30 个'), findsOneWidget);
@@ -209,6 +232,22 @@ void main() {
     expect(find.text('× 925 个'), findsOneWidget); // 只剩升星
   });
 
+  testWidgets('材料计算器：75 档部件掉落、无兑换，升满 130', (tester) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.text('材料计算器'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('75'));
+    await tester.pumpAndSettle();
+
+    // 75 档部件由煞星副本掉落，兑换模块不出现
+    expect(find.text('兑换 75 级套装 1★ · 5 件'), findsNothing);
+    expect(find.textContaining('部件由煞星副本直接掉落'), findsWidgets);
+    expect(find.text('升星 1★ → 5★ · 75 级 · 5 件'), findsOneWidget);
+    expect(find.text('× 130 个'), findsOneWidget);
+  });
+
   testWidgets('移动端窄屏：单列卡片不溢出，可切换视图', (tester) async {
     await pumpPage(tester, size: const Size(390, 844));
 
@@ -222,6 +261,8 @@ void main() {
 
     // 窄屏弹窗同样不溢出
     await tester.tap(find.text('套装图鉴'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('猛虎越山·勇'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('猛虎越山·勇'));
     await tester.pumpAndSettle();

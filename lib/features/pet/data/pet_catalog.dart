@@ -248,7 +248,11 @@ PetSuitCatalog _parsePetSuits(String raw) {
           item['type'] is String &&
           item['icon'] is String &&
           item['personality'] is String &&
-          item['fullEffect'] is String)
+          item['ownEntries'] is String &&
+          item['ringEntries'] is String &&
+          item['comboEntries'] is String &&
+          item['skillEffect'] is String &&
+          item['recommendation'] is String)
         PetSuitSeries(
           name: item['name'] as String,
           lv: item['lv'] as String,
@@ -260,9 +264,11 @@ PetSuitCatalog _parsePetSuits(String raw) {
           ),
           icon: item['icon'] as String,
           personality: item['personality'] as String,
-          fullEffect: item['fullEffect'] as String,
-          stats: _strings(item['stats']),
-          collar: item['collar'] is String ? item['collar'] as String : null,
+          ownEntries: item['ownEntries'] as String,
+          ringEntries: item['ringEntries'] as String,
+          comboEntries: item['comboEntries'] as String,
+          skillEffect: item['skillEffect'] as String,
+          recommendation: item['recommendation'] as String,
         ),
   ];
 

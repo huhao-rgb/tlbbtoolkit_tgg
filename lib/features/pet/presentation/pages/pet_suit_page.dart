@@ -18,11 +18,11 @@ import 'package:tlbbtoolkit/features/pet/domain/pet_suit.dart';
 /// 宝宝套装图鉴（怀旧服珍兽套装 / 宝宝套）。
 ///
 /// 视图 chips（套装图鉴 / 材料计算器）+ 主体：
-/// - 图鉴：档位 chips（75 / 85 / 95，每档系列独立）+ 系列卡栅格
-///   （类型 / 性格 / 全套效果 / 项圈出战效果），点击卡片弹出「五件套部件」弹窗；
+/// - 图鉴：档位 chips（75 / 85 / 95，每档 9 个系列）+ 系列卡栅格
+///   （类型 / 性格 / 自带 / 兽环 / 组合词条 / 技能增强 / 推荐），点击卡片弹出「五件套部件」弹窗；
 /// - 材料计算器：档位 × 当前星级 × 含兑换材料 → 兑换 / 升星 / 合计消耗（单位：圣兽鳞）。
 ///
-/// 数据与公式见 `pet_suit.dart`（22 个真实系列 + 圣兽鳞消耗表）。
+/// 数据与公式见 `pet_suit.dart`（27 个真实系列 + 圣兽鳞消耗表）。
 ///
 /// 页面不含 Scaffold/AppBar（信息条与返回按钮由 shell 框架提供）。
 class PetSuitPage extends ConsumerStatefulWidget {
@@ -123,6 +123,9 @@ class _PetSuitPageState extends ConsumerState<PetSuitPage> {
                         onCardTap: _openParts,
                       ),
                       const SizedBox(height: TgSpacing.s12),
+                      // 表格表头的加成说明（圣兽鳞总量 + 概率 / 伤害加成经验值）
+                      _SuitNotesBlock(),
+                      const SizedBox(height: TgSpacing.s9),
                       Text(
                         '※ 珍兽套装每套 5 件，全套只用圣兽鳞一种材料：兑换 1★ 与升星均消耗圣兽鳞，'
                         '圣兽鳞由拆解珍兽套装获得（副本不直接掉落）。'
@@ -340,17 +343,19 @@ class _SuitCardState extends State<_SuitCard> {
                     ],
                   ),
                   const SizedBox(height: TgSpacing.s14),
-                  // 散件属性方向（官方资料仅 75 档逐系列列出）
-                  if (suit.stats.isNotEmpty) ...[
-                    _InfoRow(label: '散件', text: suit.stats.join(' · ')),
-                    const SizedBox(height: TgSpacing.s9),
-                  ],
-                  // 全套（穿齐 5 件）效果
-                  _InfoRow(label: '全套', text: suit.fullEffect, accent: true),
-                  if (suit.collar != null) ...[
-                    const SizedBox(height: TgSpacing.s9),
-                    _InfoRow(label: '项圈', text: '出战后${suit.collar!}'),
-                  ],
+                  // 套装词条（按《珍兽套装明细》表五列：自带 / 兽环 / 组合 / 技能 / 推荐）
+                  _InfoRow(label: '自带', text: suit.ownEntries),
+                  const SizedBox(height: TgSpacing.s9),
+                  _InfoRow(label: '兽环', text: '出战后${suit.ringEntries}'),
+                  const SizedBox(height: TgSpacing.s9),
+                  _InfoRow(label: '组合', text: suit.comboEntries, accent: true),
+                  const SizedBox(height: TgSpacing.s9),
+                  _InfoRow(label: '技能', text: suit.skillEffect, accent: true),
+                  const SizedBox(height: TgSpacing.s12),
+                  _RecommendRow(
+                    text: suit.recommendation,
+                    warn: suit.discouraged,
+                  ),
                   // suit-more
                   Container(
                     width: double.infinity,
@@ -556,6 +561,92 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
+/// 推荐说明（表格「套装推荐说明」列）：左侧金/红竖条 + 文案。
+///
+/// 表格里作者用红字劝退的套装（如猛虎越山·勇「神坑！！一定不要选这个套」）
+/// 用警示色呈现。
+class _RecommendRow extends StatelessWidget {
+  const _RecommendRow({required this.text, this.warn = false});
+
+  final String text;
+  final bool warn;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final accentColor = warn ? tg.red : tg.gold2;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: warn ? tg.tintOf(tg.red, .07) : tg.goldTint(.07),
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+        border: Border(left: BorderSide(color: accentColor, width: 3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '推荐',
+            style: TgType.caption.copyWith(
+              color: accentColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: TgSpacing.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: TgType.caption.copyWith(
+                color: warn ? tg.red : tg.t2,
+                height: 1.6,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 表格表头的套装加成说明（圣兽鳞总量 / 概率加成 / 伤害加成）。
+class _SuitNotesBlock extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: tg.inset,
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: tg.border, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '套装加成说明',
+            style: TgType.caption.copyWith(
+              color: tg.gold2,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: TgSpacing.xs),
+          for (final note in kSuitBonusNotes)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '· $note',
+                style: TgType.caption.copyWith(color: tg.t3, height: 1.6),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// 五件套部件预览弹窗（对应 `.modal` / `suitModal`）。
 class _SuitPartsDialog extends ConsumerWidget {
   const _SuitPartsDialog({required this.series});
@@ -639,25 +730,37 @@ class _SuitPartsDialog extends ConsumerWidget {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _PartRow(
                           slot: slot,
-                          collar: slot.slot == '颈' ? series.collar : null,
+                          ringEntries: slot.slot == '颈'
+                              ? series.ringEntries
+                              : null,
                         ),
                       ),
                   ],
                 ),
                 const SizedBox(height: TgSpacing.s14),
-                // 穿齐 5 件效果
-                _SectionTitle(title: '穿齐 5 件效果'),
+                // 套装词条（表格五列）
+                _SectionTitle(title: '套装词条'),
                 const SizedBox(height: TgSpacing.s10),
-                _InfoRow(label: '全套', text: series.fullEffect, accent: true),
-                if (series.stats.isNotEmpty) ...[
-                  const SizedBox(height: TgSpacing.s9),
-                  _InfoRow(label: '散件', text: series.stats.join(' · ')),
-                ],
+                _InfoRow(label: '自带', text: series.ownEntries),
+                const SizedBox(height: TgSpacing.s9),
+                _InfoRow(label: '兽环', text: '出战后${series.ringEntries}'),
+                const SizedBox(height: TgSpacing.s9),
+                _InfoRow(label: '组合', text: series.comboEntries, accent: true),
+                const SizedBox(height: TgSpacing.s9),
+                _InfoRow(label: '技能', text: series.skillEffect, accent: true),
+                const SizedBox(height: TgSpacing.s9),
+                _RecommendRow(
+                  text: series.recommendation,
+                  warn: series.discouraged,
+                ),
                 const SizedBox(height: TgSpacing.s14),
                 // 圣兽鳞消耗
                 _SectionTitle(title: '${catalog.matName}消耗 · ${series.lv} 级档'),
                 const SizedBox(height: TgSpacing.s10),
-                _CostLine(text: '兑换 1★（每件）', value: '${cost.exchange} 个'),
+                _CostLine(
+                  text: '兑换 1★（每件）',
+                  value: cost.exchange == 0 ? '副本掉落' : '${cost.exchange} 个',
+                ),
                 _CostLine(
                   text: '升星 1★ → 5★（每件）',
                   value: '${cost.starUp.join(' / ')} 个',
@@ -764,19 +867,19 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-/// 部件行（`.part-row`）：部位徽章 + 装备名 + 部位说明 / 项圈出战效果。
+/// 部件行（`.part-row`）：部位徽章 + 装备名 + 部位说明 / 兽环出战属性。
 class _PartRow extends StatelessWidget {
-  const _PartRow({required this.slot, this.collar});
+  const _PartRow({required this.slot, this.ringEntries});
 
   final PetSuitSlot slot;
 
-  /// 项圈专用：出战后生效的系列效果。
-  final String? collar;
+  /// 兽环（项圈）专用：出战后生效的系列属性。
+  final String? ringEntries;
 
   @override
   Widget build(BuildContext context) {
     final tg = context.tg;
-    final note = collar == null ? slot.note : '出战后$collar';
+    final note = ringEntries == null ? slot.note : '出战后$ringEntries';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -808,7 +911,7 @@ class _PartRow extends StatelessWidget {
                 Text(
                   note,
                   style: TgType.caption.copyWith(
-                    color: collar == null ? tg.t3 : tg.gold2,
+                    color: ringEntries == null ? tg.t3 : tg.gold2,
                   ),
                 ),
               ],
@@ -986,17 +1089,27 @@ class _CalcCard extends StatelessWidget {
           // 合计（已与兑换模块并排在上方）
           const SizedBox(height: TgSpacing.s14),
           Text(
-            '※ $lv 级档参考：兑换 1★ 每件 ${result.exchangePerPiece} 个，'
-            '升星（1★ → 5★）逐星每件 ${kSuitMatCost[lv]!.starUp.join(' / ')} 个，'
-            '整套 5 件「兑换 + 升满 5★」共 ${result.fullSetTotal} 个；'
-            '拆解返还（每件 1★~5★）${result.salvagePerPiece.join(' / ')} 个。',
+            result.exchangePerPiece == 0
+                ? '※ $lv 级档参考：部件由煞星副本直接掉落（1★，无需兑换），'
+                      '升星（1★ → 5★）逐星每件 '
+                      '${kSuitMatCost[lv]!.starUp.join(' / ')} 个，'
+                      '整套 5 件升满 5★ 共 ${result.fullSetTotal} 个；'
+                      '拆解返还（每件 1★~5★）'
+                      '${result.salvagePerPiece.join(' / ')} 个。'
+                : '※ $lv 级档参考：兑换 1★ 每件 ${result.exchangePerPiece} 个，'
+                      '升星（1★ → 5★）逐星每件 '
+                      '${kSuitMatCost[lv]!.starUp.join(' / ')} 个，'
+                      '整套 5 件「兑换 + 升满 5★」共 ${result.fullSetTotal} 个；'
+                      '拆解返还（每件 1★~5★）'
+                      '${result.salvagePerPiece.join(' / ')} 个。',
             style: TgType.caption.copyWith(color: tg.t3, height: 1.6),
           ),
           const SizedBox(height: TgSpacing.xs),
           Text(
-            '※ 「目标星级」为想做到的星级：1★ 只需兑换 1★ 整套，5★ 为兑换 + 逐星升满；'
+            '※ 「目标星级」为想做到的星级：1★ 只需凑齐 1★ 整套，5★ 为兑换 + 逐星升满；'
             '逐星消耗按 5 件计，「含兑换材料」用于计入 / 排除兑换 1★ 的圣兽鳞。'
-            '75 档部件也可由煞星副本掉落。圣兽鳞由拆解珍兽套装获得（副本不直接掉落），'
+            '75 档部件由煞星副本直接掉落（无需兑换）。'
+            '圣兽鳞由拆解珍兽套装获得（副本不直接掉落），'
             '兑换 / 升星 / 拆解均在苏州（248，184）云姗姗处，另有少量金钱消耗。',
             style: TgType.caption.copyWith(color: tg.t3, height: 1.6),
           ),

@@ -211,8 +211,8 @@ abstract final class ToolCatalog {
     group: ToolGroup.pet,
     title: '珍兽套装图鉴',
     crumb: '珍兽 / 套装图鉴',
-    pageSubtitle: '怀旧服 75 / 85 / 95 三档 22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
-    cardDesc: '22 个珍兽套装系列 · 全套效果与圣兽鳞消耗',
+    pageSubtitle: '怀旧服 75 / 85 / 95 三档 27 个珍兽套装系列 · 套装词条与圣兽鳞消耗',
+    cardDesc: '27 个珍兽套装系列 · 套装词条与圣兽鳞消耗',
     keywords: [
       '套装',
       '图鉴',
@@ -223,6 +223,7 @@ abstract final class ToolCatalog {
       '黄雀戏水',
       '猛虎越山',
       '雄狮逆鳞',
+      '鲲鹏异羽',
       '升星',
     ],
     location: '/pet/suit',
