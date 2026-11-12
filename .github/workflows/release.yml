@@ -30,6 +30,24 @@ jobs:
           flutter-version: '3.47.0'
           cache: true
 
+      - name: 安装 JDK 21
+        # Gradle 8.14 官方支持到 JDK 24；JDK 25 需要 Gradle 9.1+。
+        # ubuntu-latest 的默认 JDK 已升到 25，不钉版本会在 assembleRelease 阶段
+        # 直接报 "Java/Gradle incompatibility" 而失败。
+        # 这里钉住 LTS 21（与本地开发环境一致）；将来若要上 JDK 25，
+        # 需把 gradle-wrapper 一并升到 9.1+ 并回归 AGP 8.11 的兼容性。
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: 让 Flutter 固定使用该 JDK
+        # Flutter 读 JAVA_HOME，但 runner 上可能还装着 Android Studio 自带 JDK；
+        # 显式写入 flutter 配置，避免两条取 JDK 的路径不一致时又落回系统默认。
+        run: |
+          flutter config --jdk-dir="$JAVA_HOME"
+          java -version
+
       - name: 拉取依赖
         # --enforce-lockfile：lock 与 pubspec.yaml / 当前 pub 源不一致时立即失败，
         # 而不是静默重新解析。依赖漂移往往只在 release 包（R8 混淆）里才炸，
