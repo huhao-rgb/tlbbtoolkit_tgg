@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/features/misc/presentation/widgets/misc_common.dart';
@@ -857,6 +858,68 @@ class _MiscLineButtonState extends State<MiscLineButton> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/* ============================== 详情页操作区 ============================== */
+
+/// 打开神仙代售原帖（按商品编号 [sn] 拼平台详情页地址）。
+///
+/// 统一交给系统浏览器 / 新标签，而不是「先探测是否装了神仙代售 App」：
+/// 实测该 App（`com.fengchao.sxds` 3.0.6）既没注册自定义 scheme，也没把
+/// `www.sxds.com` 声明成 App Link，系统解析该 https 链接时 App 不在候选列表里；
+/// 即便用显式组件强拉也只能落在 App 首页，反而比网页少一步直达。
+/// 后续若官方支持深链，改这一个函数即可。
+Future<void> openSxdsSourcePage(BuildContext context, String sn) async {
+  final url = 'https://www.sxds.com/detail/$sn';
+  final opened = await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+  );
+  if (!context.mounted) return;
+  if (!opened) {
+    final tg = context.tg;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: tg.card2,
+        content: Text(
+          '无法打开浏览器，请手动访问：$url',
+          style: TextStyle(fontSize: 12.5, color: tg.t1),
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+}
+
+/// 详情页操作区：「在神仙代售查看原帖」主按钮 + 「返回行情列表」次按钮。
+class MiscDetailActionRow extends StatelessWidget {
+  const MiscDetailActionRow({
+    super.key,
+    required this.sn,
+    required this.onBack,
+  });
+
+  /// 神仙代售商品编号（用于拼原帖地址）。
+  final String sn;
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        MiscPrimaryButton(
+          label: '在神仙代售查看原帖',
+          icon: 'spark',
+          onTap: () => openSxdsSourcePage(context, sn),
+        ),
+        MiscLineButton(label: '返回行情列表', onTap: onBack),
+      ],
     );
   }
 }

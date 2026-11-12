@@ -516,6 +516,9 @@ void main() {
     expect(find.text('商品描述'), findsOneWidget);
     expect(find.textContaining('测试珍兽描述'), findsOneWidget);
     expect(find.text('亮点一'), findsOneWidget);
+    // 详情操作区（共用组件 MiscDetailActionRow）
+    expect(find.text('在神仙代售查看原帖'), findsOneWidget);
+    expect(find.text('返回行情列表'), findsOneWidget);
   });
 
   testWidgets('珍兽详情（移动端 390）：画廊与信息格无溢出', (tester) async {

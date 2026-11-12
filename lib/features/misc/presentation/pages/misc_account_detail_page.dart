@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
@@ -349,18 +348,7 @@ class _DetailInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 18),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            MiscPrimaryButton(
-              label: '在神仙代售查看原帖',
-              icon: 'spark',
-              onTap: () => _openSourcePage(context, t.sn),
-            ),
-            MiscLineButton(label: '返回行情列表', onTap: onBack),
-          ],
-        ),
+        MiscDetailActionRow(sn: t.sn, onBack: onBack),
         const SizedBox(height: 14),
         Text.rich(
           TextSpan(
@@ -380,32 +368,8 @@ class _DetailInfo extends StatelessWidget {
   }
 }
 
-/// 用系统浏览器/新标签打开神仙代售原帖（URL 与平台商品详情页一致）。
-Future<void> _openSourcePage(BuildContext context, String sn) async {
-  final url = 'https://www.sxds.com/detail/$sn';
-  final opened = await launchUrl(
-    Uri.parse(url),
-    mode: LaunchMode.externalApplication,
-  );
-  if (!context.mounted) return;
-  if (!opened) {
-    final tg = context.tg;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: tg.card2,
-        content: Text(
-          '无法打开浏览器，请手动访问：$url',
-          style: TextStyle(fontSize: 12.5, color: tg.t1),
-        ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-}
-
-/// 信息格 / 标签 / 主按钮 / 描边按钮 / 卡片壳 / 兜底提示均已抽到
-/// `widgets/misc_common.dart`（[MiscInfoCell] / [MiscTag] /
-/// [MiscPrimaryButton] / [MiscLineButton]）、
-/// `widgets/misc_detail_widgets.dart`（[MiscDetailMissing]）
-/// 与 shared 的 [TgCard] / [TgPageFoot]。
+/// 信息格 / 标签 / 主按钮 / 描边按钮 / 详情操作区 / 卡片壳 / 兜底提示均已抽到
+/// `widgets/misc_common.dart`（[MiscTag]）、
+/// `widgets/misc_detail_widgets.dart`（[MiscInfoCell] /
+/// [MiscPrimaryButton] / [MiscLineButton] / [MiscDetailActionRow] /
+/// [MiscDetailMissing]）与 shared 的 [TgCard] / [TgPageFoot]。
