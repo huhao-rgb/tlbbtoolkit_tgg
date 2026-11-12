@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.11.11.a2789e55",
+  "dataVersion": "2026.11.12.049c4edb",
   "files": [
     {
       "kind": "job.artifacts",
@@ -19,9 +19,9 @@
     {
       "kind": "job.sect_info",
       "schemaVersion": 1,
-      "dataVersion": "2026.11.05.80a8fb42",
-      "sha256": "fc7260ca123d654d9c19442c0b0047cb5a5a7162ad72c79fcb9a544265574ca1",
-      "bytes": 22900
+      "dataVersion": "2026.11.12.049c4edb",
+      "sha256": "27edc81b0f09b9066442ddefe0fe8951c587fd3ad08756f283443762ee4b00b5",
+      "bytes": 24974
     },
     {
       "kind": "job.sects",

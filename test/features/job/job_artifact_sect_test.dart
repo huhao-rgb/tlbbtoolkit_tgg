@@ -208,6 +208,17 @@ void main() {
       // 主要属性（属性攻 / 主修 / 攻系）
       expect(find.text('主要属性'), findsOneWidget);
       expect(find.textContaining('玄攻 · 主属性攻'), findsOneWidget);
+      // 伤害系数（总表少林一行：外功 0.0575 / 内功 0.015 / 玄 1.5）
+      expect(find.text('伤害系数'), findsOneWidget);
+      expect(find.text('0.0575'), findsOneWidget);
+      expect(find.text('0.015'), findsOneWidget);
+      expect(find.text('1.5'), findsOneWidget);
+      // 六格标签齐全（内外功 + 冰火玄毒）
+      expect(find.text('外功伤害'), findsOneWidget);
+      expect(find.text('内功伤害'), findsOneWidget);
+      for (final element in ['冰', '火', '玄', '毒']) {
+        expect(find.text(element), findsOneWidget);
+      }
       // 背景渊源
       expect(find.text('背景渊源'), findsOneWidget);
       expect(find.textContaining('中原第一名刹'), findsOneWidget);
@@ -279,6 +290,13 @@ void main() {
       expect(find.textContaining('杀意'), findsWidgets);
       // 官网未公布生活技能 → 不显示该区块
       expect(find.text('门派生活技能'), findsNothing);
+      // 伤害系数：昆仑 外功 0.003875 / 内功 0.07125 / 冰 1.25 / 玄 1.3
+      expect(find.text('伤害系数'), findsOneWidget);
+      expect(find.text('0.003875'), findsOneWidget);
+      expect(find.text('0.07125'), findsOneWidget);
+      expect(find.text('1.25'), findsOneWidget);
+      expect(find.text('1.3'), findsOneWidget);
+      expect(find.textContaining('暂无该门派的伤害系数'), findsNothing);
     });
   });
 

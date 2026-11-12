@@ -166,6 +166,9 @@ class _SectDetail extends StatelessWidget {
           const JobSectionTitle('主要属性'),
           const SizedBox(height: 10),
           _AttrTags(info: info, sectColor: Color(sect.colorValue)),
+          // 伤害系数（「伤害系数总表」本门派那一行）
+          const SizedBox(height: 14),
+          _DmgCoefBlock(dmg: info.dmg),
         ],
         // 背景渊源（siBg）
         if (info.bg.isNotEmpty) ...[
@@ -275,6 +278,145 @@ class _AttrTags extends StatelessWidget {
         tag('主修 ${info.main}'),
         tag('攻系 ${info.atype}'),
       ],
+    );
+  }
+}
+
+/// 伤害系数（「伤害系数总表」里本门派那一行：内外功 + 冰火玄毒）。
+///
+/// 六格数值：外功 / 内功伤害系数与四属性系数；属性系数 `> 1` 用金色强调，
+/// 数据缺失时退化为一行说明（目前十三门派齐全）。
+class _DmgCoefBlock extends StatelessWidget {
+  const _DmgCoefBlock({required this.dmg});
+
+  final JobDamageCoef? dmg;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final coef = dmg;
+    if (coef == null) {
+      return Text(
+        '※ 暂无该门派的伤害系数（总表尚未收录）。',
+        style: TextStyle(fontSize: 11, color: tg.t3),
+      );
+    }
+    final cells = <_DmgCellData>[
+      _DmgCellData(label: '外功伤害', value: coef.phys),
+      _DmgCellData(label: '内功伤害', value: coef.magic),
+      _DmgCellData(label: '冰', value: coef.ice, labelColor: tg.blue),
+      _DmgCellData(label: '火', value: coef.fire, labelColor: tg.red),
+      _DmgCellData(label: '玄', value: coef.xuan, labelColor: tg.purple),
+      _DmgCellData(label: '毒', value: coef.poison, labelColor: tg.green),
+    ];
+    return LayoutBuilder(
+      builder: (context, c) {
+        const gap = 8.0;
+        // 窄屏放三列两行，避免 0.003875 这类六位小数被压扁
+        final cols = c.maxWidth < 520 ? 3 : 6;
+        final w = (c.maxWidth - gap * (cols - 1)) / cols;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  '伤害系数',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: tg.t2,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: Container(height: 1, color: tg.borderHi)),
+              ],
+            ),
+            const SizedBox(height: 9),
+            Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final cell in cells)
+                  SizedBox(
+                    width: w,
+                    child: _DmgCell(data: cell),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '※ 属性系数以 1 为基准，>1 表示该属性伤害有额外加成。\n'
+              '※ 系数取自玩家整理的「伤害系数总表」；实际伤害还受内外功攻击、'
+              '目标防御与抗性影响。',
+              style: TextStyle(fontSize: 11, color: tg.t3, height: 1.6),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// 单格伤害系数（小标签 + 数值）。
+class _DmgCellData {
+  const _DmgCellData({
+    required this.label,
+    required this.value,
+    this.labelColor,
+  });
+
+  final String label;
+  final double value;
+
+  /// 标签色（四属性用各自的元素色，内外功留空走三级灰）。
+  final Color? labelColor;
+}
+
+class _DmgCell extends StatelessWidget {
+  const _DmgCell({required this.data});
+
+  final _DmgCellData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    final boosted = data.value > 1;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: tg.inset2,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(
+          color: boosted ? tg.goldTint(.32) : tg.border,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            data.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10.5, color: data.labelColor ?? tg.t3),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              jobDmgCoefText(data.value),
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: boosted ? tg.gold2 : tg.t1,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

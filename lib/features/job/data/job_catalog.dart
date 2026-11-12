@@ -8,6 +8,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:tlbbtoolkit/core/content/catalog_providers.dart';
@@ -59,11 +60,43 @@ Future<Map<String, JobSectInfo>> jobSectInfoCatalog(Ref ref) async {
   if (raw == null) return kJobSectInfo;
   try {
     final parsed = _parseSectInfo(raw);
-    return parsed.isEmpty ? kJobSectInfo : parsed;
+    return parsed.isEmpty ? kJobSectInfo : withBuiltinSectFallback(parsed);
   } catch (e, s) {
     Logger.instance.error('Job', '$jobSectInfoKind 解析失败，回退常量: $e', s);
     return kJobSectInfo;
   }
+}
+
+/// 旧分片补齐：本地缓存 / 服务端分片可能落后于当前 App（旧 `job.sect_info`
+/// 还没有 `dmg`），缺失字段用内置常量兜底，避免旧数据把新功能整段遮掉。
+///
+/// 新增可空字段时在这里补一条兜底；分片里已有的值始终优先。
+@visibleForTesting
+Map<String, JobSectInfo> withBuiltinSectFallback(
+  Map<String, JobSectInfo> shard, {
+  Map<String, JobSectInfo> builtin = kJobSectInfo,
+}) {
+  return {
+    for (final entry in shard.entries)
+      entry.key: _withBuiltinDmg(entry.value, builtin[entry.key]),
+  };
+}
+
+JobSectInfo _withBuiltinDmg(JobSectInfo shard, JobSectInfo? builtin) {
+  final dmg = builtin?.dmg;
+  if (shard.dmg != null || dmg == null) return shard;
+  return JobSectInfo(
+    intro: shard.intro,
+    atk: shard.atk,
+    atkColor: shard.atkColor,
+    main: shard.main,
+    atype: shard.atype,
+    traits: shard.traits,
+    suit: shard.suit,
+    bg: shard.bg,
+    life: shard.life,
+    dmg: dmg,
+  );
 }
 
 @riverpod
@@ -182,6 +215,34 @@ JobSectInfo? _sectInfoOf(Map json) {
             at: item['at'] is String ? item['at'] as String : null,
           ),
     ],
+    dmg: _dmgOf(json['dmg']),
+  );
+}
+
+/// 伤害系数（缺项 / 旧分片按空处理，页面据此隐藏该小节）。
+JobDamageCoef? _dmgOf(Object? json) {
+  if (json is! Map) return null;
+  final phys = json['phys'];
+  final magic = json['magic'];
+  final ice = json['ice'];
+  final fire = json['fire'];
+  final xuan = json['xuan'];
+  final poison = json['poison'];
+  if (phys is! num ||
+      magic is! num ||
+      ice is! num ||
+      fire is! num ||
+      xuan is! num ||
+      poison is! num) {
+    return null;
+  }
+  return JobDamageCoef(
+    phys: phys.toDouble(),
+    magic: magic.toDouble(),
+    ice: ice.toDouble(),
+    fire: fire.toDouble(),
+    xuan: xuan.toDouble(),
+    poison: poison.toDouble(),
   );
 }
 

@@ -120,6 +120,7 @@ Map<String, Object?> _shards() => {
           for (final life in entry.value.life)
             {'name': life.name, 'desc': life.desc, 'at': life.at},
         ],
+        'dmg': _dmgJson(entry.value.dmg),
       },
   },
   'job.wudao': {
@@ -283,6 +284,19 @@ Map<String, Object?> _shards() => {
     ],
   },
 };
+
+/// 伤害系数（无数据导出 `null`，客户端按空处理）。
+Map<String, Object?>? _dmgJson(JobDamageCoef? dmg) {
+  if (dmg == null) return null;
+  return {
+    'phys': dmg.phys,
+    'magic': dmg.magic,
+    'ice': dmg.ice,
+    'fire': dmg.fire,
+    'xuan': dmg.xuan,
+    'poison': dmg.poison,
+  };
+}
 
 /// 写入单个分片，返回它在 manifest 里的条目。
 Map<String, Object?> _writeShard(String kind, Object? items) {
