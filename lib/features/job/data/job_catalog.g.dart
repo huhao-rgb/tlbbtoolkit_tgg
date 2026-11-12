@@ -88,7 +88,7 @@ final class JobSectInfoCatalogProvider
 }
 
 String _$jobSectInfoCatalogHash() =>
-    r'da6c128fb2dbd8b6cbd1726e54a258f81a30b2a6';
+    r'b2af661194cad83a67e1b4a127dbe1b3f56e3c8e';
 
 @ProviderFor(jobWudaoCatalog)
 final jobWudaoCatalogProvider = JobWudaoCatalogProvider._();
