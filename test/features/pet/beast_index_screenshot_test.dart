@@ -21,20 +21,20 @@ Future<void> _loadFonts() async {
     'Noto Serif SC': ['NotoSerifSC-Medium.ttf', 'NotoSerifSC-SemiBold.ttf'],
   }.entries) {
     for (final f in entry.value) {
-      final loader = FontLoader(entry.key)
-        ..addFont(bytes('/Users/hu/Documents/tlbbtoolkit/assets/fonts/$f'));
+      final loader = FontLoader(entry.key)..addFont(bytes('assets/fonts/$f'));
       await loader.load();
     }
   }
 }
 
 Future<void> _snap(WidgetTester tester, String name) async {
+  Directory('build/screenshots').createSync(recursive: true);
   final boundary = tester.renderObject<RenderRepaintBoundary>(
     find.byType(RepaintBoundary).first,
   );
   final image = await boundary.toImage(pixelRatio: 2);
   final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-  File('/Users/hu/Documents/tlbbtoolkit/build/beast_index_$name.png')
+  File('build/screenshots/beast_index_$name.png')
       .writeAsBytesSync(bytes!.buffer.asUint8List());
   image.dispose();
 }
