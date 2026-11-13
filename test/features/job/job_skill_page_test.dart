@@ -119,7 +119,7 @@ void main() {
     expect(find.text('心无旁骛'), findsWidgets);
   });
 
-  testWidgets('切换门派：昆仑心法未公布 → 显示待补充占位且不崩溃', (tester) async {
+  testWidgets('切换门派：昆仑七本心法（光影双卷）正常渲染', (tester) async {
     await pumpPage(tester);
 
     await tester.ensureVisible(find.text('昆仑'));
@@ -129,8 +129,13 @@ void main() {
 
     expect(find.text('昆仑'), findsNWidgets(2)); // pill + 当前门派名
     expect(find.text('内功 · 双形态'), findsOneWidget);
-    expect(find.textContaining('官方尚未公布该门派心法'), findsOneWidget);
-    expect(find.textContaining('该心法暂无收录技能'), findsOneWidget);
+    expect(find.textContaining('七本心法 · 共 24 门绝技'), findsOneWidget);
+    expect(find.textContaining('官方尚未公布该门派心法'), findsNothing);
+    // 心法 chips 与首本心法的技能
+    expect(find.text('混沌书·光卷'), findsWidgets);
+    expect(find.text('混沌书·影卷'), findsWidgets);
+    expect(find.text('无情剑'), findsWidgets);
+    expect(find.text('寒山倾'), findsWidgets);
   });
 
   testWidgets('initialSect 跨页定位：传入天龙 → 默认即天龙门派', (tester) async {
