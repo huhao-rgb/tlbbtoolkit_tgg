@@ -58,4 +58,4 @@ final class JobArtifactsProvider
   }
 }
 
-String _$jobArtifactsHash() => r'8188dc498d4d9fe3133dfb0d6f5a4bf66c37545b';
+String _$jobArtifactsHash() => r'760c2e54bfe2e23fa52a64ac76c39395216f6435';

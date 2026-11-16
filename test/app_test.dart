@@ -469,6 +469,23 @@ void main() {
     );
   });
 
+  testWidgets('设置：同步云端数据行展示说明与按钮', (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    // 数据卡：标题 + 默认说明 + 可点击的同步按钮
+    expect(find.text('同步云端数据'), findsOneWidget);
+    expect(find.text('从云端拉取最新的门派 / 珍兽数据'), findsOneWidget);
+    final button = find.byKey(const Key('settings-sync-catalog'));
+    expect(button, findsOneWidget);
+    expect(
+      find.descendant(of: button, matching: find.text('立即同步')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('设置：关于卡版本号来自运行时包信息', (tester) async {
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(

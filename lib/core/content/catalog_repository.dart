@@ -132,6 +132,21 @@ class CatalogRepository {
     }
   }
 
+  /// 手动同步：拉取远端并**立即激活**，供「设置 → 同步云端数据」使用。
+  ///
+  /// 与 [refresh] 的区别只在最后一步：正常启动流程把新包暂存为 pending、
+  /// 等下次启动才 promote（避免会话中途换数据）；手动同步是用户主动要求的，
+  /// 直接 promote 让页面马上刷新。
+  Future<CatalogRefreshOutcome> syncNow() async {
+    final outcome = await refresh(force: true);
+    if (outcome != CatalogRefreshOutcome.updated) return outcome;
+    // 校验失败（半套数据）时 promotePending 会整体丢弃，按失败回报。
+    final promoted = await cache.promotePending();
+    if (!promoted) return CatalogRefreshOutcome.failed;
+    Logger.instance.debug('Catalog', '手动同步：新数据已激活（无需重启）');
+    return outcome;
+  }
+
   Future<bool> _isFresh() async {
     final last = await cache.readLastCheck();
     if (last == null) return false;

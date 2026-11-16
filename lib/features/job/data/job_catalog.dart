@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:tlbbtoolkit/core/content/catalog_providers.dart';
+import 'package:tlbbtoolkit/core/content/catalog_sync.dart';
 import 'package:tlbbtoolkit/core/utils/logger.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_sect_info.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_skill.dart';
@@ -43,6 +44,8 @@ Future<String?> _loadShard(Ref ref, String kind) async {
 
 @riverpod
 Future<JobSkillCatalog> jobSkillCatalog(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final fallback = (minds: kJobMinds, skills: kJobSkills);
   final raw = await _loadShard(ref, jobSkillsKind);
   if (raw == null) return fallback;
@@ -56,6 +59,8 @@ Future<JobSkillCatalog> jobSkillCatalog(Ref ref) async {
 
 @riverpod
 Future<Map<String, JobSectInfo>> jobSectInfoCatalog(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final raw = await _loadShard(ref, jobSectInfoKind);
   if (raw == null) return kJobSectInfo;
   try {
@@ -101,6 +106,8 @@ JobSectInfo _withBuiltinDmg(JobSectInfo shard, JobSectInfo? builtin) {
 
 @riverpod
 Future<JobWudaoCatalog> jobWudaoCatalog(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final fallback = (tierNames: kWudaoTierCn, schools: kWudao);
   final raw = await _loadShard(ref, jobWudaoKind);
   if (raw == null) return fallback;

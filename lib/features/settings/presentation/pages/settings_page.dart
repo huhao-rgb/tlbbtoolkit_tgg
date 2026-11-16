@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:tlbbtoolkit/app/theme/design_tokens.dart';
 import 'package:tlbbtoolkit/core/constants/app_constants.dart';
+import 'package:tlbbtoolkit/core/content/catalog_sync.dart';
 import 'package:tlbbtoolkit/core/di/providers.dart';
 import 'package:tlbbtoolkit/core/responsive/breakpoints.dart';
 import 'package:tlbbtoolkit/core/utils/error_log.dart';
@@ -42,6 +43,7 @@ class SettingsPage extends ConsumerWidget {
     // 版本号运行时读取（来源 pubspec.yaml）；未就绪 / 读取失败时不展示版本段。
     final version = ref.watch(packageInfoProvider).value?.version;
     final errorCount = ErrorLog.instance.entries.length;
+    final syncState = ref.watch(catalogSyncControllerProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -99,6 +101,46 @@ class SettingsPage extends ConsumerWidget {
                             subtitle: '是否显示通知提醒',
                             value: settings.enableNotifications,
                             onChanged: (_) => notifier.toggleNotifications(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TgSpacing.md),
+                    // 数据卡：手动同步云端数据目录（门派 / 珍兽等分片）
+                    _SectionCard(
+                      children: [
+                        _SectionRow(
+                          icon: 'download',
+                          title: '同步云端数据',
+                          subtitle: syncState.message,
+                          trailing: Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              key: const Key('settings-sync-catalog'),
+                              onPressed: syncState.isRunning
+                                  ? null
+                                  : () => ref
+                                        .read(
+                                          catalogSyncControllerProvider
+                                              .notifier,
+                                        )
+                                        .sync(),
+                              icon: syncState.isRunning
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.cloud_download_rounded,
+                                      size: 16,
+                                    ),
+                              label: Text(
+                                syncState.isRunning ? '同步中…' : '立即同步',
+                              ),
+                            ),
                           ),
                         ),
                       ],

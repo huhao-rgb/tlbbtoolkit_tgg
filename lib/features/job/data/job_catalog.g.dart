@@ -46,7 +46,7 @@ final class JobSkillCatalogProvider
   }
 }
 
-String _$jobSkillCatalogHash() => r'c536ab91f24966d118ba4e49b8a2759ded891464';
+String _$jobSkillCatalogHash() => r'e4f33c1e6f436b08e8fda070efa73051f00f050c';
 
 @ProviderFor(jobSectInfoCatalog)
 final jobSectInfoCatalogProvider = JobSectInfoCatalogProvider._();
@@ -88,7 +88,7 @@ final class JobSectInfoCatalogProvider
 }
 
 String _$jobSectInfoCatalogHash() =>
-    r'b2af661194cad83a67e1b4a127dbe1b3f56e3c8e';
+    r'af6956e50880a80599487b0a833fa70cd7f1e9ba';
 
 @ProviderFor(jobWudaoCatalog)
 final jobWudaoCatalogProvider = JobWudaoCatalogProvider._();
@@ -127,4 +127,4 @@ final class JobWudaoCatalogProvider
   }
 }
 
-String _$jobWudaoCatalogHash() => r'b26c5e9637523cd37803df3c2f16854347ab523e';
+String _$jobWudaoCatalogHash() => r'0138b9fb15fa8035e0d2d6d6c76d33de44c155bb';

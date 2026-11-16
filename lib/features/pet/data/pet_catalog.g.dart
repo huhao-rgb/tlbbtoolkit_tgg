@@ -49,7 +49,7 @@ final class BeastSpiritCatalogProvider
 }
 
 String _$beastSpiritCatalogHash() =>
-    r'537ce1c73a6348788a70f6b29a100740ffee3192';
+    r'89a21b3c016119920ab2452227922616d76f812d';
 
 @ProviderFor(beastSoulCatalog)
 final beastSoulCatalogProvider = BeastSoulCatalogProvider._();
@@ -88,7 +88,7 @@ final class BeastSoulCatalogProvider
   }
 }
 
-String _$beastSoulCatalogHash() => r'6cf4464b0ab1c380a4cb06e824b11476ea7a4a06';
+String _$beastSoulCatalogHash() => r'efefc1245b31de63206275314b4eb345de3524f6';
 
 @ProviderFor(petSuitCatalog)
 final petSuitCatalogProvider = PetSuitCatalogProvider._();
@@ -127,7 +127,7 @@ final class PetSuitCatalogProvider
   }
 }
 
-String _$petSuitCatalogHash() => r'd453bb9840feb5387480ccd4207522f7355ae37d';
+String _$petSuitCatalogHash() => r'4f31285fc0f37078c2176a80026a6ac2ddb127c4';
 
 @ProviderFor(petSkillCatalog)
 final petSkillCatalogProvider = PetSkillCatalogProvider._();
@@ -166,4 +166,4 @@ final class PetSkillCatalogProvider
   }
 }
 
-String _$petSkillCatalogHash() => r'317da622f744e9de203d4b35f48b04144c03b41e';
+String _$petSkillCatalogHash() => r'53d3b1e1b4cc7668bd96bafd57b59c638d2513a9';

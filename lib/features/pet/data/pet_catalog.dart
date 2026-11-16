@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:tlbbtoolkit/core/content/catalog_providers.dart';
+import 'package:tlbbtoolkit/core/content/catalog_sync.dart';
 import 'package:tlbbtoolkit/core/utils/logger.dart';
 import 'package:tlbbtoolkit/features/pet/domain/beast_soul.dart';
 import 'package:tlbbtoolkit/features/pet/domain/beast_spirit.dart';
@@ -58,6 +59,8 @@ Future<String?> _loadShard(Ref ref, String kind) async {
 
 @riverpod
 Future<BeastSpiritCatalog> beastSpiritCatalog(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final fallback = (
     tierSteps: kBeastTierSteps,
     spirits: kBeastSpirits,
@@ -77,6 +80,8 @@ Future<BeastSpiritCatalog> beastSpiritCatalog(Ref ref) async {
 
 @riverpod
 Future<List<BeastSoul>> beastSoulCatalog(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final raw = await _loadShard(ref, beastSoulsKind);
   if (raw == null) return kBeastSouls;
   try {
@@ -94,6 +99,8 @@ Future<List<BeastSoul>> beastSoulCatalog(Ref ref) async {
 
 @riverpod
 Future<PetSuitCatalog> petSuitCatalog(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final raw = await _loadShard(ref, petSuitsKind);
   if (raw == null) return petSuitFallback;
   try {
@@ -107,6 +114,8 @@ Future<PetSuitCatalog> petSuitCatalog(Ref ref) async {
 
 @riverpod
 Future<PetSkillCatalog> petSkillCatalog(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final fallback = (skills: kPetSkills, chars: kPetChars);
   final raw = await _loadShard(ref, petSkillsKind);
   if (raw == null) return fallback;

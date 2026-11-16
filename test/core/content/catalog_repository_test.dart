@@ -194,4 +194,57 @@ void main() {
       );
     });
   });
+
+  group('syncNow（设置页手动同步）', () {
+    test('有新版本 → 立即激活，不用等下次启动', () async {
+      final remote = FakeRemote(
+        manifest: manifestJson({'job.artifacts': '{"v":3}'}),
+        shards: {'job.artifacts': '{"v":3}'},
+      );
+      final repo = build(
+        remote: remote,
+        assets: {
+          CatalogRepository.bundledManifestPath: manifestJson({
+            'job.artifacts': '{"v":0}',
+          }),
+          CatalogRepository.bundledShardPath('job.artifacts'): '{"v":0}',
+        },
+      );
+
+      expect(await repo.syncNow(), CatalogRefreshOutcome.updated);
+      // 关键差异：refresh 只暂存，syncNow 已经 promote，读到的就是新数据。
+      expect(await repo.loadShard('job.artifacts'), '{"v":3}');
+      expect(storage.values.keys.any((k) => k.startsWith('pending/')), isFalse);
+    });
+
+    test('TTL 内也强制请求（用户主动点击不受 12 小时限制）', () async {
+      await cache.writeLastCheck(DateTime.utc(2026, 10, 23, 9, 59));
+      final remote = FakeRemote(
+        manifest: manifestJson({'job.artifacts': '{"v":2}'}),
+        shards: {'job.artifacts': '{"v":2}'},
+      );
+      final repo = build(remote: remote, now: DateTime.utc(2026, 10, 23, 10));
+
+      expect(await repo.syncNow(), CatalogRefreshOutcome.updated);
+      expect(remote.manifestCalls, 1);
+      expect(await repo.loadShard('job.artifacts'), '{"v":2}');
+    });
+
+    test('304 → notModified，不动现有缓存', () async {
+      await cache.stage(
+        manifestRaw: manifestJson({'job.artifacts': '{"v":1}'}),
+        shards: {'job.artifacts': '{"v":1}'},
+      );
+      await cache.promotePending();
+
+      final repo = build(remote: FakeRemote(notModified: true));
+
+      expect(await repo.syncNow(), CatalogRefreshOutcome.notModified);
+      expect(await repo.loadShard('job.artifacts'), '{"v":1}');
+    });
+
+    test('未配置远端 → skipped', () async {
+      expect(await build().syncNow(), CatalogRefreshOutcome.skipped);
+    });
+  });
 }

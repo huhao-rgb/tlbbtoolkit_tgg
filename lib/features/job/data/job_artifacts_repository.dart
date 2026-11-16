@@ -7,6 +7,7 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:tlbbtoolkit/core/content/catalog_providers.dart';
+import 'package:tlbbtoolkit/core/content/catalog_sync.dart';
 import 'package:tlbbtoolkit/core/utils/logger.dart';
 import 'package:tlbbtoolkit/features/job/data/job_artifact_parser.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_artifact.dart';
@@ -21,6 +22,8 @@ const String jobArtifactsKind = 'job.artifacts';
 /// 优先级：本地缓存 / 远端覆盖（经 catalog 仓储） → 内置 `assets/catalog/` → 常量。
 @riverpod
 Future<Map<String, JobArtifact>> jobArtifacts(Ref ref) async {
+  // 设置页「同步云端数据」成功后 bump，令本 provider 重新读分片。
+  ref.watch(catalogRevisionProvider);
   final catalog = await ref.watch(catalogRepositoryProvider.future);
   final raw = await catalog.loadShard(jobArtifactsKind);
   if (raw == null) return kJobArtifacts;
