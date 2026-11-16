@@ -111,9 +111,9 @@ void main() {
 
     expect(find.text('曼陀山庄'), findsNWidgets(2)); // pill + 当前门派名
     expect(find.text('内功 · 琴音'), findsOneWidget);
-    expect(find.textContaining('七本心法 · 共 13 门绝技'), findsOneWidget);
-    // 官网心法 chips（玄音曲 / 流芳诀 …）与技能
-    expect(find.text('玄音曲'), findsWidgets);
+    expect(find.textContaining('七本心法 · 共 24 门绝技'), findsOneWidget);
+    // 官网心法 chips（琅嬛玉简 / 残谱通考 …）与技能
+    expect(find.text('琅嬛玉简'), findsWidgets);
     expect(find.text('余音袅袅'), findsWidgets);
     expect(find.text('列子御风'), findsWidgets);
     expect(find.text('心无旁骛'), findsWidgets);
