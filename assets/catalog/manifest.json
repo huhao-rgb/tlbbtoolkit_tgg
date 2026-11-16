@@ -33,9 +33,9 @@
     {
       "kind": "job.skills",
       "schemaVersion": 1,
-      "dataVersion": "2026.11.16.30cb1bf4",
-      "sha256": "3f98473a95ad88502dc17d6a7daf780a5607ba6d3d748d1a3c231e0aa0a16d64",
-      "bytes": 113367
+      "dataVersion": "2026.11.16.169926fc",
+      "sha256": "85b4a1d22542c52f0c13de86ee979fc2f49df0e4329d8984734905561bc8dd38",
+      "bytes": 118528
     },
     {
       "kind": "job.wudao",

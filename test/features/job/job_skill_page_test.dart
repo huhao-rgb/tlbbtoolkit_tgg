@@ -59,7 +59,7 @@ void main() {
     expect(find.byType(Image), findsWidgets);
     expect(find.text('攻击'), findsWidgets);
     expect(find.text('—'), findsWidgets);
-    expect(find.textContaining('逍遥弟子的入门功夫'), findsOneWidget);
+    expect(find.textContaining('增加内功攻击554点'), findsOneWidget);
   });
 
   testWidgets('点心法 chip 单独查看该心法技能', (tester) async {
