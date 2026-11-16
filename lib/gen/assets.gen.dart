@@ -1491,6 +1491,146 @@ class $AssetsSkillIconsGen {
   AssetGenImage get skill278 =>
       const AssetGenImage('assets/skill_icons/skill_278.jpg');
 
+  /// File path: assets/skill_icons/skill_279.jpg
+  AssetGenImage get skill279 =>
+      const AssetGenImage('assets/skill_icons/skill_279.jpg');
+
+  /// File path: assets/skill_icons/skill_280.jpg
+  AssetGenImage get skill280 =>
+      const AssetGenImage('assets/skill_icons/skill_280.jpg');
+
+  /// File path: assets/skill_icons/skill_281.jpg
+  AssetGenImage get skill281 =>
+      const AssetGenImage('assets/skill_icons/skill_281.jpg');
+
+  /// File path: assets/skill_icons/skill_282.jpg
+  AssetGenImage get skill282 =>
+      const AssetGenImage('assets/skill_icons/skill_282.jpg');
+
+  /// File path: assets/skill_icons/skill_283.jpg
+  AssetGenImage get skill283 =>
+      const AssetGenImage('assets/skill_icons/skill_283.jpg');
+
+  /// File path: assets/skill_icons/skill_284.jpg
+  AssetGenImage get skill284 =>
+      const AssetGenImage('assets/skill_icons/skill_284.jpg');
+
+  /// File path: assets/skill_icons/skill_285.jpg
+  AssetGenImage get skill285 =>
+      const AssetGenImage('assets/skill_icons/skill_285.jpg');
+
+  /// File path: assets/skill_icons/skill_286.jpg
+  AssetGenImage get skill286 =>
+      const AssetGenImage('assets/skill_icons/skill_286.jpg');
+
+  /// File path: assets/skill_icons/skill_287.jpg
+  AssetGenImage get skill287 =>
+      const AssetGenImage('assets/skill_icons/skill_287.jpg');
+
+  /// File path: assets/skill_icons/skill_288.jpg
+  AssetGenImage get skill288 =>
+      const AssetGenImage('assets/skill_icons/skill_288.jpg');
+
+  /// File path: assets/skill_icons/skill_289.jpg
+  AssetGenImage get skill289 =>
+      const AssetGenImage('assets/skill_icons/skill_289.jpg');
+
+  /// File path: assets/skill_icons/skill_290.jpg
+  AssetGenImage get skill290 =>
+      const AssetGenImage('assets/skill_icons/skill_290.jpg');
+
+  /// File path: assets/skill_icons/skill_291.jpg
+  AssetGenImage get skill291 =>
+      const AssetGenImage('assets/skill_icons/skill_291.jpg');
+
+  /// File path: assets/skill_icons/skill_292.jpg
+  AssetGenImage get skill292 =>
+      const AssetGenImage('assets/skill_icons/skill_292.jpg');
+
+  /// File path: assets/skill_icons/skill_293.jpg
+  AssetGenImage get skill293 =>
+      const AssetGenImage('assets/skill_icons/skill_293.jpg');
+
+  /// File path: assets/skill_icons/skill_294.jpg
+  AssetGenImage get skill294 =>
+      const AssetGenImage('assets/skill_icons/skill_294.jpg');
+
+  /// File path: assets/skill_icons/skill_295.jpg
+  AssetGenImage get skill295 =>
+      const AssetGenImage('assets/skill_icons/skill_295.jpg');
+
+  /// File path: assets/skill_icons/skill_296.jpg
+  AssetGenImage get skill296 =>
+      const AssetGenImage('assets/skill_icons/skill_296.jpg');
+
+  /// File path: assets/skill_icons/skill_297.jpg
+  AssetGenImage get skill297 =>
+      const AssetGenImage('assets/skill_icons/skill_297.jpg');
+
+  /// File path: assets/skill_icons/skill_298.jpg
+  AssetGenImage get skill298 =>
+      const AssetGenImage('assets/skill_icons/skill_298.jpg');
+
+  /// File path: assets/skill_icons/skill_299.jpg
+  AssetGenImage get skill299 =>
+      const AssetGenImage('assets/skill_icons/skill_299.jpg');
+
+  /// File path: assets/skill_icons/skill_300.jpg
+  AssetGenImage get skill300 =>
+      const AssetGenImage('assets/skill_icons/skill_300.jpg');
+
+  /// File path: assets/skill_icons/skill_301.jpg
+  AssetGenImage get skill301 =>
+      const AssetGenImage('assets/skill_icons/skill_301.jpg');
+
+  /// File path: assets/skill_icons/skill_302.jpg
+  AssetGenImage get skill302 =>
+      const AssetGenImage('assets/skill_icons/skill_302.jpg');
+
+  /// File path: assets/skill_icons/skill_303.jpg
+  AssetGenImage get skill303 =>
+      const AssetGenImage('assets/skill_icons/skill_303.jpg');
+
+  /// File path: assets/skill_icons/skill_304.jpg
+  AssetGenImage get skill304 =>
+      const AssetGenImage('assets/skill_icons/skill_304.jpg');
+
+  /// File path: assets/skill_icons/skill_305.jpg
+  AssetGenImage get skill305 =>
+      const AssetGenImage('assets/skill_icons/skill_305.jpg');
+
+  /// File path: assets/skill_icons/skill_306.jpg
+  AssetGenImage get skill306 =>
+      const AssetGenImage('assets/skill_icons/skill_306.jpg');
+
+  /// File path: assets/skill_icons/skill_307.jpg
+  AssetGenImage get skill307 =>
+      const AssetGenImage('assets/skill_icons/skill_307.jpg');
+
+  /// File path: assets/skill_icons/skill_308.jpg
+  AssetGenImage get skill308 =>
+      const AssetGenImage('assets/skill_icons/skill_308.jpg');
+
+  /// File path: assets/skill_icons/skill_309.jpg
+  AssetGenImage get skill309 =>
+      const AssetGenImage('assets/skill_icons/skill_309.jpg');
+
+  /// File path: assets/skill_icons/skill_310.jpg
+  AssetGenImage get skill310 =>
+      const AssetGenImage('assets/skill_icons/skill_310.jpg');
+
+  /// File path: assets/skill_icons/skill_311.jpg
+  AssetGenImage get skill311 =>
+      const AssetGenImage('assets/skill_icons/skill_311.jpg');
+
+  /// File path: assets/skill_icons/skill_312.jpg
+  AssetGenImage get skill312 =>
+      const AssetGenImage('assets/skill_icons/skill_312.jpg');
+
+  /// File path: assets/skill_icons/skill_313.jpg
+  AssetGenImage get skill313 =>
+      const AssetGenImage('assets/skill_icons/skill_313.jpg');
+
   /// List of all assets
   List<AssetGenImage> get values => [
     skill000,
@@ -1772,6 +1912,41 @@ class $AssetsSkillIconsGen {
     skill276,
     skill277,
     skill278,
+    skill279,
+    skill280,
+    skill281,
+    skill282,
+    skill283,
+    skill284,
+    skill285,
+    skill286,
+    skill287,
+    skill288,
+    skill289,
+    skill290,
+    skill291,
+    skill292,
+    skill293,
+    skill294,
+    skill295,
+    skill296,
+    skill297,
+    skill298,
+    skill299,
+    skill300,
+    skill301,
+    skill302,
+    skill303,
+    skill304,
+    skill305,
+    skill306,
+    skill307,
+    skill308,
+    skill309,
+    skill310,
+    skill311,
+    skill312,
+    skill313,
   ];
 }
 
