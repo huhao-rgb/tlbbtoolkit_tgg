@@ -13,8 +13,9 @@ void main() {
   test('映射里的每个资源都真实存在', () {
     final missing = <String>[];
     for (final entry in kJobSkillIcons.entries) {
-      if (!File(entry.value).existsSync())
+      if (!File(entry.value).existsSync()) {
         missing.add('${entry.key} → ${entry.value}');
+      }
     }
     expect(missing, isEmpty, reason: '有 ${missing.length} 条映射指向不存在的文件');
   });
