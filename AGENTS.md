@@ -110,6 +110,7 @@ presentation ──► domain ◄── data
 | **pub 源必须与 `pubspec.lock` 一致** | `pubspec.lock` 里每个包都记了 `url`（本仓库统一为 `https://pub.dev`）。若当前环境的 `PUB_HOSTED_URL` 与 lock 记录的源不同（例如本机设了国内镜像），pub 会判定 lock 失效并**整体重新解析依赖**，静默升级到新版本。v1.1.2 黑屏事故即由此触发（`shared_preferences_android` 被升到 2.5.1）。CI 已固定 `PUB_HOSTED_URL` + `--enforce-lockfile`；**本地若设了镜像源，请把它去掉**，否则 `fvm flutter pub get` 会改写 lock。 |
 | **R8 会破坏 Pigeon JNI 插件** | `shared_preferences_android` 2.5.x 起改用 Pigeon JNI：Dart 侧按「类名 + 方法签名」反射调用 Java，类名与签名不能被混淆。`android/app/proguard-rules.pro` 已 `-keep` 相关类（含 `kotlin.coroutines.*`），**不要删**，否则 release 包启动即黑屏（只影响 release，debug 正常）。 |
 | **macOS 开发 profile 只有 7 天有效期** | 免费个人团队签发的 `Mac Team Provisioning Profile: <bundle-id>` 到期后 `flutter run -d macos` 会报 `No profiles for '…' were found ... pass -allowProvisioningUpdates`。根因是 **Flutter 的 macOS 构建路径不传 `-allowProvisioningUpdates`**（只有 iOS 路径传）。跑 `./scripts/macos-signing-refresh.sh` 续签；VS Code 的 macOS 启动配置与 `build_macos_dmg.sh` 已自动调用。详见 [`docs/macos-signing.md`](docs/macos-signing.md)。 |
+| **手机管家报 `a.gray.BulimiaTGen`** | 华为/荣耀/小米/OPPO/vivo 共用腾讯病毒库，对「个人自签证书 + 未上架商店 + 从 Releases 侧载」的包报 `Android.Virus.Gray.BulimiaTGen.*`（高危）。这是**结构性启发式误报**，不是代码里有恶意行为：本包只申请 `INTERNET`，dex 内无 `DexClassLoader` / `Runtime.exec`。**不要**靠加固/混淆/换签名去"修"（反而更容易命中，换签名还会让老用户无法覆盖安装）。正确处理：腾讯误报申诉 + 上架商店；校验与申诉材料见 [`docs/android-antivirus-false-positive.md`](docs/android-antivirus-false-positive.md)。 |
 
 ---
 
