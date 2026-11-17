@@ -144,6 +144,75 @@ void main() {
     expect(find.text('武道四重'), findsNWidgets(2));
   });
 
+  testWidgets('慕容：流派卡「树状」按钮打开技能树弹窗（含连线与切重）', (tester) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(find.text('慕容'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('慕容'));
+    await tester.pumpAndSettle();
+
+    // 两条流派卡各一个入口
+    expect(find.text('树状'), findsNWidgets(2));
+    await tester.tap(find.text('树状').first);
+    await tester.pumpAndSettle();
+
+    final dialog = find.byType(Dialog);
+    expect(dialog, findsOneWidget);
+    expect(
+      find.descendant(of: dialog, matching: find.text('逆锋 · 树状关系')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: dialog, matching: find.textContaining('共 4 重')),
+      findsOneWidget,
+    );
+    // 一重 10 张卡（按 2/3/2/3 四行排布）
+    expect(
+      find.descendant(of: dialog, matching: find.text('柳拂衣·神威')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: dialog, matching: find.text('借力打力')),
+      findsOneWidget,
+    );
+    // 有连线：画布上用 CustomPaint 画折线
+    expect(
+      find.descendant(of: dialog, matching: find.byType(CustomPaint)),
+      findsWidgets,
+    );
+    expect(
+      find.descendant(of: dialog, matching: find.textContaining('关联路径')),
+      findsOneWidget,
+    );
+
+    // 切到四重：逆锋四重在游戏里没有连线，页脚换成说明文案
+    await tester.tap(find.descendant(of: dialog, matching: find.text('武道四重')));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: dialog, matching: find.text('白刃托身')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: dialog, matching: find.textContaining('没有连线')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('慕容：窄屏 390 下技能树弹窗不溢出', (tester) async {
+    await pumpPage(tester, size: const Size(390, 844));
+
+    await tester.ensureVisible(find.text('慕容'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('慕容'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('树状').first);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Dialog), findsOneWidget);
+  });
+
   testWidgets('切换门派：昆仑「斩妄 / 怒啸」按截图渲染四重节点', (tester) async {
     await pumpPage(tester);
 

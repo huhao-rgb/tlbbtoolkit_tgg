@@ -147,6 +147,8 @@ Map<String, Object?> _shards() => {
                           'icon': node.icon,
                         },
                     ],
+                    if (layer.rows != null) 'rows': layer.rows,
+                    if (layer.edges != null) 'edges': layer.edges,
                   },
               ],
             },

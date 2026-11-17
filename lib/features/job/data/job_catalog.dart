@@ -301,6 +301,8 @@ WudaoSchool? _schoolOf(Object? json) {
       for (final layer in layers)
         if (layer is Map)
           WudaoLayer(
+            rows: _ints(layer['rows']),
+            edges: _edges(layer['edges']),
             nodes: [
               for (final node in layer['nodes'] as List? ?? const [])
                 if (node is Map &&
@@ -324,3 +326,29 @@ List<String> _strings(Object? value) => [
     for (final item in value)
       if (item is String) item,
 ];
+
+/// 非负整数数组（用于 `rows`），非法项直接丢弃；空结果返回 null。
+List<int>? _ints(Object? value) {
+  if (value is! List) return null;
+  final out = [
+    for (final item in value)
+      if (item is int && item > 0) item,
+  ];
+  return out.isEmpty ? null : out;
+}
+
+/// 连线数组（`[[父, 子], ...]`），成对且非负才算；空结果返回 null。
+List<List<int>>? _edges(Object? value) {
+  if (value is! List) return null;
+  final out = <List<int>>[
+    for (final item in value)
+      if (item is List &&
+          item.length == 2 &&
+          item[0] is int &&
+          item[1] is int &&
+          (item[0] as int) >= 0 &&
+          (item[1] as int) >= 0)
+        [item[0] as int, item[1] as int],
+  ];
+  return out.isEmpty ? null : out;
+}

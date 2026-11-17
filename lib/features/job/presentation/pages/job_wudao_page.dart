@@ -12,6 +12,7 @@ import 'package:tlbbtoolkit/shared/widgets/tg_page_entrance.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_sect.dart';
 import 'package:tlbbtoolkit/features/job/domain/job_wudao.dart';
 import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.dart';
+import 'package:tlbbtoolkit/features/job/presentation/widgets/wudao_tree_dialog.dart';
 
 /// 职业武道（对应原型 `v-class-wudao`）。
 ///
@@ -263,24 +264,35 @@ class _SchoolCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 11),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    school.name,
-                    style: TextStyle(
-                      fontFamily: TgFonts.serif,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                      color: tg.t1,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      school.name,
+                      style: TextStyle(
+                        fontFamily: TgFonts.serif,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                        color: tg.t1,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '${sect.name} · 流派 ${index + 1} / $total',
-                    style: TextStyle(fontSize: 12, color: tg.t3),
-                  ),
-                ],
+                    Text(
+                      '${sect.name} · 流派 ${index + 1} / $total',
+                      style: TextStyle(fontSize: 12, color: tg.t3),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _TreeButton(
+                onTap: () => showWudaoTreeDialog(
+                  context: context,
+                  sectName: sect.name,
+                  school: school,
+                  tierNames: tierNames,
+                ),
               ),
             ],
           ),
@@ -298,6 +310,43 @@ class _SchoolCard extends StatelessWidget {
             for (final node in school.layers[li].nodes) _NodeRow(node: node),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// 「树状关系」入口（流派卡头部右侧的小按钮）。
+class _TreeButton extends StatelessWidget {
+  const _TreeButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tg = context.tg;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(9),
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: tg.goldTint(.06),
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: tg.goldTint(.3), width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.account_tree_outlined, size: 14, color: tg.gold2),
+              const SizedBox(width: 5),
+              Text('树状', style: TextStyle(fontSize: 12, color: tg.gold2)),
+            ],
+          ),
+        ),
       ),
     );
   }
