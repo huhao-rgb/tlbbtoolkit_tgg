@@ -172,14 +172,77 @@ jobs:
           fi
 
           if [ -n "$EXPECTED_SHA256" ]; then
-            want="$(echo "$EXPECTED_SHA256" | tr -d ':' | tr 'a-f' 'A-F')"
+            # 容忍冒号、大小写与误粘的空格/换行（从设置页复制常带尾随空白）。
+            want="$(echo "$EXPECTED_SHA256" | tr -d ':' | tr -d '[:space:]' | tr 'a-f' 'A-F')"
             got="$(echo "$SIG" | grep 'certificate SHA-256 digest' | head -1 | awk -F': ' '{print $NF}' | tr -d ' ' | tr 'a-f' 'A-F')"
             if [ "$want" != "$got" ]; then
-              echo "::error::证书指纹不匹配：期望 $want，实际 $got"
+              echo "::error title=证书指纹不匹配::期望 $want，实际 $got（Secrets 里的 keystore 已被更换？）"
               exit 1
             fi
             echo "证书指纹校验通过：$got"
+            # ::notice 会落成 run 的 annotation，可在 API / 运行页直接确认「确实比对了」，
+            # 而不只是「没有报错」。
+            echo "::notice title=证书指纹校验通过::$got"
+            echo "> ✅ 已比对证书指纹：\`$got\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            # 变量名填错、或误填进 Secrets 时 vars.* 为空，校验会被静默跳过 ——
+            # 「以为在保护」比不保护更危险，必须显式告警。
+            echo "::warning title=未配置 ANDROID_CERT_SHA256::本次未比对证书指纹，请确认变量建在 Settings → Secrets and variables → Actions → Variables"
+            echo "> ⚠️ 未配置仓库变量 \`ANDROID_CERT_SHA256\`，本次**未比对**证书指纹；实际指纹为 \`$(echo "$SIG" | grep 'SHA-256 digest' | head -1 | awk -F': ' '{print $NF}')\`" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # 把「证书指纹 + APK SHA-256」写进 Job Summary 与 Release 正文。
+      # 动机：这两项是用户判断「包有没有被换过」的唯一依据，也是向厂商申诉误报时
+      # 必须提交的材料。过去只打在 Actions 日志里（随日志过期消失），用户侧无从核对；
+      # 本地重建的包因 --dart-define 与构建环境不同，哈希也必然与发行包不同，
+      # 所以官方哈希只能由 CI 在打包后当场产出。
+      - name: 记录校验信息（证书指纹 / APK SHA-256）
+        run: |
+          APK="${{ steps.apk.outputs.apk }}"
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ 2>/dev/null | sort -V | tail -1)apksigner"
+          SIG="$("$APKSIGNER" verify --print-certs "$APK")"
+
+          DN="$(echo "$SIG" | grep 'certificate DN' | head -1 | sed 's/.*certificate DN: //')"
+          CERT="$(echo "$SIG" | grep 'SHA-256 digest' | head -1 | awk -F': ' '{print $NF}' | tr -d ' ' | tr 'a-f' 'A-F')"
+          CERT_COLON="$(echo "$CERT" | sed 's/../&:/g; s/:$//')"
+          SHA="$(sha256sum "$APK" | awk '{print $1}')"
+          SIZE="$(du -h "$APK" | cut -f1 | tr -d ' ')"
+          NAME="$(basename "$APK")"
+          VER="$(sed -n 's/^version: //p' pubspec.yaml | head -1)"
+
+          for pair in "DN:$DN" "CERT:$CERT" "SHA:$SHA"; do
+            if [ -z "${pair#*:}" ]; then
+              echo "::error::未能解析 ${pair%%:*}，签名信息不完整"
+              exit 1
+            fi
+          done
+
+          # 1) Job Summary：跑完就能在 Actions 页面看到，不必翻日志
+          {
+            echo "### 产物校验信息"
+            echo ""
+            echo "| 项目 | 值 |"
+            echo "| --- | --- |"
+            echo "| 版本 | \`$VER\` |"
+            echo "| 文件 | \`$NAME\`（$SIZE） |"
+            echo "| SHA-256 | \`$SHA\` |"
+            echo "| 签名证书 | \`$DN\` |"
+            echo "| 证书 SHA-256 | \`$CERT_COLON\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # 2) 校验和文件（随 Release 一起发布）
+          mkdir -p dist
+          echo "$SHA  $NAME" > dist/SHA256SUMS.txt
+
+          # 3) 供后续步骤拼装 Release 正文
+          {
+            echo "APK_NAME=$NAME"
+            echo "APK_VER=$VER"
+            echo "APK_SHA256=$SHA"
+            echo "APK_SIZE=$SIZE"
+            echo "CERT_DN=$DN"
+            echo "CERT_SHA256=$CERT_COLON"
+          } >> "$GITHUB_ENV"
 
       - name: 提取本次版本更新日志
         run: |
@@ -207,6 +270,41 @@ jobs:
             echo "# ${GITHUB_REF_NAME}" > RELEASE_NOTES.md
           fi
 
+      # 追加在「提取更新日志」之后：那一步用 `>` 整体重写正文，先写会被覆盖。
+      - name: 把校验信息写入 Release 正文
+        run: |
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "## 安装前请核对签名"
+            echo ""
+            echo "> 华为 / 荣耀 / 小米 / OPPO / vivo 的手机管家可能把这个包报成"
+            echo "> \`Android.Virus.Gray.BulimiaTGen.*\`。这是腾讯病毒库针对「个人自签证书 +"
+            echo "> 未上架应用商店」的启发式误报，不是扫到了恶意代码："
+            echo "> 权限只有网络访问，无广告与统计 SDK，dex 内无动态加载/执行能力。"
+            echo "> 详细说明与自查步骤见仓库 [\`docs/android-antivirus-false-positive.md\`](https://github.com/huhao-rgb/tlbbtoolkit_tgg/blob/main/docs/android-antivirus-false-positive.md)。"
+            echo ""
+            echo "| 项目 | 值 |"
+            echo "| --- | --- |"
+            echo "| 文件 | \`$APK_NAME\`（$APK_SIZE） |"
+            echo "| SHA-256 | \`$APK_SHA256\` |"
+            echo "| 签名证书 | \`$CERT_DN\` |"
+            echo "| 证书 SHA-256 | \`$CERT_SHA256\` |"
+            echo ""
+            echo "核对下载是否完整（PowerShell / macOS / Linux）："
+            echo ""
+            echo '```bash'
+            echo "# PowerShell"
+            echo "Get-FileHash .\\$APK_NAME -Algorithm SHA256"
+            echo "# macOS / Linux"
+            echo "shasum -a 256 $APK_NAME    # 或 sha256sum $APK_NAME"
+            echo '```'
+            echo ""
+            echo "> 自行用源码重建的包哈希会与上方不同（CI 注入了 \`--dart-define\`），"
+            echo "> 请以本页数值为唯一基准。"
+          } >> RELEASE_NOTES.md
+
       - name: 创建 GitHub Release
         # 只有推送 v* tag 才发布；workflow_dispatch 手动试跑仅构建与校验签名。
         if: startsWith(github.ref, 'refs/tags/v')
@@ -216,6 +314,7 @@ jobs:
           body_path: RELEASE_NOTES.md
           files: |
             ${{ steps.apk.outputs.apk }}
+            dist/SHA256SUMS.txt
           fail_on_unmatched_files: true
 
       - name: 清理签名材料
