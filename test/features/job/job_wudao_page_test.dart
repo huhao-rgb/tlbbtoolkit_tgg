@@ -105,7 +105,7 @@ void main() {
     expect(find.text('武道四重'), findsNothing);
   });
 
-  testWidgets('切换门派：曼陀山庄显示官网未收录占位', (tester) async {
+  testWidgets('切换门派：曼陀山庄显示未收录占位', (tester) async {
     await pumpPage(tester);
 
     await tester.ensureVisible(find.text('曼陀山庄'));
@@ -115,7 +115,33 @@ void main() {
 
     expect(find.text('曼陀山庄'), findsNWidgets(2));
     expect(find.text('官网资料站暂未收录该门派武道数据'), findsOneWidget);
-    expect(find.textContaining('曼陀山庄与慕容（重制）官网页面暂未提供'), findsOneWidget);
+    expect(find.textContaining('曼陀山庄暂未提供'), findsOneWidget);
+  });
+
+  testWidgets('切换门派：慕容「逆锋 / 易势」按截图渲染四重节点', (tester) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(find.text('慕容'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('慕容'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('慕容'), findsNWidgets(2));
+    expect(find.text('内外 · 兼修'), findsOneWidget);
+    // 两条流派：逆锋与易势
+    expect(find.text('逆锋'), findsOneWidget);
+    expect(find.text('易势'), findsOneWidget);
+    expect(find.textContaining('流派被动 · 命不由天'), findsOneWidget);
+    expect(find.textContaining('流派被动 · 俯仰自得'), findsOneWidget);
+    expect(find.textContaining('流派 1 / 2'), findsOneWidget);
+    expect(find.textContaining('流派 2 / 2'), findsOneWidget);
+    // 节点抽样（四重各 10 节点）
+    expect(find.text('柳拂衣·神威'), findsNWidgets(2));
+    expect(find.text('借力打力'), findsOneWidget);
+    expect(find.text('剑影留痕'), findsOneWidget);
+    expect(find.text('乘月返真'), findsOneWidget);
+    expect(find.text('武道一重'), findsNWidgets(2));
+    expect(find.text('武道四重'), findsNWidgets(2));
   });
 
   testWidgets('切换门派：昆仑「斩妄 / 怒啸」按截图渲染四重节点', (tester) async {

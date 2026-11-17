@@ -19,7 +19,8 @@ import 'package:tlbbtoolkit/features/job/presentation/widgets/job_sect_widgets.d
 /// 该门派官网武道流派卡（`.wudao-grid`）：
 /// 每流派卡含流派被动（wd-pd）与各「重」节点（wd-lname + wd-row，
 /// 同层择一、每重 5 级）；节点带 30×30 图标。
-/// 慕容 / 曼陀山庄暂无官网武道数据，显示占位提示。
+/// 昆仑 / 慕容按游戏内武道界面截图收录（官网专题未提供），
+/// 曼陀山庄暂无数据，显示占位提示。
 class JobWudaoPage extends ConsumerStatefulWidget {
   const JobWudaoPage({super.key, this.initialSect});
 
@@ -160,7 +161,7 @@ class _JobWudaoPageState extends ConsumerState<JobWudaoPage> {
   }
 }
 
-/// 官网暂未收录该门派武道数据（对应原型无数据占位）。
+/// 该门派尚无武道数据时的占位（当前仅曼陀山庄）。
 class _WudaoEmpty extends StatelessWidget {
   const _WudaoEmpty({required this.sect});
 
@@ -192,7 +193,8 @@ class _WudaoEmpty extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               '武道系统随 2021 年「江湖焕新」资料片上线，覆盖当时九大门派；'
-              '恶人谷收录于其上线专题；曼陀山庄与慕容（重制）官网页面暂未提供。',
+              '恶人谷收录于其上线专题；昆仑与慕容按游戏内武道界面截图整理；'
+              '曼陀山庄暂未提供。',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12.5, color: tg.t3, height: 1.7),
             ),
@@ -476,7 +478,7 @@ class _PageFoot extends StatelessWidget {
         children: [
           const SizedBox(height: 8),
           Text(
-            '武道数据源自畅游官网资料站门派专题 · 同层择一，实际表现请以游戏内为准',
+            '武道数据源自畅游官网资料站门派专题与游戏内截图整理 · 同层择一，实际表现请以游戏内为准',
             style: TextStyle(fontSize: 11.5, color: tg.t3),
           ),
         ],

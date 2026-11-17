@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "dataVersion": "2026.11.16.3d06be4f",
+  "dataVersion": "2026.11.17.f02e1a6e",
   "kind": "job.wudao",
   "items": {
     "tierNames": [
@@ -2190,6 +2190,460 @@
                   "name": "祝东风",
                   "effect": "使用风痕残印留下残影后，自身将获得10秒的20%减伤效果；风痕残印状态持续期间，进入残影5米范围内的最多5个队友将获得10秒的释放者血上限10%的护盾（施放者无法获得，且每个玩家只能从单个残影处获得1次护盾）",
                   "icon": "assets/wudao_icons/kunlun_s1_l3_n9.webp"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "murong": [
+        {
+          "name": "逆锋",
+          "passive": {
+            "name": "命不由天",
+            "desc": "借力返施的冷却时间改为10秒。",
+            "icon": "assets/wudao_icons/murong_s0_pd.webp"
+          },
+          "layers": [
+            {
+              "nodes": [
+                {
+                  "name": "柳拂衣·神威",
+                  "effect": "柳拂衣增加的内功攻击额外增加100%",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n0.webp"
+                },
+                {
+                  "name": "风云流转",
+                  "effect": "气定六合的冷却时间减少10秒",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n1.webp"
+                },
+                {
+                  "name": "伤心剑",
+                  "effect": "心剑交融的破绽状态额外使目标降低10%的内外功防御",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n2.webp"
+                },
+                {
+                  "name": "岁岁年年",
+                  "effect": "天增岁月对自身释放时，额外增加自身2.5%血上限",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n3.webp"
+                },
+                {
+                  "name": "怒剑随心",
+                  "effect": "受到会心攻击时，心剑交融触发借力的几率提高至45%",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n4.webp"
+                },
+                {
+                  "name": "君子剑",
+                  "effect": "受到拥有心剑交融破绽状态的目标攻击时，若没触发借力效果，则有20%概率恢复该伤害10%的血量",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n5.webp"
+                },
+                {
+                  "name": "江山几度",
+                  "effect": "剑锁江山额外增加500点玄攻击",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n6.webp"
+                },
+                {
+                  "name": "弱柳凭风",
+                  "effect": "心剑交融状态下，柳拂衣攻击非玩家目标时，有20%概率触发借力效果",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n7.webp"
+                },
+                {
+                  "name": "风云再起",
+                  "effect": "使用借力返施时，减少横剑疆场5秒冷却时间",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n8.webp"
+                },
+                {
+                  "name": "借力打力",
+                  "effect": "受到攻击触发借力效果时，对该伤害来源的目标造成此次伤害10%的直接伤害",
+                  "icon": "assets/wudao_icons/murong_s0_l0_n9.webp"
+                }
+              ]
+            },
+            {
+              "nodes": [
+                {
+                  "name": "柳拂衣·滞脉",
+                  "effect": "柳拂衣攻击目标时，有20%概率无视目标30%的内功防御",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n0.webp"
+                },
+                {
+                  "name": "柳拂衣·攻心",
+                  "effect": "柳拂衣对目标造成的内功攻击伤害增加5%",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n1.webp"
+                },
+                {
+                  "name": "断情剑",
+                  "effect": "横剑疆场造成的伤害提高25%",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n2.webp"
+                },
+                {
+                  "name": "剑锋藏芒",
+                  "effect": "横剑疆场造成的会心一击伤害提高100%",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n3.webp"
+                },
+                {
+                  "name": "心潮澎湃",
+                  "effect": "击鼓令额外使自身的内功攻击增加原效果的50%",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n4.webp"
+                },
+                {
+                  "name": "静水深流",
+                  "effect": "触发借力效果时，减少借力返施1秒的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n5.webp"
+                },
+                {
+                  "name": "剑随朗日",
+                  "effect": "心剑交融触发借力效果的几率增加10%",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n6.webp"
+                },
+                {
+                  "name": "风卷行云",
+                  "effect": "获得技能：风卷行云，15米释放距离，对敌对目标使用，吸取对方精力，使目标移动速度降低25%，自身移动速度提高25%，持续10秒，冷却时间150秒。小提示：此技能降低/提高的移动速度可跟其他降低/提高移动速度叠加",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n7.webp"
+                },
+                {
+                  "name": "流风化羽",
+                  "effect": "获得技能：流风化羽，自身移动速度提高45%，且自身伤害提高2.5%，持续5秒，冷却120秒",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n8.webp"
+                },
+                {
+                  "name": "俱寂无声",
+                  "effect": "获得技能：俱寂无声，10米释放距离，使目标定身5秒，冷却150秒",
+                  "icon": "assets/wudao_icons/murong_s0_l1_n9.webp"
+                }
+              ]
+            },
+            {
+              "nodes": [
+                {
+                  "name": "化气纵横",
+                  "effect": "化气式的命中率提高10%",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n0.webp"
+                },
+                {
+                  "name": "踏破虚空",
+                  "effect": "破天式的飞剑追击敌对目标。释放破天式时有100%概率立即召唤一把飞剑，该飞剑有50%概率造成麻痹效果",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n1.webp"
+                },
+                {
+                  "name": "来者可追",
+                  "effect": "化气式的冷却时间减少180秒",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n2.webp"
+                },
+                {
+                  "name": "问心无愧",
+                  "effect": "七霞映日额外使自身受到的会心伤害降低10%",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n3.webp"
+                },
+                {
+                  "name": "锁清风",
+                  "effect": "破天式的飞剑额外造成30%减速，持续时间1.5秒，同时目标无法使用除轻功外的位移技能",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n4.webp"
+                },
+                {
+                  "name": "白羽流星",
+                  "effect": "破天式状态期间受到攻击时，有25%概率额外召唤1把飞剑，该效果每2秒最多触发1次",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n5.webp"
+                },
+                {
+                  "name": "剑吞日月",
+                  "effect": "破天式的飞剑每对1个目标造成伤害，减少破天式2秒的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n6.webp"
+                },
+                {
+                  "name": "奋烈有时",
+                  "effect": "使用化气式时，有25%概率清除化气式的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n7.webp"
+                },
+                {
+                  "name": "无量剑",
+                  "effect": "心剑交融状态下，破天式的飞剑命中目标时，若自身没有借力状态，则有50%概率使自己获得借力状态，并减少借力返施5秒的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n8.webp"
+                },
+                {
+                  "name": "剑影留痕",
+                  "effect": "破天式的飞剑命中目标时，给予目标一个状态：受到自身破天式的伤害时，额外附带施放者15%普通攻击的伤害，该状态可叠加，持续7秒，最多叠加4层",
+                  "icon": "assets/wudao_icons/murong_s0_l2_n9.webp"
+                }
+              ]
+            },
+            {
+              "nodes": [
+                {
+                  "name": "有情剑",
+                  "effect": "使用横剑疆场后，自身恢复该次伤害5%的血量",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n0.webp"
+                },
+                {
+                  "name": "又逢君",
+                  "effect": "借力返施的冷却时间减少2秒",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n1.webp"
+                },
+                {
+                  "name": "恨少年",
+                  "effect": "气定六合的影响目标减少为5个，使目标获得状态，对自身造成的伤害减少5%，持续10秒",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n2.webp"
+                },
+                {
+                  "name": "独立不惧",
+                  "effect": "自身血量低于50%时，心剑交融触发借力效果的几率提高5%",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n3.webp"
+                },
+                {
+                  "name": "吞花卧酒",
+                  "effect": "自身存在借力状态时，如果再次触发借力状态，则额外获得一个效果：使下次借力返施的最终伤害额外增加15%，最多叠加3层，持续5秒，生效后消失",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n4.webp"
+                },
+                {
+                  "name": "常相见",
+                  "effect": "若化气式的目标为玩家，有50%概率使其65级门派技能进入冷却，若目标的该技能已进入冷却，则使其重新开始计时",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n5.webp"
+                },
+                {
+                  "name": "落绮濯衣",
+                  "effect": "七霞映日额外使自身受到的会心伤害减少15%",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n6.webp"
+                },
+                {
+                  "name": "归一剑",
+                  "effect": "白羽流星效果召唤的飞剑不会立即飞出，当破天式结束时，所有飞剑合为1把并优先追击当前选择的敌对目标，一段时间后爆炸，对周围7米最多5个目标造成飞剑数*普通攻击60%的伤害",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n7.webp"
+                },
+                {
+                  "name": "妄生颠倒",
+                  "effect": "使用星河虹吸后自身获得一个状态：受到伤害时，若自身没有借力状态，则心剑交融必定触发借力效果，且有25%概率减少借力返施5秒的冷却时间，持续10秒",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n8.webp"
+                },
+                {
+                  "name": "白刃托身",
+                  "effect": "借力返施命中目标后，有25%概率给目标一个效果：使目标下次受到自身借力返施的伤害提高50%，命中后消失，持续15秒",
+                  "icon": "assets/wudao_icons/murong_s0_l3_n9.webp"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "易势",
+          "passive": {
+            "name": "俯仰自得",
+            "desc": "使用柳拂衣时，减少彼行我释和春光四沐的冷却时间2秒，会心时额外减少1秒。蓄云欲雨状态下，受到麻痹或封印的控制效果时，有概率触发随机的蓄气状态。",
+            "icon": "assets/wudao_icons/murong_s1_pd.webp"
+          },
+          "layers": [
+            {
+              "nodes": [
+                {
+                  "name": "柳拂衣·神威",
+                  "effect": "柳拂衣增加的内功攻击额外增加100%",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n0.webp"
+                },
+                {
+                  "name": "气贯八方",
+                  "effect": "气定六合的影响范围增加2米",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n1.webp"
+                },
+                {
+                  "name": "山雨欲来",
+                  "effect": "蓄云欲雨触发蓄气状态的几率提升5%",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n2.webp"
+                },
+                {
+                  "name": "天涯倦客",
+                  "effect": "重云掩日触发虚弱的概率提升25%",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n3.webp"
+                },
+                {
+                  "name": "解春愁",
+                  "effect": "在自身释放的七霞映日状态下，受到控制时，减少春光四沐10秒的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n4.webp"
+                },
+                {
+                  "name": "凌云破空",
+                  "effect": "凌神式的距离增加至15米",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n5.webp"
+                },
+                {
+                  "name": "春日宴",
+                  "effect": "春光四沐有75%概率额外解除一个不良状态",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n6.webp"
+                },
+                {
+                  "name": "倒行逆施",
+                  "effect": "彼行我释可以在被控制时使用。使用时，如果自身被控，则有50%概率解除自身的随机一个控制效果",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n7.webp"
+                },
+                {
+                  "name": "厚德载物",
+                  "effect": "15米范围内受到七霞映日效果的队友被控制时，有15%概率使该控制目标变为自己，并减少20秒春光四沐的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n8.webp"
+                },
+                {
+                  "name": "震慑风雷",
+                  "effect": "使用门派技能解除自身控制状态时，恢复自身150点怒气",
+                  "icon": "assets/wudao_icons/murong_s1_l0_n9.webp"
+                }
+              ]
+            },
+            {
+              "nodes": [
+                {
+                  "name": "柳拂衣·滞脉",
+                  "effect": "柳拂衣攻击目标时，有20%概率无视目标30%的内功防御",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n0.webp"
+                },
+                {
+                  "name": "固若金汤",
+                  "effect": "受到其他玩家的内外功伤害降低5%",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n1.webp"
+                },
+                {
+                  "name": "阴阳往复",
+                  "effect": "气定六合的冷却时间减少20秒",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n2.webp"
+                },
+                {
+                  "name": "寂海生澜",
+                  "effect": "释放门派控制技能或破天式飞剑命中目标后，使自身造成的伤害提高7.5%，持续10秒",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n3.webp"
+                },
+                {
+                  "name": "山河不复",
+                  "effect": "剑锁江山会心时，触发散功的几率提升至80%",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n4.webp"
+                },
+                {
+                  "name": "流水无定",
+                  "effect": "气定六合每命中1个目标，减少气定六合1秒冷却",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n5.webp"
+                },
+                {
+                  "name": "待时而动",
+                  "effect": "彼行我释释放后，恢复自身5%的血量",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n6.webp"
+                },
+                {
+                  "name": "风卷行云",
+                  "effect": "获得技能：风卷行云，15米释放距离，对敌对目标使用，吸取对方精力，使目标移动速度降低25%，自身移动速度提高25%，持续10秒，冷却时间150秒。小提示：此技能降低/提高的移动速度可跟其他降低/提高移动速度叠加",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n7.webp"
+                },
+                {
+                  "name": "流风化羽",
+                  "effect": "获得技能：流风化羽，自身移动速度提高45%，且自身伤害提高2.5%，持续5秒，冷却120秒",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n8.webp"
+                },
+                {
+                  "name": "俱寂无声",
+                  "effect": "获得技能：俱寂无声，10米释放距离，使目标定身5秒，冷却150秒",
+                  "icon": "assets/wudao_icons/murong_s1_l1_n9.webp"
+                }
+              ]
+            },
+            {
+              "nodes": [
+                {
+                  "name": "来去如风",
+                  "effect": "使用探营取将后，自身获得30%加速，持续5秒",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n0.webp"
+                },
+                {
+                  "name": "飞剑逐踪",
+                  "effect": "破天式召唤的飞剑的索敌范围减少为8米，并追击玩家目标",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n1.webp"
+                },
+                {
+                  "name": "剑意茫茫",
+                  "effect": "七霞映日额外使范围内最多6个敌对目标受到自身的伤害提升5%",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n2.webp"
+                },
+                {
+                  "name": "白日神殇",
+                  "effect": "重云掩日触发虚弱状态时，有100%概率使目标受到的内功伤害增加30%，持续15秒",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n3.webp"
+                },
+                {
+                  "name": "晚夜何长",
+                  "effect": "破天式飞剑命中时，有50%概率使麻痹时间增加0.3秒",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n4.webp"
+                },
+                {
+                  "name": "偶定花前",
+                  "effect": "凌神式有50%概率使目标定身2秒",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n5.webp"
+                },
+                {
+                  "name": "朗月入怀",
+                  "effect": "使用破天式时，有100%概率立即召唤一把飞剑",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n6.webp"
+                },
+                {
+                  "name": "公子无双",
+                  "effect": "拥有蓄气状态时，有30%概率抵御一个控制效果，每次蓄气状态最多生效一次",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n7.webp"
+                },
+                {
+                  "name": "日月任我擎",
+                  "effect": "星河虹吸对玩家释放时，定身效果提升到12秒，且无法被门派常规技能驱散，并对目标释放虹吸之线，当目标与自身距离超过10米时，虹吸之线断裂并散功目标3秒，持续15秒",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n8.webp"
+                },
+                {
+                  "name": "抱剑同酣",
+                  "effect": "星河虹吸额外召唤1把飞剑环绕目标，该飞剑每2秒对目标周围5米范围内的最多3个敌对目标造成1次30%的普攻伤害并有100%概率使其麻痹1秒，状态持续15秒",
+                  "icon": "assets/wudao_icons/murong_s1_l2_n9.webp"
+                }
+              ]
+            },
+            {
+              "nodes": [
+                {
+                  "name": "托体同山阿",
+                  "effect": "虹吸之线连线期间每秒吸取对方20点怒气，若目标死亡，使自身额外恢复200点怒气",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n0.webp"
+                },
+                {
+                  "name": "水连天",
+                  "effect": "俯仰自得减少的冷却时间增加50%",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n1.webp"
+                },
+                {
+                  "name": "弑神闪",
+                  "effect": "凌神式的冷却时间增加14秒，效果修改为：点选地面，瞬间移动到目的地，并对周围3米范围内最多3个目标进行一次攻击，造成80%普通攻击的伤害",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n2.webp"
+                },
+                {
+                  "name": "飞剑曳影",
+                  "effect": "破天式召唤飞剑时，有25%概率额外召唤1把，但该飞剑不会使目标麻痹",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n3.webp"
+                },
+                {
+                  "name": "物外光明",
+                  "effect": "使用星河虹吸后，减少探营取将30秒的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n4.webp"
+                },
+                {
+                  "name": "南风知我意",
+                  "effect": "公子无双免疫控制时，减少彼行我释和春光四沐10秒的冷却时间",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n5.webp"
+                },
+                {
+                  "name": "顺意而回",
+                  "effect": "彼行我释的冷却时间减少30秒。该武道升至5级后，蓄气状态可被覆盖，覆盖的顺序为封穴，失明，散功，围困，昏睡，定身",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n6.webp"
+                },
+                {
+                  "name": "奉雪拘霜",
+                  "effect": "触发蓄气时，有15%概率使该控制效果的来源获得对应的彼行我释控制效果，同时清除自身的蓄气状态。本效果每30秒最多触发一次",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n7.webp"
+                },
+                {
+                  "name": "云归海",
+                  "effect": "春光四沐的冷却时间减少30秒。升至5级后，受到控制时有35%概率免疫此次控制效果，并使春光四沐进入5秒冷却，该效果每60秒只能生效一次",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n8.webp"
+                },
+                {
+                  "name": "乘月返真",
+                  "effect": "使用星河虹吸后获得一个10秒的状态：受到部分控制效果时，减少该效果1秒持续时间，最多减少至2秒，并有15%概率直接免疫该控制效果，免疫效果最多生效1次",
+                  "icon": "assets/wudao_icons/murong_s1_l3_n9.webp"
                 }
               ]
             }
