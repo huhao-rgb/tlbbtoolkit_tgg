@@ -54,6 +54,9 @@ app.*.map.json
 # AI agent 本地配置（arkcli / harness 注入产物，含本机绝对路径，因人而异）
 .codex/
 
+# AI agent 工作区记忆（日记/偏好，仅本机有效，不入库）
+.workbuddy/
+
 # 云同步服务端（server/）
 server/**/node_modules/
 server/**/.env
